@@ -1,0 +1,39 @@
+{
+  "name": "js-libp2p-noise",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:NodeFactoryIo/js-libp2p-noise.git",
+  "author": "NodeFactory <info@nodefactory.io>",
+  "license": "MIT",
+  "scripts": {
+    "prebuild": "rm -rf lib",
+    "build": "babel src -x .ts -d lib --source-maps",
+    "check-types": "tsc --incremental --noEmit",
+    "lint": "eslint --ext .ts src/",
+    "pretest": "yarn check-types",
+    "test": "mocha -r ./babel-register.js \"test/**/*.test.ts\""
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.6.4",
+    "@babel/core": "^7.6.4",
+    "@babel/preset-env": "^7.6.3",
+    "@babel/preset-typescript": "^7.6.0",
+    "@babel/register": "^7.6.2",
+    "@types/chai": "^4.2.4",
+    "@types/mocha": "^5.2.7",
+    "@typescript-eslint/eslint-plugin": "^2.6.0",
+    "@typescript-eslint/parser": "^2.6.0",
+    "chai": "^4.2.0",
+    "eslint": "^6.6.0",
+    "mocha": "^6.2.2",
+    "typescript": "^3.6.4"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-env",
+      "@babel/preset-typescript"
+    ],
+    "plugins": [
+    ]
+  }
+}
