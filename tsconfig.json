@@ -6,6 +6,9 @@
     "esModuleInterop": true,
     "typeRoots": [
       "./node_modules/@types"
+    ],
+    "include": [
+      "./node_modules/bn.js-typings/index.d.ts"
     ]
   },
   "exclude": [
