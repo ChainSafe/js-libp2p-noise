@@ -1,6 +1,6 @@
 import { encrypt } from './encrypt';
 
-const tag = '/noise/1.0.0';
+const tag = '/noise';
 
 export {
   tag,
