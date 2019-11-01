@@ -1,6 +1,7 @@
 import {bytes32, bytes16, uint32, uint64, bytes} from './types/basic'
 import { Buffer } from 'buffer';
 import * as crypto from 'libp2p-crypto';
+import * as sodium from 'sodium-native';
 
 type KeyPair = {
   publicKey: bytes32,
@@ -60,10 +61,37 @@ class XXHandshake {
     return {ss, s, e, rs, re, psk};
   }
 
+  incrementNonce(n: uint32) : uint32 {
+    return n + 1;
+  }
+
+  encrypt(k: bytes32, n: uint32, ad: bytes, plaintext: bytes) : bytes {
+    const ElongatedNonce = sodium.sodium_malloc(sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES); // 12U ?
+    sodium.sodium_memzero(ElongatedNonce);
+    ElongatedNonce.set(n, 16);
+
+    const clen = plaintext.length + sodium.crypto_aead_xchacha20poly1305_ietf_ABYTES;
+    const c = sodium.sodium_malloc(clen);
+    sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(c, plaintext, ad, null, ElongatedNonce, k);
+  }
+
+  // Cipher state related
   initializeKey(k: bytes32) : CipherState {
     const n = minNonce;
     return { k, n };
   }
+
+  setNonce(cs: CipherState, nonce: uint32) {
+    cs.n = nonce;
+  }
+
+  encryptWithAd(cs: CipherState, ad: bytes, plaintext: bytes) : bytes {
+    const e = this.encrypt(cs.k, cs.n, ad, plaintext);
+    this.setNonce(cs, this.incrementNonce(cs.n));
+    return e;
+  }
+
+  // Symmetric state related
 
   async initializeSymmetric(protocolName: string) : Promise<SymmetricState> {
     const h = await this.hashProtocolName(protocolName);
