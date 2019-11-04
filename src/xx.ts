@@ -1,11 +1,17 @@
 import {bytes32, bytes16, uint32, uint64, bytes} from './types/basic'
 import { Buffer } from 'buffer';
 import * as crypto from 'libp2p-crypto';
-import AEAD from 'bcrypto';
+import { AEAD, x25519, HKDF } from 'bcrypto';
 
 export interface KeyPair {
   publicKey: bytes32,
   privateKey: bytes32,
+}
+
+interface MessageBuffer {
+  ne: bytes32,
+  ns: bytes,
+  ciphertext: bytes
 }
 
 type CipherState = {
@@ -15,8 +21,8 @@ type CipherState = {
 
 type SymmetricState = {
   cs: CipherState,
-  ck: bytes32,
-  h: bytes32,
+  ck: bytes32,  // chaining key
+  h: bytes32, // handshake hash
 }
 
 type HandshakeState = {
@@ -32,7 +38,7 @@ type NoiseSession = {
   hs: HandshakeState,
   h: bytes32,
   cs1: CipherState,
-  c2: CipherState,
+  cs2: CipherState,
   mc: uint64,
   i: boolean,
 }
@@ -70,6 +76,10 @@ export class XXHandshake {
     return n + 1;
   }
 
+  private dh(privateKey: bytes32, publicKey: bytes32) : bytes32 {
+    return x25519.derive(privateKey, publicKey);
+  }
+
   private convertNonce(n: uint32) : bytes {
     const nonce = Buffer.alloc(12);
     nonce.writeUInt32LE(n, 4);
@@ -98,10 +108,19 @@ export class XXHandshake {
     return ctx.final();
   }
 
+  private isEmptyKey(k: bytes32) : boolean {
+    const emptyKey = this.createEmptyKey();
+    return emptyKey.equals(k);
+  }
+
   // Cipher state related
   private initializeKey(k: bytes32) : CipherState {
     const n = minNonce;
     return { k, n };
+  }
+
+  private hasKey(cs: CipherState) : boolean {
+    return !this.isEmptyKey(cs.k);
   }
 
   private setNonce(cs: CipherState, nonce: uint32) {
@@ -133,6 +152,12 @@ export class XXHandshake {
     return { cs, ck, h };
   }
 
+  private mixKey(ss: SymmetricState, ikm: bytes32) {
+    const [ ck, tempK ] = this.getHkdf(ss.ck, ikm);
+    ss.cs = this.initializeKey(tempK);
+    ss.ck = ck;
+  }
+
   private async hashProtocolName(protocolName: bytes) : Promise<bytes32> {
     if (protocolName.length <= 32) {
       return new Promise(resolve => {
@@ -145,12 +170,90 @@ export class XXHandshake {
     }
   }
 
+  private getHkdf(ck: bytes32, ikm: bytes) : Array<Buffer> {
+    const info = Buffer.alloc(0);
+    const prk = HKDF.extract('SHA256', ikm, ck);
+    const okm = HKDF.expand('SHA256', prk, info, ikm.length);
+
+    const k1 = okm.slice(0, 16);
+    const k2 = okm.slice(16, 32);
+    const k3 = okm.slice(32, 64);
+
+    return [ k1, k2, k3 ];
+  }
+
   private async mixHash(ss: SymmetricState, data: bytes) {
     ss.h = await this.getHash(ss.h, data);
   }
 
   private async getHash(a: bytes, b: bytes) : Promise<bytes32> {
     return await crypto.hmac.create('sha256', Buffer.from([...a, ...b]))
+  }
+
+  private async encryptAndHash(ss: SymmetricState, plaintext: bytes) : Promise<bytes> {
+    let ciphertext;
+    if (this.hasKey(ss.cs)) {
+      ciphertext = this.encryptWithAd(ss.cs, ss.h, plaintext);
+    } else {
+      ciphertext = plaintext;
+    }
+
+    await this.mixHash(ss, ciphertext);
+    return ciphertext;
+  }
+
+  private split (ss: SymmetricState) {
+    const [ tempk1, tempk2 ] = this.getHkdf(ss.ck, Buffer.alloc(0));
+    const cs1 = this.initializeKey(tempk1);
+    const cs2 = this.initializeKey(tempk2);
+
+    return { cs1, cs2 };
+  }
+
+  private async writeMessageA(hs: HandshakeState, payload: bytes) : Promise<MessageBuffer> {
+    let ns = Buffer.alloc(0);
+    hs.e = await this.generateKeypair();
+    const ne = hs.e.publicKey;
+    await this.mixHash(hs.ss, ne);
+    const ciphertext = await this.encryptAndHash(hs.ss, payload);
+
+    return {ne, ns, ciphertext} as MessageBuffer;
+  }
+
+  private async writeMessageB(hs: HandshakeState, payload: bytes) : Promise<MessageBuffer> {
+    hs.e = await this.generateKeypair();
+    const ne = hs.e.publicKey;
+    await this.mixKey(hs.ss, this.dh(hs.e.privateKey, hs.re));
+    const spk = Buffer.alloc(hs.s.publicKey.length);
+    const ns = await this.encryptAndHash(hs.ss, spk);
+    this.mixKey(hs.ss, this.dh(hs.s.privateKey, hs.re));
+    const ciphertext = await this.encryptAndHash(hs.ss, payload);
+
+    return { ne, ns, ciphertext };
+  }
+
+  private async writeMessageC(hs: HandshakeState, payload: bytes) {
+    const spk = hs.s.publicKey;
+    const ns = await this.encryptAndHash(hs.ss, spk);
+    this.mixKey(hs.ss, this.dh(hs.s.privateKey, hs.re));
+    const ciphertext = await this.encryptAndHash(hs.ss, payload);
+    const ne = this.createEmptyKey();
+    const messageBuffer: MessageBuffer = {ne, ns, ciphertext};
+    const { cs1, cs2 } = this.split(hs.ss);
+
+    return { h: hs.ss.h, messageBuffer, cs1, cs2 };
+  }
+
+  private async writeMessageRegular(cs: CipherState, payload: bytes) : Promise<MessageBuffer> {
+    const ciphertext = this.encryptWithAd(cs, Buffer.alloc(0), payload);
+    const ne = this.createEmptyKey();
+    const ns = Buffer.alloc(0);
+
+    return { ne, ns, ciphertext };
+  }
+
+  public async generateKeypair() : Promise<KeyPair> {
+    return await crypto.keys.generateKeyPair('ed25519');
   }
 
   public async initSession(initiator: boolean, prologue: bytes32, s: KeyPair, rs: bytes32) : Promise<NoiseSession> {
@@ -168,5 +271,30 @@ export class XXHandshake {
     session.i = initiator;
     session.mc = 0;
     return session;
+  }
+
+  public async sendMessage(session: NoiseSession, message: bytes) : Promise<MessageBuffer> {
+    let messageBuffer: MessageBuffer = {} as MessageBuffer;
+    if (session.mc === 0) {
+      messageBuffer = await this.writeMessageA(session.hs, message);
+    } else if (session.mc === 1) {
+      messageBuffer = await this.writeMessageB(session.hs, message);
+    } else if (session.mc === 2) {
+      const { h, messageBuffer, cs1, cs2 } = await this.writeMessageC(session.hs, message);
+      session.h = h;
+      session.cs1 = cs1;
+      session.cs2 = cs2;
+    } else if (session.mc > 2) {
+      if (session.i) {
+        messageBuffer = await this.writeMessageRegular(session.cs1, message);
+      } else {
+        messageBuffer = await this.writeMessageRegular(session.cs2, message);
+      }
+    } else {
+      throw new Error("Session invalid.")
+    }
+
+    session.mc++;
+    return messageBuffer;
   }
 }
