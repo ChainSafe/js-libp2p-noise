@@ -4,13 +4,15 @@
     "module": "commonjs",
     "strict": true,
     "esModuleInterop": true,
+    "noImplicitAny": false,
     "typeRoots": [
       "./node_modules/@types"
-    ],
-    "include": [
-      "./node_modules/bn.js-typings/index.d.ts"
     ]
   },
+  "include": [
+    "**/src/**/*.ts",
+    "./node_modules/bn.js-typings/index.d.ts"
+  ],
   "exclude": [
     "node_modules"
   ]

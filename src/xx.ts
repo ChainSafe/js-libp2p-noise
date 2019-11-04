@@ -1,9 +1,9 @@
 import {bytes32, bytes16, uint32, uint64, bytes} from './types/basic'
 import { Buffer } from 'buffer';
 import * as crypto from 'libp2p-crypto';
-import AEAD from 'bcrypto/aead-browser';
+import AEAD from 'bcrypto';
 
-interface KeyPair {
+export interface KeyPair {
   publicKey: bytes32,
   privateKey: bytes32,
 }
@@ -51,6 +51,7 @@ export class XXHandshake {
     const ss = await this.initializeSymmetric(name);
     await this.mixHash(ss, prologue);
 
+    // @ts-ignore-next-line
     return {ss, s, e, rs, re, psk};
   }
 
@@ -61,6 +62,7 @@ export class XXHandshake {
     const ss = await this.initializeSymmetric(name);
     await this.mixHash(ss, prologue);
 
+    // @ts-ignore-next-line
     return {ss, s, e, rs, re, psk};
   }
 
@@ -151,8 +153,10 @@ export class XXHandshake {
     return await crypto.hmac.create('sha256', Buffer.from([...a, ...b]))
   }
 
-  public async initSession(initiator: boolean, prologue: bytes32[], s: KeyPair, rs: bytes32) : Promise<NoiseSession> {
-    let session: NoiseSession;
+  public async initSession(initiator: boolean, prologue: bytes32, s: KeyPair, rs: bytes32) : Promise<NoiseSession> {
+    // TODO: Create noisesession object/class
+    // @ts-ignore-next-line
+    let session: NoiseSession = {};
     const psk = this.createEmptyKey();
 
     if (initiator) {
