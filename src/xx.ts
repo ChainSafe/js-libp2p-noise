@@ -39,7 +39,7 @@ type NoiseSession = {
 
 const minNonce = 0;
 
-class XXHandshake {
+export class XXHandshake {
   private createEmptyKey() : bytes32 {
     return Buffer.alloc(32);
   }
@@ -68,13 +68,30 @@ class XXHandshake {
     return n + 1;
   }
 
-  private encrypt(k: bytes32, n: uint32, ad: bytes, plaintext: bytes) : bytes {
+  private convertNonce(n: uint32) : bytes {
     const nonce = Buffer.alloc(12);
     nonce.writeUInt32LE(n, 4);
+
+    return nonce;
+  }
+
+  private encrypt(k: bytes32, n: uint32, ad: bytes, plaintext: bytes) : bytes {
+    const nonce = this.convertNonce(n);
     const ctx = new AEAD();
     ctx.init(k, nonce);
     ctx.aad(ad);
     ctx.encrypt(plaintext);
+
+    return ctx.final();
+  }
+
+  private decrypt(k: bytes32, n: uint32, ad: bytes, ciphertext: bytes) : bytes {
+    const nonce = this.convertNonce(n);
+    const ctx = new AEAD();
+
+    ctx.init(k, nonce);
+    ctx.aad(ad);
+    ctx.decrypt(ciphertext);
 
     return ctx.final();
   }
@@ -93,6 +110,13 @@ class XXHandshake {
     const e = this.encrypt(cs.k, cs.n, ad, plaintext);
     this.setNonce(cs, this.incrementNonce(cs.n));
     return e;
+  }
+
+  private decryptWithAd(cs: CipherState, ad: bytes, ciphertext: bytes) : bytes {
+    const plaintext = this.decrypt(cs.k, cs.n, ad, ciphertext);
+    this.setNonce(cs, this.incrementNonce(cs.n));
+
+    return plaintext;
   }
 
   // Symmetric state related
