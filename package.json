@@ -37,9 +37,9 @@
     "plugins": []
   },
   "dependencies": {
+    "bcrypto": "^4.2.3",
     "bn.js": "^5.0.0",
     "buffer": "^5.4.3",
-    "libp2p-crypto": "^0.17.1",
-    "sodium-native": "^2.4.6"
+    "libp2p-crypto": "^0.17.1"
   }
 }
