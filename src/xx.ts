@@ -51,7 +51,7 @@ class XXHandshake {
     return {ss, s, e, rs, re, psk};
   }
 
-  async initializeResponder(prologue: bytes32, s: KeyPair, rs: bytes32, psk: bytes32) : Promise<HandshakeState> {
+  private async initializeResponder(prologue: bytes32, s: KeyPair, rs: bytes32, psk: bytes32) : Promise<HandshakeState> {
     const e: KeyPair;
     const re: bytes32;
     const name = "Noise_XX_25519_ChaChaPoly_SHA256";
@@ -61,11 +61,11 @@ class XXHandshake {
     return {ss, s, e, rs, re, psk};
   }
 
-  incrementNonce(n: uint32) : uint32 {
+  private incrementNonce(n: uint32) : uint32 {
     return n + 1;
   }
 
-  encrypt(k: bytes32, n: uint32, ad: bytes, plaintext: bytes) : bytes {
+  private encrypt(k: bytes32, n: uint32, ad: bytes, plaintext: bytes) : bytes {
     const nonce = Buffer.alloc(12);
     nonce.writeUInt32LE(n, 4);
     const ctx = new AEAD();
@@ -77,16 +77,16 @@ class XXHandshake {
   }
 
   // Cipher state related
-  initializeKey(k: bytes32) : CipherState {
+  private initializeKey(k: bytes32) : CipherState {
     const n = minNonce;
     return { k, n };
   }
 
-  setNonce(cs: CipherState, nonce: uint32) {
+  private setNonce(cs: CipherState, nonce: uint32) {
     cs.n = nonce;
   }
 
-  encryptWithAd(cs: CipherState, ad: bytes, plaintext: bytes) : bytes {
+  private encryptWithAd(cs: CipherState, ad: bytes, plaintext: bytes) : bytes {
     const e = this.encrypt(cs.k, cs.n, ad, plaintext);
     this.setNonce(cs, this.incrementNonce(cs.n));
     return e;
@@ -94,7 +94,7 @@ class XXHandshake {
 
   // Symmetric state related
 
-  async initializeSymmetric(protocolName: string) : Promise<SymmetricState> {
+  private async initializeSymmetric(protocolName: string) : Promise<SymmetricState> {
     const h = await this.hashProtocolName(protocolName);
     const ck = h;
     const cs = this.initializeKey(emptyKey);
@@ -102,27 +102,27 @@ class XXHandshake {
     return { cs, ck, h };
   }
 
-  async hashProtocolName(protocolName: string) : Promise<bytes32> {
+  private async hashProtocolName(protocolName: string) : Promise<bytes32> {
     if (protocolName.length <= 32) {
       return new Promise(resolve => {
-        const h = new Buffer(32);
+        const h = Buffer.alloc(32);
         h.write(protocolName);
         resolve(h)
       });
     } else {
-      return await this.getHash(Buffer.from(protocolName), new Buffer([]));
+      return await this.getHash(Buffer.from(protocolName, 'utf-8'), Buffer.from([]));
     }
   }
 
-  async mixHash(ss: SymmetricState, data: bytes) {
+  private async mixHash(ss: SymmetricState, data: bytes) {
     ss.h = await this.getHash(ss.h, data);
   }
 
-  async getHash(a: bytes, b: bytes) : Promise<bytes32> {
+  private async getHash(a: bytes, b: bytes) : Promise<bytes32> {
     return await crypto.hmac.create('sha256', Buffer.from([...a, ...b]))
   }
 
-  async initSession(initiator: boolean, prologue: bytes32[], s: KeyPair, rs: bytes32) : Promise<NoiseSession> {
+  public async initSession(initiator: boolean, prologue: bytes32[], s: KeyPair, rs: bytes32) : Promise<NoiseSession> {
     let session: NoiseSession;
     const psk = emptyKey;
 
