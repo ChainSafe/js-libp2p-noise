@@ -3,7 +3,7 @@ import { Buffer } from 'buffer';
 import * as crypto from 'libp2p-crypto';
 import AEAD from 'bcrypto/aead-browser';
 
-type KeyPair = {
+interface KeyPair {
   publicKey: bytes32,
   privateKey: bytes32,
 }
@@ -37,13 +37,16 @@ type NoiseSession = {
   i: boolean,
 }
 
-const emptyKey = Buffer.alloc(32) as bytes32;
 const minNonce = 0;
 
 class XXHandshake {
+  private createEmptyKey() : bytes32 {
+    return Buffer.alloc(32);
+  }
+
   private async initializeInitiator(prologue: bytes32, s: KeyPair, rs: bytes32, psk: bytes32) : Promise<HandshakeState> {
-    const e: KeyPair;
-    const re: bytes32;
+    let e: KeyPair;
+    let re: bytes32;
     const name = "Noise_XX_25519_ChaChaPoly_SHA256";
     const ss = await this.initializeSymmetric(name);
     await this.mixHash(ss, prologue);
@@ -52,8 +55,8 @@ class XXHandshake {
   }
 
   private async initializeResponder(prologue: bytes32, s: KeyPair, rs: bytes32, psk: bytes32) : Promise<HandshakeState> {
-    const e: KeyPair;
-    const re: bytes32;
+    let e: KeyPair;
+    let re: bytes32;
     const name = "Noise_XX_25519_ChaChaPoly_SHA256";
     const ss = await this.initializeSymmetric(name);
     await this.mixHash(ss, prologue);
@@ -95,22 +98,24 @@ class XXHandshake {
   // Symmetric state related
 
   private async initializeSymmetric(protocolName: string) : Promise<SymmetricState> {
-    const h = await this.hashProtocolName(protocolName);
+    const protocolNameBytes: bytes = Buffer.from(protocolName, 'utf-8');
+    const h = await this.hashProtocolName(protocolNameBytes);
     const ck = h;
-    const cs = this.initializeKey(emptyKey);
+    const key = this.createEmptyKey();
+    const cs = this.initializeKey(key);
 
     return { cs, ck, h };
   }
 
-  private async hashProtocolName(protocolName: string) : Promise<bytes32> {
+  private async hashProtocolName(protocolName: bytes) : Promise<bytes32> {
     if (protocolName.length <= 32) {
       return new Promise(resolve => {
         const h = Buffer.alloc(32);
-        h.write(protocolName);
+        protocolName.copy(h);
         resolve(h)
       });
     } else {
-      return await this.getHash(Buffer.from(protocolName, 'utf-8'), Buffer.from([]));
+      return await this.getHash(protocolName, Buffer.from([]));
     }
   }
 
@@ -124,7 +129,7 @@ class XXHandshake {
 
   public async initSession(initiator: boolean, prologue: bytes32[], s: KeyPair, rs: bytes32) : Promise<NoiseSession> {
     let session: NoiseSession;
-    const psk = emptyKey;
+    const psk = this.createEmptyKey();
 
     if (initiator) {
       session.hs = await this.initializeInitiator(prologue, s, rs, psk);
