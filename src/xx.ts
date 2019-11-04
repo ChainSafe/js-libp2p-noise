@@ -28,17 +28,17 @@ type SymmetricState = {
 type HandshakeState = {
   ss: SymmetricState,
   s: KeyPair,
-  e: KeyPair,
+  e?: KeyPair,
   rs: bytes32,
-  re: bytes32,
+  re?: bytes32,
   psk: bytes32,
 }
 
 type NoiseSession = {
   hs: HandshakeState,
-  h: bytes32,
-  cs1: CipherState,
-  cs2: CipherState,
+  h?: bytes32,
+  cs1?: CipherState,
+  cs2?: CipherState,
   mc: uint64,
   i: boolean,
 }
@@ -51,25 +51,19 @@ export class XXHandshake {
   }
 
   private async initializeInitiator(prologue: bytes32, s: KeyPair, rs: bytes32, psk: bytes32) : Promise<HandshakeState> {
-    let e: KeyPair;
-    let re: bytes32;
     const name = "Noise_XX_25519_ChaChaPoly_SHA256";
     const ss = await this.initializeSymmetric(name);
     await this.mixHash(ss, prologue);
 
-    // @ts-ignore-next-line
-    return {ss, s, e, rs, re, psk};
+    return { ss, s, rs, psk };
   }
 
   private async initializeResponder(prologue: bytes32, s: KeyPair, rs: bytes32, psk: bytes32) : Promise<HandshakeState> {
-    let e: KeyPair;
-    let re: bytes32;
     const name = "Noise_XX_25519_ChaChaPoly_SHA256";
     const ss = await this.initializeSymmetric(name);
     await this.mixHash(ss, prologue);
 
-    // @ts-ignore-next-line
-    return {ss, s, e, rs, re, psk};
+    return { ss, s, rs, psk };
   }
 
   private incrementNonce(n: uint32) : uint32 {
@@ -257,20 +251,20 @@ export class XXHandshake {
   }
 
   public async initSession(initiator: boolean, prologue: bytes32, s: KeyPair, rs: bytes32) : Promise<NoiseSession> {
-    // TODO: Create noisesession object/class
-    // @ts-ignore-next-line
-    let session: NoiseSession = {};
     const psk = this.createEmptyKey();
+    let hs;
 
     if (initiator) {
-      session.hs = await this.initializeInitiator(prologue, s, rs, psk);
+      hs = await this.initializeInitiator(prologue, s, rs, psk);
     } else {
-      session.hs = await this.initializeResponder(prologue, s, rs, psk);
+      hs = await this.initializeResponder(prologue, s, rs, psk);
     }
 
-    session.i = initiator;
-    session.mc = 0;
-    return session;
+    return {
+      hs,
+      i: initiator,
+      mc: 0
+    };
   }
 
   public async sendMessage(session: NoiseSession, message: bytes) : Promise<MessageBuffer> {
