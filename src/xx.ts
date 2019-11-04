@@ -30,7 +30,7 @@ type HandshakeState = {
   s: KeyPair,
   e?: KeyPair,
   rs: bytes32,
-  re?: bytes32,
+  re: bytes32,
   psk: bytes32,
 }
 
@@ -54,16 +54,18 @@ export class XXHandshake {
     const name = "Noise_XX_25519_ChaChaPoly_SHA256";
     const ss = await this.initializeSymmetric(name);
     await this.mixHash(ss, prologue);
+    const re = Buffer.alloc(32);
 
-    return { ss, s, rs, psk };
+    return { ss, s, rs, psk, re };
   }
 
   private async initializeResponder(prologue: bytes32, s: KeyPair, rs: bytes32, psk: bytes32) : Promise<HandshakeState> {
     const name = "Noise_XX_25519_ChaChaPoly_SHA256";
     const ss = await this.initializeSymmetric(name);
     await this.mixHash(ss, prologue);
+    const re = Buffer.alloc(32);
 
-    return { ss, s, rs, psk };
+    return { ss, s, rs, psk, re };
   }
 
   private incrementNonce(n: uint32) : uint32 {
@@ -154,11 +156,9 @@ export class XXHandshake {
 
   private async hashProtocolName(protocolName: bytes) : Promise<bytes32> {
     if (protocolName.length <= 32) {
-      return new Promise(resolve => {
-        const h = Buffer.alloc(32);
-        protocolName.copy(h);
-        resolve(h)
-      });
+      const h = Buffer.alloc(32);
+      protocolName.copy(h);
+      return Promise.resolve(h)
     } else {
       return await this.getHash(protocolName, Buffer.from([]));
     }
@@ -280,8 +280,16 @@ export class XXHandshake {
       session.cs2 = cs2;
     } else if (session.mc > 2) {
       if (session.i) {
+        if (!session.cs1) {
+          throw new Error("CS1 (cipher state) is not defined")
+        }
+
         messageBuffer = await this.writeMessageRegular(session.cs1, message);
       } else {
+        if (!session.cs2) {
+          throw new Error("CS2 (cipher state) is not defined")
+        }
+
         messageBuffer = await this.writeMessageRegular(session.cs2, message);
       }
     } else {
