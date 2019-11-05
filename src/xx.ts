@@ -1,7 +1,7 @@
 import {bytes32, bytes16, uint32, uint64, bytes} from './types/basic'
 import { Buffer } from 'buffer';
 import * as crypto from 'libp2p-crypto';
-import { AEAD, x25519, HKDF } from 'bcrypto';
+import { AEAD, x25519, HKDF, SHA256 } from 'bcrypto';
 
 export interface KeyPair {
   publicKey: bytes32,
@@ -42,6 +42,7 @@ type NoiseSession = {
   mc: uint64,
   i: boolean,
 }
+export type Hkdf = [bytes, bytes, bytes];
 
 const minNonce = 0;
 
@@ -158,20 +159,20 @@ export class XXHandshake {
     if (protocolName.length <= 32) {
       const h = Buffer.alloc(32);
       protocolName.copy(h);
-      return Promise.resolve(h)
+      return h;
     } else {
       return await this.getHash(protocolName, Buffer.from([]));
     }
   }
 
-  private getHkdf(ck: bytes32, ikm: bytes) : Array<Buffer> {
+  public getHkdf(ck: bytes32, ikm: bytes) : Hkdf {
     const info = Buffer.alloc(0);
-    const prk = HKDF.extract('SHA256', ikm, ck);
-    const okm = HKDF.expand('SHA256', prk, info, ikm.length);
+    const prk = HKDF.extract(SHA256, ikm, ck);
+    const okm = HKDF.expand(SHA256, prk, info, 96);
 
-    const k1 = okm.slice(0, 16);
-    const k2 = okm.slice(16, 32);
-    const k3 = okm.slice(32, 64);
+    const k1 = okm.slice(0, 32);
+    const k2 = okm.slice(32, 64);
+    const k3 = okm.slice(64, 96);
 
     return [ k1, k2, k3 ];
   }
