@@ -2,6 +2,7 @@ import {bytes32, bytes16, uint32, uint64, bytes} from './types/basic'
 import { Buffer } from 'buffer';
 import * as crypto from 'libp2p-crypto';
 import { AEAD, x25519, HKDF, SHA256 } from 'bcrypto';
+import { BN } from 'bn.js';
 
 export interface KeyPair {
   publicKey: bytes32,
@@ -224,14 +225,15 @@ export class XXHandshake {
     await this.mixHash(hs.ss, ne);
     const ciphertext = await this.encryptAndHash(hs.ss, payload);
 
-    return {ne, ns, ciphertext} as MessageBuffer;
+    return {ne, ns, ciphertext};
   }
 
   private async writeMessageB(hs: HandshakeState, payload: bytes) : Promise<MessageBuffer> {
     hs.e = await this.generateKeypair();
     const ne = hs.e.publicKey;
+    await this.mixHash(hs.ss, ne);
     await this.mixKey(hs.ss, this.dh(hs.e.privateKey, hs.re));
-    const spk = Buffer.alloc(hs.s.publicKey.length);
+    const spk = Buffer.from(hs.s.publicKey);
     const ns = await this.encryptAndHash(hs.ss, spk);
     this.mixKey(hs.ss, this.dh(hs.s.privateKey, hs.re));
     const ciphertext = await this.encryptAndHash(hs.ss, payload);
@@ -240,7 +242,7 @@ export class XXHandshake {
   }
 
   private async writeMessageC(hs: HandshakeState, payload: bytes) {
-    const spk = hs.s.publicKey;
+    const spk = Buffer.from(hs.s.publicKey);
     const ns = await this.encryptAndHash(hs.ss, spk);
     this.mixKey(hs.ss, this.dh(hs.s.privateKey, hs.re));
     const ciphertext = await this.encryptAndHash(hs.ss, payload);
@@ -316,23 +318,23 @@ export class XXHandshake {
     return {
       hs,
       i: initiator,
-      mc: 0
+      mc: new BN(0),
     };
   }
 
   public async sendMessage(session: NoiseSession, message: bytes) : Promise<MessageBuffer> {
-    let messageBuffer: MessageBuffer = {} as MessageBuffer;
-    if (session.mc === 0) {
+    let messageBuffer: MessageBuffer;
+    if (session.mc.eqn(0)) {
       messageBuffer = await this.writeMessageA(session.hs, message);
-    } else if (session.mc === 1) {
+    } else if (session.mc.eqn(1)) {
       messageBuffer = await this.writeMessageB(session.hs, message);
-    } else if (session.mc === 2) {
+    } else if (session.mc.eqn(2)) {
       const { h, messageBuffer: resultingBuffer, cs1, cs2 } = await this.writeMessageC(session.hs, message);
       messageBuffer = resultingBuffer;
       session.h = h;
       session.cs1 = cs1;
       session.cs2 = cs2;
-    } else if (session.mc > 2) {
+    } else if (session.mc.gtn(2)) {
       if (session.i) {
         if (!session.cs1) {
           throw new Error("CS1 (cipher state) is not defined")
@@ -356,17 +358,17 @@ export class XXHandshake {
 
   public async RecvMessage(session: NoiseSession, message: MessageBuffer) : Promise<bytes> {
     let plaintext: bytes;
-    if (session.mc === 0) {
+    if (session.mc.eqn(0)) {
       plaintext = await this.readMessageA(session.hs, message);
-    } else if (session.mc === 1) {
+    } else if (session.mc.eqn(1)) {
       plaintext = await this.readMessageB(session.hs, message);
-    } else if (session.mc === 2) {
+    } else if (session.mc.eqn(2)) {
       const { h, plaintext: resultingPlaintext, cs1, cs2 } = await this.readMessageC(session.hs, message);
       plaintext = resultingPlaintext;
       session.h = h;
       session.cs1 = cs1;
       session.cs2 = cs2;
-    } else if (session.mc > 2) {
+    } else if (session.mc.gtn(2)) {
       if (session.i) {
         if (!session.cs2) {
           throw new Error("CS1 (cipher state) is not defined")

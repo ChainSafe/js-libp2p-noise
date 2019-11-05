@@ -14,7 +14,6 @@ describe("Index", () => {
 
 
     const session = await xx.initSession(true, prologue, kpInitiator, kpResponder.publicKey);
-    console.log(session)
   })
 
   it("Test get HKDF", async () => {
@@ -28,6 +27,5 @@ describe("Index", () => {
     expect(k1.toString('hex')).to.equal('cc5659adff12714982f806e2477a8d5ddd071def4c29bb38777b7e37046f6914');
     expect(k2.toString('hex')).to.equal('a16ada915e551ab623f38be674bb4ef15d428ae9d80688899c9ef9b62ef208fa');
     expect(k3.toString('hex')).to.equal('ff67bf9727e31b06efc203907e6786667d2c7a74ac412b4d31a80ba3fd766f68');
-
   })
 });
