@@ -85,11 +85,14 @@ describe("Index", () => {
     const payloadRespEnc = NoiseHandshakePayload.encode(payloadResp).finish();
 
     const message1 = Buffer.concat([message, payloadRespEnc]);
-    console.log("nsResp: ", nsResp)
     const messageBuffer2 = await xx.sendMessage(nsResp, message1);
 
     expect(messageBuffer2.ne.length).not.equal(0);
     expect(messageBuffer2.ns.length).not.equal(0);
+
+    // initiator receive payload
+    const plaintext2 = await xx.RecvMessage(nsInit, messageBuffer2);
+    console.log(plaintext2);
   }
 
   it("Test handshake", async () => {

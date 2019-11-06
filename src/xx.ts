@@ -74,7 +74,7 @@ export class XXHandshake {
   }
 
   private dh(privateKey: bytes32, publicKey: bytes32) : bytes32 {
-    const derived = x25519.derive(privateKey, publicKey);
+    const derived = x25519.derive(publicKey, privateKey);
     const result = Buffer.alloc(32);
     derived.copy(result);
     return result;
@@ -268,14 +268,18 @@ export class XXHandshake {
   }
 
   private async readMessageA(hs: HandshakeState, message: MessageBuffer) : Promise<bytes> {
-    // TODO: validate public key here
+    if (x25519.publicKeyVerify(message.ne)) {
+      hs.re = message.ne;
+    }
 
     this.mixHash(hs.ss, hs.re);
     return await this.decryptAndHash(hs.ss, message.ciphertext);
   }
 
   private async readMessageB(hs: HandshakeState, message: MessageBuffer) : Promise<bytes> {
-    // TODO: validate public key here
+    if (x25519.publicKeyVerify(message.ne)) {
+      hs.re = message.ne;
+    }
 
     this.mixHash(hs.ss, hs.re);
     if (!hs.e) {
@@ -283,16 +287,19 @@ export class XXHandshake {
     }
     this.mixKey(hs.ss, this.dh(hs.e.privateKey, hs.re));
     const ns = await this.decryptAndHash(hs.ss, message.ns);
-    // TODO: validate ns here as public key
-    hs.rs = ns;
+    if (ns.length === 32 && x25519.publicKeyVerify(message.ns)) {
+      hs.rs = ns;
+    }
     this.mixKey(hs.ss, this.dh(hs.e.privateKey, hs.rs));
     return await this.decryptAndHash(hs.ss, message.ciphertext);
   }
 
   private async readMessageC(hs: HandshakeState, message: MessageBuffer) {
     const ns = await this.decryptAndHash(hs.ss, message.ns);
-    // TODO: validate ns here as public key
-    hs.rs = ns;
+    if (ns.length === 32 && x25519.publicKeyVerify(message.ns)) {
+      hs.rs = ns;
+    }
+
     if (!hs.e) {
       throw new Error("Handshake state `e` param is missing.");
     }
