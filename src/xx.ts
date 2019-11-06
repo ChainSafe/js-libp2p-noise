@@ -127,13 +127,14 @@ export class XXHandshake {
     cs.n = nonce;
   }
 
-  private encryptWithAd(cs: CipherState, ad: bytes, plaintext: bytes) : bytes {
+  public encryptWithAd(cs: CipherState, ad: bytes, plaintext: bytes) : bytes {
     const e = this.encrypt(cs.k, cs.n, ad, plaintext);
     this.setNonce(cs, this.incrementNonce(cs.n));
+
     return e;
   }
 
-  private decryptWithAd(cs: CipherState, ad: bytes, ciphertext: bytes) : bytes {
+  public decryptWithAd(cs: CipherState, ad: bytes, ciphertext: bytes) : bytes {
     const plaintext = this.decrypt(cs.k, cs.n, ad, ciphertext);
     this.setNonce(cs, this.incrementNonce(cs.n));
 

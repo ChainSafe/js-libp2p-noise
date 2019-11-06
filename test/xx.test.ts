@@ -36,8 +36,7 @@ describe("Index", () => {
     return await crypto.keys.generateKeyPair('ed25519');
   }
 
-  async function doHandshake() {
-    const xx = new XXHandshake();
+  async function doHandshake(xx) {
     const kpInit = await xx.generateKeypair();
     const kpResp = await xx.generateKeypair();
     const payloadString = Buffer.from("noise-libp2p-static-key:");
@@ -99,14 +98,19 @@ describe("Index", () => {
 
     // initiator send message
     const messageBuffer3 = await xx.sendMessage(nsInit, Buffer.alloc(0));
+
     // responder receive message
     const plaintext3 = await xx.recvMessage(nsResp, messageBuffer3);
     console.log("Stage 2 responder payload: ", plaintext3);
+
+    assert(nsInit.cs1.k.equals(nsResp.cs1.k));
+    assert(nsInit.cs2.k.equals(nsResp.cs2.k));
 
     return { nsInit, nsResp };
   }
 
   it("Test handshake", async () => {
-    await doHandshake();
-  })
+    const xx = new XXHandshake();
+    await doHandshake(xx);
+  });
 });
