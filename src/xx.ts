@@ -375,7 +375,7 @@ export class XXHandshake {
     return messageBuffer;
   }
 
-  public async RecvMessage(session: NoiseSession, message: MessageBuffer) : Promise<bytes> {
+  public async recvMessage(session: NoiseSession, message: MessageBuffer) : Promise<bytes> {
     let plaintext: bytes;
     if (session.mc.eqn(0)) {
       plaintext = await this.readMessageA(session.hs, message);

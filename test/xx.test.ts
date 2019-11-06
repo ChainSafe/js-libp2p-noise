@@ -73,7 +73,8 @@ describe("Index", () => {
     expect(messageBuffer.ne.length).not.equal(0);
 
     // responder receives message
-    const plaintext = await xx.RecvMessage(nsResp, messageBuffer);
+    const plaintext = await xx.recvMessage(nsResp, messageBuffer);
+    console.log("Stage 0 responder payload: ", plaintext);
 
     /* STAGE 1 */
 
@@ -91,8 +92,18 @@ describe("Index", () => {
     expect(messageBuffer2.ns.length).not.equal(0);
 
     // initiator receive payload
-    const plaintext2 = await xx.RecvMessage(nsInit, messageBuffer2);
-    console.log(plaintext2);
+    const plaintext2 = await xx.recvMessage(nsInit, messageBuffer2);
+    console.log("Stage 1 responder payload: ", plaintext2);
+
+    /* STAGE 2 */
+
+    // initiator send message
+    const messageBuffer3 = await xx.sendMessage(nsInit, Buffer.alloc(0));
+    // responder receive message
+    const plaintext3 = await xx.recvMessage(nsResp, messageBuffer3);
+    console.log("Stage 2 responder payload: ", plaintext3);
+
+    return { nsInit, nsResp };
   }
 
   it("Test handshake", async () => {
