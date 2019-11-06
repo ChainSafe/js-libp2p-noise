@@ -1,6 +1,5 @@
 import {bytes32, bytes16, uint32, uint64, bytes} from './types/basic'
 import { Buffer } from 'buffer';
-import * as crypto from 'libp2p-crypto';
 import { AEAD, x25519, HKDF, SHA256 } from 'bcrypto';
 import { BN } from 'bn.js';
 
@@ -75,7 +74,10 @@ export class XXHandshake {
   }
 
   private dh(privateKey: bytes32, publicKey: bytes32) : bytes32 {
-    return x25519.derive(privateKey, publicKey);
+    const derived = x25519.derive(privateKey, publicKey);
+    const result = Buffer.alloc(32);
+    derived.copy(result);
+    return result;
   }
 
   private convertNonce(n: uint32) : bytes {
@@ -146,14 +148,14 @@ export class XXHandshake {
 
     const ck = h;
     const key = this.createEmptyKey();
-    const cs = this.initializeKey(key);
+    const cs:CipherState = this.initializeKey(key);
 
     return { cs, ck, h };
   }
 
   private mixKey(ss: SymmetricState, ikm: bytes32) {
     const [ ck, tempK ] = this.getHkdf(ss.ck, ikm);
-    ss.cs = this.initializeKey(tempK);
+    ss.cs = this.initializeKey(tempK) as CipherState;
     ss.ck = ck;
   }
 
@@ -234,9 +236,11 @@ export class XXHandshake {
     hs.e = await this.generateKeypair();
     const ne = hs.e.publicKey;
     this.mixHash(hs.ss, ne);
-    await this.mixKey(hs.ss, this.dh(hs.e.privateKey, hs.re));
+
+    this.mixKey(hs.ss, this.dh(hs.e.privateKey, hs.re));
     const spk = Buffer.from(hs.s.publicKey);
     const ns = await this.encryptAndHash(hs.ss, spk);
+
     this.mixKey(hs.ss, this.dh(hs.s.privateKey, hs.re));
     const ciphertext = await this.encryptAndHash(hs.ss, payload);
 
@@ -304,11 +308,12 @@ export class XXHandshake {
   }
 
   public async generateKeypair() : Promise<KeyPair> {
-    const Ed25519PrivateKey = await crypto.keys.generateKeyPair('ed25519');
+    const privateKey = x25519.privateKeyGenerate();
+    const publicKey = x25519.publicKeyCreate(privateKey);
 
     return {
-      publicKey: Ed25519PrivateKey.public.bytes,
-      privateKey: Ed25519PrivateKey.bytes,
+      publicKey,
+      privateKey,
     }
   }
 
@@ -359,7 +364,7 @@ export class XXHandshake {
       throw new Error("Session invalid.")
     }
 
-    session.mc++;
+    session.mc = session.mc.add(new BN(1));
     return messageBuffer;
   }
 
@@ -391,7 +396,7 @@ export class XXHandshake {
       throw new Error("Session invalid.");
     }
 
-    session.mc++;
+    session.mc = session.mc.add(new BN(1));
     return plaintext;
   }
 }

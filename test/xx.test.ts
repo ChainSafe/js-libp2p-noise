@@ -2,6 +2,7 @@ import { expect, assert } from "chai";
 import { Buffer } from 'buffer';
 import * as crypto from 'libp2p-crypto';
 import protobuf from 'protobufjs';
+import { ed25519 } from 'bcrypto';
 
 import { XXHandshake, KeyPair } from "../src/xx";
 
@@ -31,8 +32,8 @@ describe("Index", () => {
     expect(k3.toString('hex')).to.equal('ff67bf9727e31b06efc203907e6786667d2c7a74ac412b4d31a80ba3fd766f68');
   })
 
-  async function generateKeypair() {
-    return await crypto.keys.generateKeyPair('ed25519');;
+  async function generateEd25519Keys() {
+    return await crypto.keys.generateKeyPair('ed25519');
   }
 
   async function doHandshake() {
@@ -42,11 +43,11 @@ describe("Index", () => {
     const payloadString = Buffer.from("noise-libp2p-static-key:");
 
     // initiator setup
-    const libp2pInitKeys = await generateKeypair();
+    const libp2pInitKeys = await generateEd25519Keys();
     const initSignedPayload = await libp2pInitKeys.sign(Buffer.concat([payloadString, kpInit.publicKey]));
 
     // responder setup
-    const libp2pRespKeys = await generateKeypair();
+    const libp2pRespKeys = await generateEd25519Keys();
     const respSignedPayload = await libp2pRespKeys.sign(Buffer.concat([payloadString, kpResp.publicKey]));
 
     // initiator: new XX noise session
@@ -54,16 +55,15 @@ describe("Index", () => {
     // responder: new XX noise session
     const nsResp = await xx.initSession(false, prologue, kpResp, kpInit.publicKey);
 
-    /* stage 0: initiator */
+    /* STAGE 0 */
 
     // initiator creates payload
     const payloadProtoBuf = await protobuf.load("payload.proto");
     const NoiseHandshakePayload = payloadProtoBuf.lookupType("pb.NoiseHandshakePayload");
     const payloadInit = NoiseHandshakePayload.create({
-      libp2pKey: libp2pInitKeys.bytes.toString('hex'),
+      libp2pKey: libp2pInitKeys.bytes,
       noiseStaticKeySignature: initSignedPayload,
     });
-
     const payloadInitEnc = NoiseHandshakePayload.encode(payloadInit).finish();
 
     // initiator sends message
@@ -71,6 +71,25 @@ describe("Index", () => {
     const messageBuffer = await xx.sendMessage(nsInit, message);
 
     expect(messageBuffer.ne.length).not.equal(0);
+
+    // responder receives message
+    const plaintext = await xx.RecvMessage(nsResp, messageBuffer);
+
+    /* STAGE 1 */
+
+    // responder creates payload
+    const payloadResp = NoiseHandshakePayload.create({
+      libp2pKey: libp2pRespKeys.bytes,
+      noiseStaticKeySignature: respSignedPayload,
+    });
+    const payloadRespEnc = NoiseHandshakePayload.encode(payloadResp).finish();
+
+    const message1 = Buffer.concat([message, payloadRespEnc]);
+    console.log("nsResp: ", nsResp)
+    const messageBuffer2 = await xx.sendMessage(nsResp, message1);
+
+    expect(messageBuffer2.ne.length).not.equal(0);
+    expect(messageBuffer2.ns.length).not.equal(0);
   }
 
   it("Test handshake", async () => {
