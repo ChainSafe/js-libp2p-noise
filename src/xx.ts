@@ -55,7 +55,7 @@ export class XXHandshake {
   private async initializeInitiator(prologue: bytes32, s: KeyPair, rs: bytes32, psk: bytes32) : Promise<HandshakeState> {
     const name = "Noise_XX_25519_ChaChaPoly_SHA256";
     const ss = await this.initializeSymmetric(name);
-    await this.mixHash(ss, prologue);
+    this.mixHash(ss, prologue);
     const re = Buffer.alloc(32);
 
     return { ss, s, rs, psk, re };
@@ -64,7 +64,7 @@ export class XXHandshake {
   private async initializeResponder(prologue: bytes32, s: KeyPair, rs: bytes32, psk: bytes32) : Promise<HandshakeState> {
     const name = "Noise_XX_25519_ChaChaPoly_SHA256";
     const ss = await this.initializeSymmetric(name);
-    await this.mixHash(ss, prologue);
+    this.mixHash(ss, prologue);
     const re = Buffer.alloc(32);
 
     return { ss, s, rs, psk, re };
@@ -143,6 +143,7 @@ export class XXHandshake {
   private async initializeSymmetric(protocolName: string) : Promise<SymmetricState> {
     const protocolNameBytes: bytes = Buffer.from(protocolName, 'utf-8');
     const h = await this.hashProtocolName(protocolNameBytes);
+
     const ck = h;
     const key = this.createEmptyKey();
     const cs = this.initializeKey(key);
@@ -158,11 +159,11 @@ export class XXHandshake {
 
   private async hashProtocolName(protocolName: bytes) : Promise<bytes32> {
     if (protocolName.length <= 32) {
-      const h = Buffer.alloc(32);
+      let h = Buffer.alloc(32);
       protocolName.copy(h);
       return h;
     } else {
-      return await this.getHash(protocolName, Buffer.from([]));
+      return this.getHash(protocolName, Buffer.alloc(0));
     }
   }
 
@@ -178,12 +179,12 @@ export class XXHandshake {
     return [ k1, k2, k3 ];
   }
 
-  private async mixHash(ss: SymmetricState, data: bytes) {
-    ss.h = await this.getHash(ss.h, data);
+  private mixHash(ss: SymmetricState, data: bytes) {
+    ss.h = this.getHash(ss.h, data);
   }
 
-  private async getHash(a: bytes, b: bytes) : Promise<bytes32> {
-    return await crypto.hmac.create('sha256', Buffer.from([...a, ...b]))
+  private getHash(a: bytes, b: bytes) : bytes32 {
+    return SHA256.digest(Buffer.from([...a, ...b]));
   }
 
   private async encryptAndHash(ss: SymmetricState, plaintext: bytes) : Promise<bytes> {
@@ -194,7 +195,7 @@ export class XXHandshake {
       ciphertext = plaintext;
     }
 
-    await this.mixHash(ss, ciphertext);
+    this.mixHash(ss, ciphertext);
     return ciphertext;
   }
 
@@ -206,7 +207,7 @@ export class XXHandshake {
       plaintext = ciphertext;
     }
 
-    await this.mixHash(ss, ciphertext);
+    this.mixHash(ss, ciphertext);
     return plaintext;
   }
 
@@ -222,7 +223,8 @@ export class XXHandshake {
     let ns = Buffer.alloc(0);
     hs.e = await this.generateKeypair();
     const ne = hs.e.publicKey;
-    await this.mixHash(hs.ss, ne);
+
+    this.mixHash(hs.ss, ne);
     const ciphertext = await this.encryptAndHash(hs.ss, payload);
 
     return {ne, ns, ciphertext};
@@ -231,7 +233,7 @@ export class XXHandshake {
   private async writeMessageB(hs: HandshakeState, payload: bytes) : Promise<MessageBuffer> {
     hs.e = await this.generateKeypair();
     const ne = hs.e.publicKey;
-    await this.mixHash(hs.ss, ne);
+    this.mixHash(hs.ss, ne);
     await this.mixKey(hs.ss, this.dh(hs.e.privateKey, hs.re));
     const spk = Buffer.from(hs.s.publicKey);
     const ns = await this.encryptAndHash(hs.ss, spk);
@@ -264,14 +266,14 @@ export class XXHandshake {
   private async readMessageA(hs: HandshakeState, message: MessageBuffer) : Promise<bytes> {
     // TODO: validate public key here
 
-    await this.mixHash(hs.ss, hs.re);
+    this.mixHash(hs.ss, hs.re);
     return await this.decryptAndHash(hs.ss, message.ciphertext);
   }
 
   private async readMessageB(hs: HandshakeState, message: MessageBuffer) : Promise<bytes> {
     // TODO: validate public key here
 
-    await this.mixHash(hs.ss, hs.re);
+    this.mixHash(hs.ss, hs.re);
     if (!hs.e) {
       throw new Error("Handshake state `e` param is missing.");
     }
@@ -302,7 +304,12 @@ export class XXHandshake {
   }
 
   public async generateKeypair() : Promise<KeyPair> {
-    return await crypto.keys.generateKeyPair('ed25519');
+    const Ed25519PrivateKey = await crypto.keys.generateKeyPair('ed25519');
+
+    return {
+      publicKey: Ed25519PrivateKey.public.bytes,
+      privateKey: Ed25519PrivateKey.bytes,
+    }
   }
 
   public async initSession(initiator: boolean, prologue: bytes32, s: KeyPair, rs: bytes32) : Promise<NoiseSession> {
