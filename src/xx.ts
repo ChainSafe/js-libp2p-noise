@@ -95,6 +95,7 @@ export class XXHandshake {
     ctx.aad(ad);
     ctx.encrypt(plaintext);
 
+    // Encryption is done on the sent reference
     return plaintext;
   }
 
@@ -106,6 +107,7 @@ export class XXHandshake {
     aead.aad(ad);
     aead.decrypt(ciphertext);
 
+    // Decryption is done on the sent reference
     return ciphertext;
   }
 
