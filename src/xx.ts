@@ -81,8 +81,8 @@ export class XXHandshake {
   }
 
   private nonceToBytes(n: uint32) : bytes {
-    const nonce = Buffer.alloc(12);
-    nonce.writeUInt32LE(n, 4);
+    const nonce = Buffer.alloc(12, 0x00);
+    nonce.writeUInt32LE(n, 4, true);
 
     return nonce;
   }
@@ -90,22 +90,23 @@ export class XXHandshake {
   private encrypt(k: bytes32, n: uint32, ad: bytes, plaintext: bytes) : bytes {
     const nonce = this.nonceToBytes(n);
     const ctx = new AEAD();
+
     ctx.init(k, nonce);
     ctx.aad(ad);
     ctx.encrypt(plaintext);
 
-    return ctx.final();
+    return plaintext;
   }
 
   private decrypt(k: bytes32, n: uint32, ad: bytes, ciphertext: bytes) : bytes {
     const nonce = this.nonceToBytes(n);
-    const ctx = new AEAD();
+    const aead = new AEAD();
 
-    ctx.init(k, nonce);
-    ctx.aad(ad);
-    ctx.decrypt(ciphertext);
+    aead.init(k, nonce);
+    aead.aad(ad);
+    aead.decrypt(ciphertext);
 
-    return ctx.final();
+    return ciphertext;
   }
 
   private isEmptyKey(k: bytes32) : boolean {
