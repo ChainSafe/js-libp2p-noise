@@ -1,7 +1,7 @@
 {
   "name": "js-libp2p-noise",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
   "repository": "git@github.com:NodeFactoryIo/js-libp2p-noise.git",
   "author": "NodeFactory <info@nodefactory.io>",
   "license": "MIT",
@@ -16,24 +16,42 @@
   "devDependencies": {
     "@babel/cli": "^7.6.4",
     "@babel/core": "^7.6.4",
+    "@babel/plugin-proposal-object-rest-spread": "^7.6.2",
     "@babel/preset-env": "^7.6.3",
     "@babel/preset-typescript": "^7.6.0",
     "@babel/register": "^7.6.2",
+    "@babel/runtime": "^7.6.3",
     "@types/chai": "^4.2.4",
     "@types/mocha": "^5.2.7",
     "@typescript-eslint/eslint-plugin": "^2.6.0",
     "@typescript-eslint/parser": "^2.6.0",
+    "bn.js-typings": "^1.0.1",
     "chai": "^4.2.0",
     "eslint": "^6.6.0",
+    "libp2p-crypto": "^0.17.1",
     "mocha": "^6.2.2",
     "typescript": "^3.6.4"
   },
   "babel": {
     "presets": [
-      "@babel/preset-env",
+      [
+        "@babel/preset-env",
+        {
+          "targets": {
+            "node": "12"
+          }
+        }
+      ],
       "@babel/preset-typescript"
     ],
     "plugins": [
+      "@babel/plugin-proposal-object-rest-spread"
     ]
+  },
+  "dependencies": {
+    "bcrypto": "^4.2.3",
+    "bn.js": "^5.0.0",
+    "buffer": "^5.4.3",
+    "protobufjs": "~6.8.8"
   }
 }
