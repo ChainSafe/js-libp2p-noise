@@ -1,10 +1,9 @@
 import { expect, assert } from "chai";
 import { Buffer } from 'buffer';
-import * as crypto from 'libp2p-crypto';
-import protobuf from 'protobufjs';
 import { ed25519 } from 'bcrypto';
 
 import { XXHandshake, KeyPair } from "../src/xx";
+import { loadPayloadProto, generateEd25519Keys } from "./utils";
 
 describe("Index", () => {
   const prologue = Buffer.from("/noise", "utf-8");
@@ -32,10 +31,6 @@ describe("Index", () => {
     expect(k3.toString('hex')).to.equal('ff67bf9727e31b06efc203907e6786667d2c7a74ac412b4d31a80ba3fd766f68');
   })
 
-  async function generateEd25519Keys() {
-    return await crypto.keys.generateKeyPair('ed25519');
-  }
-
   async function doHandshake(xx) {
     const kpInit = await xx.generateKeypair();
     const kpResp = await xx.generateKeypair();
@@ -57,8 +52,7 @@ describe("Index", () => {
     /* STAGE 0 */
 
     // initiator creates payload
-    const payloadProtoBuf = await protobuf.load("payload.proto");
-    const NoiseHandshakePayload = payloadProtoBuf.lookupType("pb.NoiseHandshakePayload");
+    const NoiseHandshakePayload = await loadPayloadProto();
     const payloadInit = NoiseHandshakePayload.create({
       libp2pKey: libp2pInitKeys.bytes,
       noiseStaticKeySignature: initSignedPayload,
@@ -113,4 +107,5 @@ describe("Index", () => {
     const xx = new XXHandshake();
     await doHandshake(xx);
   });
+
 });
