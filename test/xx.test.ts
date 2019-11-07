@@ -1,6 +1,5 @@
 import { expect, assert } from "chai";
 import { Buffer } from 'buffer';
-import { ed25519, AEAD } from 'bcrypto';
 
 import { XXHandshake, KeyPair } from "../src/xx";
 import { loadPayloadProto, generateEd25519Keys } from "./utils";
