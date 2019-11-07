@@ -81,8 +81,8 @@ export class XXHandshake {
   }
 
   private nonceToBytes(n: uint32) : bytes {
-    const nonce = Buffer.alloc(12, 0x00);
-    nonce.writeUInt32LE(n, 4, true);
+    const nonce = Buffer.alloc(12);
+    nonce.writeUInt32LE(n, 4);
 
     return nonce;
   }
@@ -101,11 +101,11 @@ export class XXHandshake {
 
   private decrypt(k: bytes32, n: uint32, ad: bytes, ciphertext: bytes) : bytes {
     const nonce = this.nonceToBytes(n);
-    const aead = new AEAD();
+    const ctx = new AEAD();
 
-    aead.init(k, nonce);
-    aead.aad(ad);
-    aead.decrypt(ciphertext);
+    ctx.init(k, nonce);
+    ctx.aad(ad);
+    ctx.decrypt(ciphertext);
 
     // Decryption is done on the sent reference
     return ciphertext;
