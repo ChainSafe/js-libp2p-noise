@@ -90,11 +90,13 @@ export class XXHandshake {
   private encrypt(k: bytes32, n: uint32, ad: bytes, plaintext: bytes) : bytes {
     const nonce = this.nonceToBytes(n);
     const ctx = new AEAD();
+
     ctx.init(k, nonce);
     ctx.aad(ad);
     ctx.encrypt(plaintext);
 
-    return ctx.final();
+    // Encryption is done on the sent reference
+    return plaintext;
   }
 
   private decrypt(k: bytes32, n: uint32, ad: bytes, ciphertext: bytes) : bytes {
@@ -105,7 +107,8 @@ export class XXHandshake {
     ctx.aad(ad);
     ctx.decrypt(ciphertext);
 
-    return ctx.final();
+    // Decryption is done on the sent reference
+    return ciphertext;
   }
 
   private isEmptyKey(k: bytes32) : boolean {
