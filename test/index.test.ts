@@ -1,9 +1,10 @@
 import { expect } from "chai";
-import { tag, encrypt} from "../src";
+import { Noise } from "../src";
 
 describe("Index", () => {
-  it("should expose right tag and encrypt function", () => {
-    expect(tag).to.equal('/noise');
-    expect(typeof(encrypt)).to.equal('function');
+  it("should expose class with tag and encrypt functions", () => {
+    const noise = new Noise(Buffer.from("privatekey"));
+    expect(noise.tag()).to.equal('/noise');
+    expect(typeof(noise.encrypt)).to.equal('function');
   })
 });

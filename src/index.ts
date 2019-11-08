@@ -1,8 +1,5 @@
-import { encrypt } from './encrypt';
-
-const tag = '/noise';
+import { Noise } from './noise';
 
 export {
-  tag,
-  encrypt,
+  Noise,
 }
