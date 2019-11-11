@@ -1,12 +1,13 @@
 import { x25519 } from 'bcrypto';
+import { Buffer } from "buffer";
 
 import { bytes } from "./types/basic";
-import { Connection } from "./types/libp2p";
-import { KeyPair, XXHandshake } from "./xx";
-import { signPayload } from "../test/utils";
-import {Buffer} from "buffer";
+import { InsecureConnection, NoiseConnection, PeerId, SecureConnection, KeyPair } from "./types/libp2p";
 
-export class Noise {
+import { Handshake } from "./handshake";
+import { generateKeypair, signPayload } from "./utils";
+
+export class Noise implements NoiseConnection {
   private readonly privateKey: bytes;
   private staticKeys?: KeyPair;
   private earlyData?: bytes;
@@ -24,20 +25,39 @@ export class Noise {
     }
   }
 
-  public tag() {
+  public protocol() {
     return '/noise';
   }
 
-  public async encrypt(InsecureConnection: Connection, remotePublicKey: bytes) {
-    const isInitiator = InsecureConnection.stats.direction === "outbound";
-    const secretKey = await this.doHandshake(isInitiator, remotePublicKey);
+  // encrypt outgoing data to the remote party (handshake as initiator)
+  public async secureOutbound(connection: InsecureConnection, remotePeer: PeerId) : Promise<SecureConnection> {
+    try {
+      const remotePublicKey = Buffer.from(remotePeer.pubKey);
+      const session = await this.createSecureConnection(connection, remotePublicKey, true);
+    } catch (e) {
+
+    }
+  }
+
+  // decrypt incoming data (handshake as responder)
+  public async secureInbound(connection: InsecureConnection) : Promise<SecureConnection> {
+  }
+
+  private async read(ciphertext: bytes) {
 
   }
 
-  private async doHandshake(isInitiator: boolean, remotePublicKey: bytes) : Promise<bytes> {
-    const xx = new XXHandshake();
+  private async write(plaintext: bytes) {
+
+  }
+
+  private async createSecureConnection(
+    connection: InsecureConnection,
+    remotePublicKey: bytes,
+    isInitiator: boolean,
+    ) : Promise<SecureConnection> {
     if (!this.staticKeys) {
-      this.staticKeys = await xx.generateKeypair();
+      this.staticKeys = await generateKeypair();
     }
 
     let signedPayload;
@@ -46,10 +66,25 @@ export class Noise {
       signedPayload = await signPayload(this.privateKey, payload);
     }
 
-    const prologue = Buffer.from(this.tag());
-    const nsInit = await xx.initSession(isInitiator, prologue, this.staticKeys, remotePublicKey);
-    // TODO: Send messages, confirm handshake and return shared key
-    return Buffer.alloc(0);
+    const prologue = Buffer.from(this.protocol());
+    const session = await Handshake.runXX(isInitiator, remotePublicKey, prologue, signedPayload, this.staticKeys);
+
+    return {
+      insecure: connection,
+      initiator: isInitiator,
+      prologue,
+      // localKey: get public key,
+      localPeer: connection.localPeer,
+      remotePeer: connection.remotePeer,
+      local: {
+        noiseKey: this.staticKeys.publicKey,
+        // libp2pKey:
+      },
+      xxNoiseSession: session,
+      xxComplete: true,
+      noiseKeypair: this.staticKeys,
+    }
   }
+
 
 }

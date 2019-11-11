@@ -1,9 +1,20 @@
-import { bytes } from "./basic";
+import { bytes, bytes32 } from "./basic";
+import { NoiseSession } from "../xx";
 
-type PeerId = {
+export interface KeyPair {
+  publicKey: bytes32,
+  privateKey: bytes32,
+}
+
+export type PeerId = {
   id: string,
   privKey: string,
   pubKey: string,
+};
+
+type PeerInfo = {
+  noiseKey: bytes32,
+  libp2pKey: bytes,
 };
 
 type ConnectionStats = {
@@ -11,8 +22,38 @@ type ConnectionStats = {
   encryption: string,
 }
 
-export interface Connection {
+type Stream = {
+  sink(),
+  source: Object,
+}
+
+export interface InsecureConnection {
   localPeer: PeerId,
   remotePeer: PeerId,
   stats: ConnectionStats,
+  streams(): [Stream],
+  addStream(muxedStream: any) : Stream,
+}
+
+export interface NoiseConnection {
+  remoteEarlyData?(): bytes,
+  secureOutbound(insecure: InsecureConnection, remotePeer: PeerId): Promise<SecureConnection>,
+  secureInbound(insecure: InsecureConnection): Promise<SecureConnection>,
+}
+
+export interface SecureConnection {
+  insecure: InsecureConnection,
+  initiator: boolean,
+  prologue: bytes32,
+  localKey: bytes,
+  localPeer: PeerId,
+  remotePeer: PeerId,
+  local: PeerInfo,
+  remote: PeerInfo,
+
+  xxNoiseSession: NoiseSession,
+  xxComplete: boolean,
+
+  noiseKeypair: KeyPair,
+  msgBuffer: bytes,
 }
