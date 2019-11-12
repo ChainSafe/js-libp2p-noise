@@ -22,16 +22,23 @@ type ConnectionStats = {
   encryption: string,
 }
 
-type Stream = {
-  sink(),
+
+// Also seen as Pair
+export type Stream = {
+  sink(source: Iterable<any>),
   source: Object,
 }
+
+export type Duplex = [Stream, Stream];
 
 export interface InsecureConnection {
   localPeer: PeerId,
   remotePeer: PeerId,
+  local: PeerInfo,
+  remote: PeerInfo,
   stats: ConnectionStats,
-  streams(): [Stream],
+
+  streams(): Duplex,
   addStream(muxedStream: any) : Stream,
 }
 
@@ -42,14 +49,9 @@ export interface NoiseConnection {
 }
 
 export interface SecureConnection {
-  insecure: InsecureConnection,
   initiator: boolean,
   prologue: bytes32,
   localKey: bytes,
-  localPeer: PeerId,
-  remotePeer: PeerId,
-  local: PeerInfo,
-  remote: PeerInfo,
 
   xxNoiseSession: NoiseSession,
   xxComplete: boolean,

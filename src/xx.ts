@@ -227,6 +227,9 @@ export class XXHandshake {
   private async writeMessageA(hs: HandshakeState, payload: bytes) : Promise<MessageBuffer> {
     let ns = Buffer.alloc(0);
     hs.e = await generateKeypair();
+    if (!hs.e) {
+      throw new Error("Handshake state has keypair missing.");
+    }
     const ne = hs.e.publicKey;
 
     this.mixHash(hs.ss, ne);
@@ -237,6 +240,9 @@ export class XXHandshake {
 
   private async writeMessageB(hs: HandshakeState, payload: bytes) : Promise<MessageBuffer> {
     hs.e = await generateKeypair();
+    if (!hs.e) {
+      throw new Error("Handshake state has keypair missing.");
+    }
     const ne = hs.e.publicKey;
     this.mixHash(hs.ss, ne);
 

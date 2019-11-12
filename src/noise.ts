@@ -6,10 +6,11 @@ import { InsecureConnection, NoiseConnection, PeerId, SecureConnection, KeyPair 
 
 import { Handshake } from "./handshake";
 import { generateKeypair, signPayload } from "./utils";
+import {encryptStream} from "./crypto";
 
 export class Noise implements NoiseConnection {
   private readonly privateKey: bytes;
-  private staticKeys?: KeyPair;
+  private staticKeys: KeyPair;
   private earlyData?: bytes;
 
   constructor(privateKey: bytes, staticNoiseKey?: bytes, earlyData?: bytes) {
@@ -22,6 +23,8 @@ export class Noise implements NoiseConnection {
         privateKey: staticNoiseKey,
         publicKey,
       }
+    } else {
+      // todo: generate new static key
     }
   }
 
@@ -43,14 +46,6 @@ export class Noise implements NoiseConnection {
   public async secureInbound(connection: InsecureConnection) : Promise<SecureConnection> {
   }
 
-  private async read(ciphertext: bytes) {
-
-  }
-
-  private async write(plaintext: bytes) {
-
-  }
-
   private async createSecureConnection(
     connection: InsecureConnection,
     remotePublicKey: bytes,
@@ -69,13 +64,13 @@ export class Noise implements NoiseConnection {
     const prologue = Buffer.from(this.protocol());
     const session = await Handshake.runXX(isInitiator, remotePublicKey, prologue, signedPayload, this.staticKeys);
 
+    await encryptStream(connection.streams, session);
+
     return {
-      insecure: connection,
+      ...connection,
       initiator: isInitiator,
       prologue,
       // localKey: get public key,
-      localPeer: connection.localPeer,
-      remotePeer: connection.remotePeer,
       local: {
         noiseKey: this.staticKeys.publicKey,
         // libp2pKey:
