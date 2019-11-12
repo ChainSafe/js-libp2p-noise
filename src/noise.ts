@@ -6,7 +6,7 @@ import { InsecureConnection, NoiseConnection, PeerId, SecureConnection, KeyPair 
 
 import { Handshake } from "./handshake";
 import { generateKeypair, signPayload } from "./utils";
-import {encryptStream} from "./crypto";
+import { encryptStreams } from "./crypto";
 
 export class Noise implements NoiseConnection {
   private readonly privateKey: bytes;
@@ -64,17 +64,13 @@ export class Noise implements NoiseConnection {
     const prologue = Buffer.from(this.protocol());
     const session = await Handshake.runXX(isInitiator, remotePublicKey, prologue, signedPayload, this.staticKeys);
 
-    await encryptStream(connection.streams, session);
+    await encryptStreams(connection.streams(), session);
 
     return {
       ...connection,
       initiator: isInitiator,
       prologue,
-      // localKey: get public key,
-      local: {
-        noiseKey: this.staticKeys.publicKey,
-        // libp2pKey:
-      },
+      localKey: Buffer.alloc(0), // get libp2p public key,
       xxNoiseSession: session,
       xxComplete: true,
       noiseKeypair: this.staticKeys,

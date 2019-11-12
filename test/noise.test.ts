@@ -1,4 +1,6 @@
 import { expect } from "chai";
+import DuplexPair from 'it-pair/duplex';
+
 import { Noise } from "../src";
 import {generateEd25519Keys} from "./utils";
 

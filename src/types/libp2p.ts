@@ -57,5 +57,4 @@ export interface SecureConnection {
   xxComplete: boolean,
 
   noiseKeypair: KeyPair,
-  msgBuffer: bytes,
 }

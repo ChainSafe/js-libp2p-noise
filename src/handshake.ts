@@ -1,5 +1,6 @@
-import {bytes, bytes32} from "./types/basic";
-import {KeyPair, NoiseSession, XXHandshake} from "./xx";
+import { bytes, bytes32 } from "./types/basic";
+import { NoiseSession, XXHandshake } from "./xx";
+import { KeyPair } from "./types/libp2p";
 
 export class Handshake {
   static async runXX(
