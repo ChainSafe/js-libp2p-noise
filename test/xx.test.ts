@@ -1,8 +1,10 @@
 import { expect, assert } from "chai";
 import { Buffer } from 'buffer';
 
-import { XXHandshake, KeyPair } from "../src/xx";
+import { XXHandshake } from "../src/xx";
+import { KeyPair } from "../src/@types/libp2p";
 import { loadPayloadProto, generateEd25519Keys } from "./utils";
+import { generateKeypair } from "../src/utils";
 
 describe("Index", () => {
   const prologue = Buffer.from("/noise", "utf-8");
@@ -10,12 +12,12 @@ describe("Index", () => {
   it("Test creating new XX session", async () => {
     const xx = new XXHandshake();
 
-    const kpInitiator: KeyPair = await xx.generateKeypair();
-    const kpResponder: KeyPair = await xx.generateKeypair();
+    const kpInitiator: KeyPair = await generateKeypair();
+    const kpResponder: KeyPair = await generateKeypair();
 
 
     const session = await xx.initSession(true, prologue, kpInitiator, kpResponder.publicKey);
-  })
+  });
 
   it("Test get HKDF", async () => {
     const xx = new XXHandshake();
@@ -28,7 +30,7 @@ describe("Index", () => {
     expect(k1.toString('hex')).to.equal('cc5659adff12714982f806e2477a8d5ddd071def4c29bb38777b7e37046f6914');
     expect(k2.toString('hex')).to.equal('a16ada915e551ab623f38be674bb4ef15d428ae9d80688899c9ef9b62ef208fa');
     expect(k3.toString('hex')).to.equal('ff67bf9727e31b06efc203907e6786667d2c7a74ac412b4d31a80ba3fd766f68');
-  })
+  });
 
   async function doHandshake(xx) {
     const kpInit = await xx.generateKeypair();
