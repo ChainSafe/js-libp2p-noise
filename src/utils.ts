@@ -1,8 +1,8 @@
 import { x25519 } from 'bcrypto';
 import * as crypto from 'libp2p-crypto';
 
-import { KeyPair } from "./types/libp2p";
-import { bytes } from "./types/basic";
+import { KeyPair } from "./@types/libp2p";
+import { bytes } from "./@types/basic";
 
 export async function generateKeypair() : Promise<KeyPair> {
   const privateKey = x25519.privateKeyGenerate();

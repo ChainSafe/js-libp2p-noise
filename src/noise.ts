@@ -1,14 +1,17 @@
 import { x25519 } from 'bcrypto';
 import { Buffer } from "buffer";
 
-import { bytes } from "./types/basic";
-import { InsecureConnection, NoiseConnection, PeerId, SecureConnection, KeyPair } from "./types/libp2p";
+import { bytes } from "./@types/basic";
+import {NoiseConnection, PeerId, KeyPair, SecureOutbound} from "./@types/libp2p";
 
 import { Handshake } from "./handshake";
 import { generateKeypair, signPayload } from "./utils";
-import { encryptStreams } from "./crypto";
+import { decryptStreams, encryptStreams } from "./crypto";
+import {Duplex} from "./@types/it-pair";
 
 export class Noise implements NoiseConnection {
+  public protocol = "/noise";
+
   private readonly privateKey: bytes;
   private staticKeys: KeyPair;
   private earlyData?: bytes;
@@ -28,29 +31,38 @@ export class Noise implements NoiseConnection {
     }
   }
 
-  public protocol() {
-    return '/noise';
-  }
+  /**
+   * Encrypt outgoing data to the remote party (handshake as initiator)
+   * @param {PeerId} localPeer - PeerId of the receiving peer
+   * @param connection - streaming iterable duplex that will be encrypted
+   * @param {PeerId} remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer.
+   * @returns {Promise<SecureOutbound>}
+   */
+  public async secureOutbound(localPeer: PeerId, connection: any, remotePeer: PeerId) : Promise<SecureOutbound> {
+    const remotePublicKey = Buffer.from(remotePeer.pubKey);
+    const session = await this.createSecureConnection(connection, remotePublicKey, true);
 
-  // encrypt outgoing data to the remote party (handshake as initiator)
-  public async secureOutbound(connection: InsecureConnection, remotePeer: PeerId) : Promise<SecureConnection> {
-    try {
-      const remotePublicKey = Buffer.from(remotePeer.pubKey);
-      const session = await this.createSecureConnection(connection, remotePublicKey, true);
-    } catch (e) {
-
+    return {
+      conn: session,
+      remotePeer,
     }
   }
 
-  // decrypt incoming data (handshake as responder)
-  public async secureInbound(connection: InsecureConnection) : Promise<SecureConnection> {
+  /**
+   * Decrypt incoming data (handshake as responder).
+   * @param {PeerId} localPeer - PeerId of the receiving peer.
+   * @param connection - streaming iterable duplex that will be encryption.
+   * @param {PeerId} remotePeer - optional PeerId of the initiating peer, if known. This may only exist during transport upgrades.
+   * @returns {Promise<SecureOutbound>}
+   */
+  public async secureInbound(localPeer: PeerId, connection: any, remotePeer?: PeerId) : Promise<SecureOutbound> {
   }
 
   private async createSecureConnection(
-    connection: InsecureConnection,
+    connection: Duplex,
     remotePublicKey: bytes,
     isInitiator: boolean,
-    ) : Promise<SecureConnection> {
+    ) : Promise<Duplex> {
     if (!this.staticKeys) {
       this.staticKeys = await generateKeypair();
     }
@@ -61,20 +73,11 @@ export class Noise implements NoiseConnection {
       signedPayload = await signPayload(this.privateKey, payload);
     }
 
-    const prologue = Buffer.from(this.protocol());
-    const session = await Handshake.runXX(isInitiator, remotePublicKey, prologue, signedPayload, this.staticKeys);
+    const prologue = Buffer.from(this.protocol);
+    const handshake = new Handshake('XX', remotePublicKey, prologue, signedPayload, this.staticKeys)
+    const session = await handshake.propose(isInitiator);
 
-    await encryptStreams(connection.streams(), session);
-
-    return {
-      ...connection,
-      initiator: isInitiator,
-      prologue,
-      localKey: Buffer.alloc(0), // get libp2p public key,
-      xxNoiseSession: session,
-      xxComplete: true,
-      noiseKeypair: this.staticKeys,
-    }
+    return await encryptStreams(connection, session);
   }
 
 

@@ -1,5 +1,1 @@
-import { Noise } from './noise';
-
-export {
-  Noise,
-}
+export * from "./noise";
