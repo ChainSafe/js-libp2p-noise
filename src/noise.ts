@@ -1,13 +1,13 @@
 import { x25519 } from 'bcrypto';
 import { Buffer } from "buffer";
-
-import { bytes } from "./@types/basic";
-import {NoiseConnection, PeerId, KeyPair, SecureOutbound} from "./@types/libp2p";
+import Wrap from 'it-pb-rpc';
 
 import { Handshake } from "./handshake";
 import { generateKeypair, signPayload } from "./utils";
 import { decryptStreams, encryptStreams } from "./crypto";
-import {Duplex} from "./@types/it-pair";
+import { bytes } from "./@types/basic";
+import { NoiseConnection, PeerId, KeyPair, SecureOutbound } from "./@types/libp2p";
+import { Duplex } from "./@types/it-pair";
 
 export class Noise implements NoiseConnection {
   public protocol = "/noise";
@@ -39,8 +39,9 @@ export class Noise implements NoiseConnection {
    * @returns {Promise<SecureOutbound>}
    */
   public async secureOutbound(localPeer: PeerId, connection: any, remotePeer: PeerId) : Promise<SecureOutbound> {
+    const wrappedConnection = Wrap(connection);
     const remotePublicKey = Buffer.from(remotePeer.pubKey);
-    const session = await this.createSecureConnection(connection, remotePublicKey, true);
+    const session = await this.createSecureConnection(wrappedConnection, remotePublicKey, true);
 
     return {
       conn: session,
@@ -59,7 +60,7 @@ export class Noise implements NoiseConnection {
   }
 
   private async createSecureConnection(
-    connection: Duplex,
+    connection,
     remotePublicKey: bytes,
     isInitiator: boolean,
     ) : Promise<Duplex> {
@@ -74,7 +75,7 @@ export class Noise implements NoiseConnection {
     }
 
     const prologue = Buffer.from(this.protocol);
-    const handshake = new Handshake('XX', remotePublicKey, prologue, signedPayload, this.staticKeys)
+    const handshake = new Handshake('XX', remotePublicKey, prologue, signedPayload, this.staticKeys);
     const session = await handshake.propose(isInitiator);
 
     return await encryptStreams(connection, session);
