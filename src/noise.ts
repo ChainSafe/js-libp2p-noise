@@ -3,7 +3,7 @@ import { Buffer } from "buffer";
 import Wrap from 'it-pb-rpc';
 
 import { Handshake } from "./handshake";
-import { createHandshakePayload, generateKeypair, getHandshakePayload } from "./utils";
+import { createHandshakePayload, generateKeypair, getHandshakePayload, signPayload } from "./utils";
 import { decryptStreams, encryptStreams } from "./crypto";
 import { bytes } from "./@types/basic";
 import { NoiseConnection, PeerId, KeyPair, SecureOutbound } from "./@types/libp2p";
@@ -69,10 +69,11 @@ export class Noise implements NoiseConnection {
     }
 
     const payload = getHandshakePayload(this.staticKeys.publicKey);
-    const signedPayload = signHandshakePayload(this.staticKeys.privateKey, payload);
+    const signedPayload = signPayload(this.staticKeys.privateKey, payload);
     const handshakePayload = await createHandshakePayload(this.staticKeys, signedPayload);
+
     const prologue = Buffer.from(this.protocol);
-    const handshake = new Handshake('XX', remotePublicKey, prologue, handshakePayload, this.staticKeys);
+    const handshake = new Handshake('XX', remotePublicKey, prologue, handshakePayload, this.staticKeys, connection);
     const session = await handshake.propose(isInitiator);
 
     return await encryptStreams(connection, session);
