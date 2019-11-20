@@ -1,6 +1,7 @@
 import { bytes, bytes32 } from "./@types/basic";
 import { NoiseSession, XXHandshake } from "./xx";
 import { KeyPair, PeerId } from "./@types/libp2p";
+import {Buffer} from "buffer";
 
 type handshakeType = "XX";
 
@@ -29,7 +30,10 @@ export class Handshake {
     const xx = new XXHandshake();
 
     const nsInit = await xx.initSession(isInitiator, this.prologue, this.staticKeys, this.remotePublicKey);
-    // TODO: exchange handshake messages and confirm handshake
+    if (isInitiator) {
+      const message = Buffer.concat([Buffer.alloc(0), this.signedPayload]);
+      const messageBuffer = await xx.sendMessage(nsInit, message);
+    }
     return nsInit;
   }
 

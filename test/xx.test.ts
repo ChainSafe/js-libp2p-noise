@@ -3,8 +3,8 @@ import { Buffer } from 'buffer';
 
 import { XXHandshake } from "../src/xx";
 import { KeyPair } from "../src/@types/libp2p";
-import { loadPayloadProto, generateEd25519Keys } from "./utils";
-import { generateKeypair } from "../src/utils";
+import { generateEd25519Keys } from "./utils";
+import {createHandshakePayload, generateKeypair, getHandshakePayload} from "../src/utils";
 
 describe("Index", () => {
   const prologue = Buffer.from("/noise", "utf-8");
@@ -35,15 +35,14 @@ describe("Index", () => {
   async function doHandshake(xx) {
     const kpInit = await xx.generateKeypair();
     const kpResp = await xx.generateKeypair();
-    const payloadString = Buffer.from("noise-libp2p-static-key:");
 
     // initiator setup
     const libp2pInitKeys = await generateEd25519Keys();
-    const initSignedPayload = await libp2pInitKeys.sign(Buffer.concat([payloadString, kpInit.publicKey]));
+    const initSignedPayload = await libp2pInitKeys.sign(getHandshakePayload(kpInit.publicKey));
 
     // responder setup
     const libp2pRespKeys = await generateEd25519Keys();
-    const respSignedPayload = await libp2pRespKeys.sign(Buffer.concat([payloadString, kpResp.publicKey]));
+    const respSignedPayload = await libp2pRespKeys.sign(getHandshakePayload(kpResp.publicKey));
 
     // initiator: new XX noise session
     const nsInit = await xx.initSession(true, prologue, kpInit, kpResp.publicKey);
@@ -53,12 +52,7 @@ describe("Index", () => {
     /* STAGE 0 */
 
     // initiator creates payload
-    const NoiseHandshakePayload = await loadPayloadProto();
-    const payloadInit = NoiseHandshakePayload.create({
-      libp2pKey: libp2pInitKeys.bytes,
-      noiseStaticKeySignature: initSignedPayload,
-    });
-    const payloadInitEnc = NoiseHandshakePayload.encode(payloadInit).finish();
+    const payloadInitEnc = await createHandshakePayload(libp2pInitKeys.bytes, initSignedPayload)
 
     // initiator sends message
     const message = Buffer.concat([Buffer.alloc(0), payloadInitEnc]);
@@ -73,11 +67,7 @@ describe("Index", () => {
     /* STAGE 1 */
 
     // responder creates payload
-    const payloadResp = NoiseHandshakePayload.create({
-      libp2pKey: libp2pRespKeys.bytes,
-      noiseStaticKeySignature: respSignedPayload,
-    });
-    const payloadRespEnc = NoiseHandshakePayload.encode(payloadResp).finish();
+    const payloadRespEnc = await createHandshakePayload(libp2pRespKeys.bytes, respSignedPayload);
 
     const message1 = Buffer.concat([message, payloadRespEnc]);
     const messageBuffer2 = await xx.sendMessage(nsResp, message1);
