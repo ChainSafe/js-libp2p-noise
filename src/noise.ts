@@ -68,13 +68,12 @@ export class Noise implements NoiseConnection {
       this.staticKeys = await generateKeypair();
     }
 
-    const payload = getHandshakePayload(this.staticKeys.publicKey);
-    const signedPayload = signPayload(this.staticKeys.privateKey, payload);
-    const handshakePayload = await createHandshakePayload(this.staticKeys, signedPayload);
-
     const prologue = Buffer.from(this.protocol);
-    const handshake = new Handshake('XX', remotePublicKey, prologue, handshakePayload, this.staticKeys, connection);
-    const session = await handshake.propose(isInitiator);
+    const handshake = new Handshake('XX', remotePublicKey, prologue, this.staticKeys, connection);
+
+    const session = await handshake.propose(isInitiator, this.earlyData);
+    await handshake.exchange(isInitiator, session);
+    await handshake.finish(isInitiator, session);
 
     return await encryptStreams(connection, session);
   }
