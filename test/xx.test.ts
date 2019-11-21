@@ -33,8 +33,8 @@ describe("Index", () => {
   });
 
   async function doHandshake(xx) {
-    const kpInit = await xx.generateKeypair();
-    const kpResp = await xx.generateKeypair();
+    const kpInit = await generateKeypair();
+    const kpResp = await generateKeypair();
 
     // initiator setup
     const libp2pInitKeys = await generateEd25519Keys();

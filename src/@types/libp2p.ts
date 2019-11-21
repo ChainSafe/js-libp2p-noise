@@ -15,7 +15,7 @@ export type PeerId = {
 export interface NoiseConnection {
   remoteEarlyData?(): bytes,
   secureOutbound(localPeer: PeerId, insecure: any, remotePeer: PeerId): Promise<SecureOutbound>,
-  secureInbound(remotePeer: PeerId, insecure: any): Promise<SecureOutbound>,
+  secureInbound(localPeer: PeerId, insecure: any, remotePeer: PeerId): Promise<SecureOutbound>,
 }
 
 export type SecureOutbound = {

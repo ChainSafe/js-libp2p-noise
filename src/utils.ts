@@ -10,7 +10,7 @@ export async function loadPayloadProto () {
   return payloadProtoBuf.lookupType("pb.NoiseHandshakePayload");
 }
 
-export async function generateKeypair() : Promise<KeyPair> {
+export function generateKeypair() : KeyPair {
   const privateKey = x25519.privateKeyGenerate();
   const publicKey = x25519.publicKeyCreate(privateKey);
 

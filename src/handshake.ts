@@ -53,6 +53,7 @@ export class Handshake {
     return ns;
   }
 
+  // stage 1
   async exchange(isInitiator: boolean, session: NoiseSession) : Promise<void> {
     if (isInitiator) {
       const receivedMessageBuffer = (await this.connection.readLP()).slice();
@@ -68,6 +69,7 @@ export class Handshake {
     }
   }
 
+  // stage 2
   async finish(isInitiator: boolean, session: NoiseSession) : Promise<void> {
     if (isInitiator) {
       const messageBuffer = await this.xx.sendMessage(session, Buffer.alloc(0));

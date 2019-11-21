@@ -3,18 +3,20 @@ import { Buffer } from "buffer";
 import Wrap from 'it-pb-rpc';
 
 import { Handshake } from "./handshake";
-import { createHandshakePayload, generateKeypair, getHandshakePayload, signPayload } from "./utils";
+import { generateKeypair } from "./utils";
 import { decryptStreams, encryptStreams } from "./crypto";
 import { bytes } from "./@types/basic";
 import { NoiseConnection, PeerId, KeyPair, SecureOutbound } from "./@types/libp2p";
 import { Duplex } from "./@types/it-pair";
 
+type WrappedConnection = ReturnType<typeof Wrap>;
+
 export class Noise implements NoiseConnection {
   public protocol = "/noise";
 
   private readonly privateKey: bytes;
-  private staticKeys: KeyPair;
-  private earlyData?: bytes;
+  private readonly staticKeys: KeyPair;
+  private readonly earlyData?: bytes;
 
   constructor(privateKey: bytes, staticNoiseKey?: bytes, earlyData?: bytes) {
     this.privateKey = privateKey;
@@ -27,7 +29,7 @@ export class Noise implements NoiseConnection {
         publicKey,
       }
     } else {
-      // todo: generate new static key
+      this.staticKeys = generateKeypair();
     }
   }
 
@@ -56,18 +58,19 @@ export class Noise implements NoiseConnection {
    * @param {PeerId} remotePeer - optional PeerId of the initiating peer, if known. This may only exist during transport upgrades.
    * @returns {Promise<SecureOutbound>}
    */
-  public async secureInbound(localPeer: PeerId, connection: any, remotePeer?: PeerId) : Promise<SecureOutbound> {
+  // tslint:disable-next-line
+  public async secureInbound(localPeer: PeerId, connection: any, remotePeer: PeerId) : Promise<SecureOutbound> {
+    return {
+      conn: undefined,
+      remotePeer
+    }
   }
 
   private async createSecureConnection(
-    connection,
+    connection: WrappedConnection,
     remotePublicKey: bytes,
     isInitiator: boolean,
     ) : Promise<Duplex> {
-    if (!this.staticKeys) {
-      this.staticKeys = await generateKeypair();
-    }
-
     const prologue = Buffer.from(this.protocol);
     const handshake = new Handshake('XX', remotePublicKey, prologue, this.staticKeys, connection);
 

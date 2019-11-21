@@ -226,7 +226,7 @@ export class XXHandshake {
 
   private async writeMessageA(hs: HandshakeState, payload: bytes) : Promise<MessageBuffer> {
     let ns = Buffer.alloc(0);
-    hs.e = await generateKeypair();
+    hs.e = generateKeypair();
     if (!hs.e) {
       throw new Error("Handshake state has keypair missing.");
     }
@@ -239,7 +239,7 @@ export class XXHandshake {
   }
 
   private async writeMessageB(hs: HandshakeState, payload: bytes) : Promise<MessageBuffer> {
-    hs.e = await generateKeypair();
+    hs.e = generateKeypair();
     if (!hs.e) {
       throw new Error("Handshake state has keypair missing.");
     }
