@@ -2,7 +2,14 @@ import { bytes, bytes32 } from "./@types/basic";
 import { NoiseSession, XXHandshake } from "./xx";
 import { KeyPair } from "./@types/libp2p";
 import { Buffer } from "buffer";
-import {createHandshakePayload, getHandshakePayload, signPayload} from "./utils";
+import {
+  createHandshakePayload,
+  decodeMessageBuffer,
+  encodeMessageBuffer,
+  getHandshakePayload,
+  signPayload
+} from "./utils";
+import { WrappedConnection } from "./noise";
 
 type handshakeType = "XX";
 
@@ -11,7 +18,7 @@ export class Handshake {
   private remotePublicKey: bytes;
   private prologue: bytes32;
   private staticKeys: KeyPair;
-  private connection: any;
+  private connection: WrappedConnection;
   private xx: XXHandshake;
 
   constructor(
@@ -19,7 +26,7 @@ export class Handshake {
     remotePublicKey: bytes,
     prologue: bytes32,
     staticKeys: KeyPair,
-    connection,
+    connection: WrappedConnection,
   ) {
     this.type = type;
     this.remotePublicKey = remotePublicKey;
@@ -44,10 +51,10 @@ export class Handshake {
       );
       const message = Buffer.concat([Buffer.alloc(0), handshakePayload]);
       const messageBuffer = await this.xx.sendMessage(ns, message);
-      this.connection.writeLP(messageBuffer);
+      this.connection.writeLP(encodeMessageBuffer(messageBuffer));
     } else {
       const receivedMessageBuffer = (await this.connection.readLP()).slice();
-      const plaintext = await this.xx.recvMessage(ns, receivedMessageBuffer);
+      const plaintext = await this.xx.recvMessage(ns, decodeMessageBuffer(receivedMessageBuffer));
     }
 
     return ns;
@@ -57,7 +64,7 @@ export class Handshake {
   async exchange(isInitiator: boolean, session: NoiseSession) : Promise<void> {
     if (isInitiator) {
       const receivedMessageBuffer = (await this.connection.readLP()).slice();
-      const plaintext = await this.xx.recvMessage(session, receivedMessageBuffer);
+      const plaintext = await this.xx.recvMessage(session, decodeMessageBuffer(receivedMessageBuffer));
     } else {
       // create payload as responder
       const signedPayload = signPayload(this.staticKeys.privateKey, getHandshakePayload(this.staticKeys.publicKey));
@@ -65,7 +72,7 @@ export class Handshake {
 
       const message = Buffer.concat([Buffer.alloc(0), handshakePayload]);
       const messageBuffer = await this.xx.sendMessage(session, message);
-      this.connection.writeLP(messageBuffer);
+      this.connection.writeLP(encodeMessageBuffer(messageBuffer));
     }
   }
 
@@ -73,10 +80,10 @@ export class Handshake {
   async finish(isInitiator: boolean, session: NoiseSession) : Promise<void> {
     if (isInitiator) {
       const messageBuffer = await this.xx.sendMessage(session, Buffer.alloc(0));
-      this.connection.writeLP(messageBuffer);
+      this.connection.writeLP(encodeMessageBuffer(messageBuffer));
     } else {
       const receivedMessageBuffer = (await this.connection.readLP()).slice();
-      const plaintext = await this.xx.recvMessage(session, receivedMessageBuffer);
+      const plaintext = await this.xx.recvMessage(session, decodeMessageBuffer(receivedMessageBuffer));
     }
   }
 }

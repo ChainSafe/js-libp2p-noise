@@ -1,9 +1,10 @@
 import { x25519, ed25519 } from 'bcrypto';
 import protobuf from "protobufjs";
+import { Buffer } from "buffer";
 
 import { KeyPair } from "./@types/libp2p";
 import { bytes } from "./@types/basic";
-import {Buffer} from "buffer";
+import { MessageBuffer } from "./xx";
 
 export async function loadPayloadProto () {
   const payloadProtoBuf = await protobuf.load("protos/payload.proto");
@@ -55,6 +56,18 @@ function resolveEarlyDataPayload(privateKey?: bytes, earlyData?: bytes) : Object
   return {
     libp2pData: payload,
     libp2pDataSignature: signedPayload,
+  }
+}
+
+export function encodeMessageBuffer(message: MessageBuffer) : bytes {
+  return Buffer.concat([message.ne, message.ns, message.ciphertext]);
+}
+
+export function decodeMessageBuffer(message: bytes) : MessageBuffer {
+  return {
+    ne: message.slice(0, 32),
+    ns: message.slice(32, 80),
+    ciphertext: message.slice(80, message.length),
   }
 }
 

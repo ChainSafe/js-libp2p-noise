@@ -2,8 +2,10 @@ declare module "it-pb-rpc" {
   import { Buffer } from "buffer";
   import { Duplex } from "it-pair";
   type WrappedDuplex = {
-    read(input: Buffer): Buffer,
+    read(bytes: number): Buffer,
+    readLP(): Buffer,
     write(input: Buffer): void,
+    writeLP(input: Buffer): void,
     unwrap(): Duplex
   }
 

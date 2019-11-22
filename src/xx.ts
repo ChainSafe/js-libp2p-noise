@@ -7,7 +7,7 @@ import { KeyPair } from './@types/libp2p'
 import { generateKeypair } from './utils';
 
 
-interface MessageBuffer {
+export interface MessageBuffer {
   ne: bytes32,
   ns: bytes,
   ciphertext: bytes
@@ -277,6 +277,7 @@ export class XXHandshake {
   }
 
   private async readMessageA(hs: HandshakeState, message: MessageBuffer) : Promise<bytes> {
+    console.log("publci key: ", message.ne)
     if (x25519.publicKeyVerify(message.ne)) {
       hs.re = message.ne;
     }

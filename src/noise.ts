@@ -9,7 +9,7 @@ import { bytes } from "./@types/basic";
 import { NoiseConnection, PeerId, KeyPair, SecureOutbound } from "./@types/libp2p";
 import { Duplex } from "./@types/it-pair";
 
-type WrappedConnection = ReturnType<typeof Wrap>;
+export type WrappedConnection = ReturnType<typeof Wrap>;
 
 export class Noise implements NoiseConnection {
   public protocol = "/noise";
