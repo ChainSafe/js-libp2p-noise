@@ -1,4 +1,4 @@
-import { expect } from "chai";
+import {assert} from "chai";
 import Duplex from 'it-pair/duplex';
 import {Buffer} from "buffer";
 import Wrap from "it-pb-rpc";
@@ -19,21 +19,20 @@ describe("Handshake", () => {
     const handshakeInitator = new Handshake('XX', staticKeysResponder.publicKey, prologue, staticKeysInitiator, connectionFrom);
     const handshakeResponder = new Handshake('XX', staticKeysInitiator.publicKey, prologue, staticKeysResponder, connectionTo);
 
-    console.log("Going to start with the handshake process...")
-
     const sessionInitator = await handshakeInitator.propose(true);
     const sessionResponder = await handshakeResponder.propose(false);
 
-    console.log("Propose finished")
-
-    await handshakeInitator.exchange(true, sessionInitator);
     await handshakeResponder.exchange(false, sessionResponder);
-
-    console.log("exchange finished")
+    await handshakeInitator.exchange(true, sessionInitator);
 
     await handshakeInitator.finish(true, sessionInitator);
     await handshakeResponder.finish(false, sessionResponder);
 
-    console.log("finish finished")
-  })
+    if (sessionInitator.cs1 && sessionResponder.cs1 && sessionInitator.cs2 && sessionResponder.cs2) {
+      assert(sessionInitator.cs1.k.equals(sessionResponder.cs1.k));
+      assert(sessionInitator.cs2.k.equals(sessionResponder.cs2.k));
+    } else {
+      assert(false);
+    }
+  });
 });
