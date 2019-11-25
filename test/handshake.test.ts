@@ -16,17 +16,17 @@ describe("Handshake", () => {
     const staticKeysInitiator = generateKeypair();
     const staticKeysResponder = generateKeypair();
 
-    const handshakeInitator = new Handshake('XX', staticKeysResponder.publicKey, prologue, staticKeysInitiator, connectionFrom);
-    const handshakeResponder = new Handshake('XX', staticKeysInitiator.publicKey, prologue, staticKeysResponder, connectionTo);
+    const handshakeInitator = new Handshake('XX', true, staticKeysResponder.publicKey, prologue, staticKeysInitiator, connectionFrom);
+    const handshakeResponder = new Handshake('XX', false, staticKeysInitiator.publicKey, prologue, staticKeysResponder, connectionTo);
 
-    const sessionInitator = await handshakeInitator.propose(true);
-    const sessionResponder = await handshakeResponder.propose(false);
+    const sessionInitator = await handshakeInitator.propose();
+    const sessionResponder = await handshakeResponder.propose();
 
-    await handshakeResponder.exchange(false, sessionResponder);
-    await handshakeInitator.exchange(true, sessionInitator);
+    await handshakeResponder.exchange(sessionResponder);
+    await handshakeInitator.exchange(sessionInitator);
 
-    await handshakeInitator.finish(true, sessionInitator);
-    await handshakeResponder.finish(false, sessionResponder);
+    await handshakeInitator.finish(sessionInitator);
+    await handshakeResponder.finish( sessionResponder);
 
     if (sessionInitator.cs1 && sessionResponder.cs1 && sessionInitator.cs2 && sessionResponder.cs2) {
       assert(sessionInitator.cs1.k.equals(sessionResponder.cs1.k));
