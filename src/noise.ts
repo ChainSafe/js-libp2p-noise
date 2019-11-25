@@ -1,6 +1,11 @@
 import { x25519 } from 'bcrypto';
 import { Buffer } from "buffer";
 import Wrap from 'it-pb-rpc';
+import DuplexPair from 'it-pair/duplex';
+import ensureBuffer from 'it-buffer';
+import pipe from 'it-pipe';
+import lp from 'it-length-prefixed';
+const { int16BEEncode, int16BEDecode } = lp;
 
 import { Handshake } from "./handshake";
 import { generateKeypair } from "./utils";
@@ -80,7 +85,22 @@ export class Noise implements NoiseConnection {
     await handshake.finish(session);
 
     // Create encryption box/unbox wrapper
-    return await encryptStream(handshake, session);
+    const [secure, user] = DuplexPair();
+    const network = connection.unwrap();
+
+    pipe(
+      secure, // write to wrapper
+      ensureBuffer, // ensure any type of data is converted to buffer
+      encryptStream(handshake, session), // data is encrypted
+      lp.encode({ lengthEncoder: int16BEEncode }), // prefix with message length
+      network, // send to the remote peer
+      lp.decode({ lengthDecoder: int16BEDecode }), // read message length prefix
+      ensureBuffer, // ensure any type of data is converted to buffer
+      decryptStream(handshake, session), // decrypt the incoming data
+      secure // pipe to the wrapper
+    );
+
+    return user;
   }
 
 

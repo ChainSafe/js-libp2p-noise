@@ -2429,6 +2429,13 @@ isobject@^3.0.0, isobject@^3.0.1:
   resolved "https://registry.yarnpkg.com/isobject/-/isobject-3.0.1.tgz#4e431e92b11a9731636aa1f9c8d1ccbcfdab78df"
   integrity sha1-TkMekrEalzFjaqH5yNHMvP2reN8=
 
+it-buffer@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/it-buffer/-/it-buffer-0.1.1.tgz#64981e3e5e8a316df6b7305c8e0639603527d322"
+  integrity sha512-yydimO5mqeejnvFY8LE0ugEqVDq6S2wpNM1lXsEeHoKwUuKpTJXmnngOMiPFTPhNYdPqZrNwdx+6+ZayzcHn+g==
+  dependencies:
+    bl "^4.0.0"
+
 it-handshake@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/it-handshake/-/it-handshake-1.0.1.tgz#ed37a5622fcb82cfcb1e7eaebcf4872361cabe11"
@@ -2461,6 +2468,11 @@ it-pb-rpc@^0.1.3:
   dependencies:
     it-handshake "^1.0.1"
     it-length-prefixed "^3.0.0"
+
+it-pipe@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/it-pipe/-/it-pipe-1.1.0.tgz#f5964c6bb785dd776f11a62d1e75964787ab95ce"
+  integrity sha512-lF0/3qTVeth13TOnHVs0BTFaziwQF7m5Gg+E6JV0BXcLKutC92YjSi7bASgkPOXaLEb+YvNZrPorGMBIJvZfxg==
 
 it-pushable@^1.4.0:
   version "1.4.0"
