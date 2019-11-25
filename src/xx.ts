@@ -215,7 +215,7 @@ export class XXHandshake {
     return plaintext;
   }
 
-  private split (ss: SymmetricState): void {
+  private split (ss: SymmetricState) {
     const [ tempk1, tempk2 ] = this.getHkdf(ss.ck, Buffer.alloc(0));
     const cs1 = this.initializeKey(tempk1);
     const cs2 = this.initializeKey(tempk2);
