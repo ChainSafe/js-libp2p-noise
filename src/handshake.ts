@@ -38,7 +38,7 @@ export class Handshake {
   }
 
   // stage 0
-  async propose(isInitiator: boolean, earlyData?: bytes) : Promise<NoiseSession> {
+  async propose(isInitiator: boolean, earlyData?: bytes): Promise<NoiseSession> {
     const ns = await this.xx.initSession(isInitiator, this.prologue, this.staticKeys, this.remotePublicKey);
 
     if (isInitiator) {
@@ -61,7 +61,7 @@ export class Handshake {
   }
 
   // stage 1
-  async exchange(isInitiator: boolean, session: NoiseSession) : Promise<void> {
+  async exchange(isInitiator: boolean, session: NoiseSession): Promise<void> {
     if (isInitiator) {
       const receivedMessageBuffer = (await this.connection.readLP()).slice();
       const plaintext = await this.xx.recvMessage(session, decodeMessageBuffer(receivedMessageBuffer));
@@ -77,7 +77,7 @@ export class Handshake {
   }
 
   // stage 2
-  async finish(isInitiator: boolean, session: NoiseSession) : Promise<void> {
+  async finish(isInitiator: boolean, session: NoiseSession): Promise<void> {
     if (isInitiator) {
       const messageBuffer = await this.xx.sendMessage(session, Buffer.alloc(0));
       this.connection.writeLP(encodeMessageBuffer(messageBuffer));

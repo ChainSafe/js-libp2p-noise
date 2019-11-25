@@ -155,7 +155,7 @@ export class XXHandshake {
     return { cs, ck, h };
   }
 
-  private mixKey(ss: SymmetricState, ikm: bytes32) {
+  private mixKey(ss: SymmetricState, ikm: bytes32): void {
     const [ ck, tempK ] = this.getHkdf(ss.ck, ikm);
     ss.cs = this.initializeKey(tempK) as CipherState;
     ss.ck = ck;
@@ -183,7 +183,7 @@ export class XXHandshake {
     return [ k1, k2, k3 ];
   }
 
-  private mixHash(ss: SymmetricState, data: bytes) {
+  private mixHash(ss: SymmetricState, data: bytes): void {
     ss.h = this.getHash(ss.h, data);
   }
 
@@ -215,7 +215,7 @@ export class XXHandshake {
     return plaintext;
   }
 
-  private split (ss: SymmetricState) {
+  private split (ss: SymmetricState): void {
     const [ tempk1, tempk2 ] = this.getHkdf(ss.ck, Buffer.alloc(0));
     const cs1 = this.initializeKey(tempk1);
     const cs2 = this.initializeKey(tempk2);
@@ -316,7 +316,7 @@ export class XXHandshake {
     return this.decryptWithAd(cs, Buffer.alloc(0), message.ciphertext);
   }
 
-  public async initSession(initiator: boolean, prologue: bytes32, s: KeyPair, rs: bytes32) : Promise<NoiseSession> {
+  public async initSession(initiator: boolean, prologue: bytes32, s: KeyPair, rs: bytes32): Promise<NoiseSession> {
     const psk = this.createEmptyKey();
     let hs;
 

@@ -11,7 +11,7 @@ export async function loadPayloadProto () {
   return payloadProtoBuf.lookupType("pb.NoiseHandshakePayload");
 }
 
-export function generateKeypair() : KeyPair {
+export function generateKeypair(): KeyPair {
   const privateKey = x25519.privateKeyGenerate();
   const publicKey = x25519.publicKeyCreate(privateKey);
 
@@ -26,7 +26,7 @@ export async function createHandshakePayload(
   signedPayload: bytes,
   earlyData?: bytes,
   libp2pPrivateKey?: bytes,
-) : Promise<bytes> {
+): Promise<bytes> {
   const NoiseHandshakePayload = await loadPayloadProto();
   const payloadInit = NoiseHandshakePayload.create({
     libp2pKey: libp2pPublicKey,
@@ -46,7 +46,7 @@ export const getHandshakePayload = (publicKey: bytes ) => Buffer.concat([Buffer.
 
 export const getEarlyDataPayload = (earlyData: bytes) => Buffer.concat([Buffer.from("noise-libp2p-early-data:"), earlyData]);
 
-function resolveEarlyDataPayload(privateKey?: bytes, earlyData?: bytes) : Object {
+function resolveEarlyDataPayload(privateKey?: bytes, earlyData?: bytes): Record<string, any> {
   if (!earlyData || !privateKey) {
     return {};
   }
@@ -59,11 +59,11 @@ function resolveEarlyDataPayload(privateKey?: bytes, earlyData?: bytes) : Object
   }
 }
 
-export function encodeMessageBuffer(message: MessageBuffer) : bytes {
+export function encodeMessageBuffer(message: MessageBuffer): bytes {
   return Buffer.concat([message.ne, message.ns, message.ciphertext]);
 }
 
-export function decodeMessageBuffer(message: bytes) : MessageBuffer {
+export function decodeMessageBuffer(message: bytes): MessageBuffer {
   return {
     ne: message.slice(0, 32),
     ns: message.slice(32, 80),

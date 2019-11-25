@@ -40,7 +40,7 @@ export class Noise implements NoiseConnection {
    * @param {PeerId} remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer.
    * @returns {Promise<SecureOutbound>}
    */
-  public async secureOutbound(localPeer: PeerId, connection: any, remotePeer: PeerId) : Promise<SecureOutbound> {
+  public async secureOutbound(localPeer: PeerId, connection: any, remotePeer: PeerId): Promise<SecureOutbound> {
     const wrappedConnection = Wrap(connection);
     const remotePublicKey = Buffer.from(remotePeer.pubKey);
     const session = await this.createSecureConnection(wrappedConnection, remotePublicKey, true);
@@ -59,7 +59,7 @@ export class Noise implements NoiseConnection {
    * @returns {Promise<SecureOutbound>}
    */
   // tslint:disable-next-line
-  public async secureInbound(localPeer: PeerId, connection: any, remotePeer: PeerId) : Promise<SecureOutbound> {
+  public async secureInbound(localPeer: PeerId, connection: any, remotePeer: PeerId): Promise<SecureOutbound> {
     return {
       conn: undefined,
       remotePeer
@@ -70,7 +70,7 @@ export class Noise implements NoiseConnection {
     connection: WrappedConnection,
     remotePublicKey: bytes,
     isInitiator: boolean,
-    ) : Promise<Duplex> {
+  ): Promise<Duplex> {
     const prologue = Buffer.from(this.protocol);
     const handshake = new Handshake('XX', remotePublicKey, prologue, this.staticKeys, connection);
 
