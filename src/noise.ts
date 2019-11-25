@@ -47,11 +47,11 @@ export class Noise implements NoiseConnection {
    */
   public async secureOutbound(localPeer: PeerId, connection: any, remotePeer: PeerId) : Promise<SecureOutbound> {
     const wrappedConnection = Wrap(connection);
-    const remotePublicKey = Buffer.from(remotePeer.pubKey);
-    const session = await this.createSecureConnection(wrappedConnection, remotePublicKey, true);
+    const remotePublicKey = remotePeer.pubKey.bytes;
+    const conn = await this.createSecureConnection(wrappedConnection, remotePublicKey, true);
 
     return {
-      conn: session,
+      conn,
       remotePeer,
     }
   }
@@ -63,12 +63,15 @@ export class Noise implements NoiseConnection {
    * @param {PeerId} remotePeer - optional PeerId of the initiating peer, if known. This may only exist during transport upgrades.
    * @returns {Promise<SecureOutbound>}
    */
-  // tslint:disable-next-line
   public async secureInbound(localPeer: PeerId, connection: any, remotePeer: PeerId) : Promise<SecureOutbound> {
+    const wrappedConnection = Wrap(connection);
+    const remotePublicKey = remotePeer.pubKey.bytes;
+    const conn = await this.createSecureConnection(wrappedConnection, remotePublicKey, false);
+
     return {
-      conn: undefined,
-      remotePeer
-    }
+      conn,
+      remotePeer,
+    };
   }
 
   private async createSecureConnection(
