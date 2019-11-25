@@ -4,7 +4,7 @@ import Wrap from 'it-pb-rpc';
 
 import { Handshake } from "./handshake";
 import { generateKeypair } from "./utils";
-import { decryptStreams, encryptStreams } from "./crypto";
+import { decryptStream, encryptStream } from "./crypto";
 import { bytes } from "./@types/basic";
 import { NoiseConnection, PeerId, KeyPair, SecureOutbound } from "./@types/libp2p";
 import { Duplex } from "./@types/it-pair";
@@ -71,14 +71,16 @@ export class Noise implements NoiseConnection {
     remotePublicKey: bytes,
     isInitiator: boolean,
     ) : Promise<Duplex> {
+    // Perform handshake
     const prologue = Buffer.from(this.protocol);
-    const handshake = new Handshake('XX', remotePublicKey, prologue, this.staticKeys, connection);
+    const handshake = new Handshake('XX', isInitiator, remotePublicKey, prologue, this.staticKeys, connection);
 
-    const session = await handshake.propose(isInitiator, this.earlyData);
-    await handshake.exchange(isInitiator, session);
-    await handshake.finish(isInitiator, session);
+    const session = await handshake.propose(this.earlyData);
+    await handshake.exchange(session);
+    await handshake.finish(session);
 
-    return await encryptStreams(connection, session);
+    // Create encryption box/unbox wrapper
+    return await encryptStream(handshake, session);
   }
 
 

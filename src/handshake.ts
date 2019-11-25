@@ -9,11 +9,13 @@ import {
   getHandshakePayload,
   signPayload
 } from "./utils";
-import { WrappedConnection } from "./noise";
+import {Noise, WrappedConnection} from "./noise";
 
 type handshakeType = "XX";
 
 export class Handshake {
+  public isInitiator: boolean;
+
   private type: handshakeType;
   private remotePublicKey: bytes;
   private prologue: bytes32;
@@ -23,12 +25,14 @@ export class Handshake {
 
   constructor(
     type: handshakeType,
+    isInitiator: boolean,
     remotePublicKey: bytes,
     prologue: bytes32,
     staticKeys: KeyPair,
     connection: WrappedConnection,
   ) {
     this.type = type;
+    this.isInitiator = isInitiator;
     this.remotePublicKey = remotePublicKey;
     this.prologue = prologue;
     this.staticKeys = staticKeys;
@@ -38,10 +42,10 @@ export class Handshake {
   }
 
   // stage 0
-  async propose(isInitiator: boolean, earlyData?: bytes) : Promise<NoiseSession> {
-    const ns = await this.xx.initSession(isInitiator, this.prologue, this.staticKeys, this.remotePublicKey);
+  async propose(earlyData?: bytes) : Promise<NoiseSession> {
+    const ns = await this.xx.initSession(this.isInitiator, this.prologue, this.staticKeys, this.remotePublicKey);
 
-    if (isInitiator) {
+    if (this.isInitiator) {
       const signedPayload = signPayload(this.staticKeys.privateKey, getHandshakePayload(this.staticKeys.publicKey));
       const handshakePayload = await createHandshakePayload(
         this.staticKeys.publicKey,
@@ -61,8 +65,8 @@ export class Handshake {
   }
 
   // stage 1
-  async exchange(isInitiator: boolean, session: NoiseSession) : Promise<void> {
-    if (isInitiator) {
+  async exchange(session: NoiseSession) : Promise<void> {
+    if (this.isInitiator) {
       const receivedMessageBuffer = (await this.connection.readLP()).slice();
       const plaintext = await this.xx.recvMessage(session, decodeMessageBuffer(receivedMessageBuffer));
     } else {
@@ -77,13 +81,35 @@ export class Handshake {
   }
 
   // stage 2
-  async finish(isInitiator: boolean, session: NoiseSession) : Promise<void> {
-    if (isInitiator) {
+  async finish(session: NoiseSession) : Promise<void> {
+    if (this.isInitiator) {
       const messageBuffer = await this.xx.sendMessage(session, Buffer.alloc(0));
       this.connection.writeLP(encodeMessageBuffer(messageBuffer));
     } else {
       const receivedMessageBuffer = (await this.connection.readLP()).slice();
       const plaintext = await this.xx.recvMessage(session, decodeMessageBuffer(receivedMessageBuffer));
+    }
+  }
+
+  encrypt(plaintext: bytes, session: NoiseSession): bytes {
+    const cs = this.getCS(session);
+    return this.xx.encryptWithAd(cs, Buffer.alloc(0), plaintext);
+  }
+
+  decrypt(ciphertext: bytes, session: NoiseSession): bytes {
+    const cs = this.getCS(session, false);
+    return this.xx.decryptWithAd(cs, Buffer.alloc(0), ciphertext);
+  }
+
+  private getCS(session: NoiseSession, encryption = true) {
+    if (!session.cs1 || !session.cs2) {
+      throw new Error("Handshake not completed properly, cipher state does not exist.");
+    }
+
+    if (this.isInitiator) {
+      return encryption ? session.cs1 : session.cs2;
+    } else {
+      return encryption ? session.cs2 : session.cs1;
     }
   }
 }
