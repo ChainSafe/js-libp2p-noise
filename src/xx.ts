@@ -1,14 +1,12 @@
-import {bytes32, bytes16, uint32, uint64, bytes} from './types/basic'
 import { Buffer } from 'buffer';
 import { AEAD, x25519, HKDF, SHA256 } from 'bcrypto';
 import { BN } from 'bn.js';
 
-export interface KeyPair {
-  publicKey: bytes32;
-  privateKey: bytes32;
-}
+import { bytes32, uint32, uint64, bytes } from './@types/basic'
+import { KeyPair } from './@types/libp2p'
+import { generateKeypair } from './utils';
 
-interface MessageBuffer {
+export interface MessageBuffer {
   ne: bytes32;
   ns: bytes;
   ciphertext: bytes;
@@ -34,7 +32,7 @@ type HandshakeState = {
   psk: bytes32;
 }
 
-type NoiseSession = {
+export type NoiseSession = {
   hs: HandshakeState;
   h?: bytes32;
   cs1?: CipherState;
@@ -157,7 +155,7 @@ export class XXHandshake {
     return { cs, ck, h };
   }
 
-  private mixKey(ss: SymmetricState, ikm: bytes32) {
+  private mixKey(ss: SymmetricState, ikm: bytes32): void {
     const [ ck, tempK ] = this.getHkdf(ss.ck, ikm);
     ss.cs = this.initializeKey(tempK) as CipherState;
     ss.ck = ck;
@@ -185,7 +183,7 @@ export class XXHandshake {
     return [ k1, k2, k3 ];
   }
 
-  private mixHash(ss: SymmetricState, data: bytes) {
+  private mixHash(ss: SymmetricState, data: bytes): void {
     ss.h = this.getHash(ss.h, data);
   }
 
@@ -227,7 +225,7 @@ export class XXHandshake {
 
   private async writeMessageA(hs: HandshakeState, payload: bytes): Promise<MessageBuffer> {
     const ns = Buffer.alloc(0);
-    hs.e = await this.generateKeypair();
+    hs.e = generateKeypair();
     const ne = hs.e.publicKey;
 
     this.mixHash(hs.ss, ne);
@@ -237,7 +235,7 @@ export class XXHandshake {
   }
 
   private async writeMessageB(hs: HandshakeState, payload: bytes): Promise<MessageBuffer> {
-    hs.e = await this.generateKeypair();
+    hs.e = generateKeypair();
     const ne = hs.e.publicKey;
     this.mixHash(hs.ss, ne);
 
@@ -316,16 +314,6 @@ export class XXHandshake {
 
   private readMessageRegular(cs: CipherState, message: MessageBuffer): bytes {
     return this.decryptWithAd(cs, Buffer.alloc(0), message.ciphertext);
-  }
-
-  public async generateKeypair(): Promise<KeyPair> {
-    const privateKey = x25519.privateKeyGenerate();
-    const publicKey = x25519.publicKeyCreate(privateKey);
-
-    return {
-      publicKey,
-      privateKey,
-    }
   }
 
   public async initSession(initiator: boolean, prologue: bytes32, s: KeyPair, rs: bytes32): Promise<NoiseSession> {

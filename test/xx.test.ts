@@ -1,8 +1,10 @@
 import { expect, assert } from "chai";
 import { Buffer } from 'buffer';
 
-import { XXHandshake, KeyPair } from "../src/xx";
-import { loadPayloadProto, generateEd25519Keys } from "./utils";
+import { XXHandshake } from "../src/xx";
+import { KeyPair } from "../src/@types/libp2p";
+import { generateEd25519Keys } from "./utils";
+import {createHandshakePayload, generateKeypair, getHandshakePayload} from "../src/utils";
 
 describe("Index", () => {
   const prologue = Buffer.from("/noise", "utf-8");
@@ -10,12 +12,12 @@ describe("Index", () => {
   it("Test creating new XX session", async () => {
     const xx = new XXHandshake();
 
-    const kpInitiator: KeyPair = await xx.generateKeypair();
-    const kpResponder: KeyPair = await xx.generateKeypair();
+    const kpInitiator: KeyPair = await generateKeypair();
+    const kpResponder: KeyPair = await generateKeypair();
 
 
     const session = await xx.initSession(true, prologue, kpInitiator, kpResponder.publicKey);
-  })
+  });
 
   it("Test get HKDF", async () => {
     const xx = new XXHandshake();
@@ -28,20 +30,19 @@ describe("Index", () => {
     expect(k1.toString('hex')).to.equal('cc5659adff12714982f806e2477a8d5ddd071def4c29bb38777b7e37046f6914');
     expect(k2.toString('hex')).to.equal('a16ada915e551ab623f38be674bb4ef15d428ae9d80688899c9ef9b62ef208fa');
     expect(k3.toString('hex')).to.equal('ff67bf9727e31b06efc203907e6786667d2c7a74ac412b4d31a80ba3fd766f68');
-  })
+  });
 
   async function doHandshake(xx) {
-    const kpInit = await xx.generateKeypair();
-    const kpResp = await xx.generateKeypair();
-    const payloadString = Buffer.from("noise-libp2p-static-key:");
+    const kpInit = await generateKeypair();
+    const kpResp = await generateKeypair();
 
     // initiator setup
     const libp2pInitKeys = await generateEd25519Keys();
-    const initSignedPayload = await libp2pInitKeys.sign(Buffer.concat([payloadString, kpInit.publicKey]));
+    const initSignedPayload = await libp2pInitKeys.sign(getHandshakePayload(kpInit.publicKey));
 
     // responder setup
     const libp2pRespKeys = await generateEd25519Keys();
-    const respSignedPayload = await libp2pRespKeys.sign(Buffer.concat([payloadString, kpResp.publicKey]));
+    const respSignedPayload = await libp2pRespKeys.sign(getHandshakePayload(kpResp.publicKey));
 
     // initiator: new XX noise session
     const nsInit = await xx.initSession(true, prologue, kpInit, kpResp.publicKey);
@@ -51,12 +52,7 @@ describe("Index", () => {
     /* STAGE 0 */
 
     // initiator creates payload
-    const NoiseHandshakePayload = await loadPayloadProto();
-    const payloadInit = NoiseHandshakePayload.create({
-      libp2pKey: libp2pInitKeys.bytes,
-      noiseStaticKeySignature: initSignedPayload,
-    });
-    const payloadInitEnc = NoiseHandshakePayload.encode(payloadInit).finish();
+    const payloadInitEnc = await createHandshakePayload(libp2pInitKeys.bytes, initSignedPayload)
 
     // initiator sends message
     const message = Buffer.concat([Buffer.alloc(0), payloadInitEnc]);
@@ -71,11 +67,7 @@ describe("Index", () => {
     /* STAGE 1 */
 
     // responder creates payload
-    const payloadResp = NoiseHandshakePayload.create({
-      libp2pKey: libp2pRespKeys.bytes,
-      noiseStaticKeySignature: respSignedPayload,
-    });
-    const payloadRespEnc = NoiseHandshakePayload.encode(payloadResp).finish();
+    const payloadRespEnc = await createHandshakePayload(libp2pRespKeys.bytes, respSignedPayload);
 
     const message1 = Buffer.concat([message, payloadRespEnc]);
     const messageBuffer2 = await xx.sendMessage(nsResp, message1);
