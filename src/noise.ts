@@ -25,7 +25,7 @@ export class Noise implements NoiseConnection {
 
   constructor(privateKey: bytes, staticNoiseKey?: bytes, earlyData?: bytes) {
     this.privateKey = privateKey;
-    this.earlyData = earlyData;
+    this.earlyData = earlyData || Buffer.alloc(0);
 
     if (staticNoiseKey) {
       const publicKey = x25519.publicKeyCreate(staticNoiseKey);
@@ -83,9 +83,13 @@ export class Noise implements NoiseConnection {
     const prologue = Buffer.from(this.protocol);
     const handshake = new Handshake('XX', isInitiator, remotePublicKey, prologue, this.staticKeys, connection);
 
+    console.log("Starting with handshake in createSecureConnection")
+
     const session = await handshake.propose(this.earlyData);
     await handshake.exchange(session);
     await handshake.finish(session);
+
+    console.log("Finished handshake in createSecureConnection")
 
     // Create encryption box/unbox wrapper
     const [secure, user] = DuplexPair();
