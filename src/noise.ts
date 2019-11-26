@@ -91,8 +91,6 @@ export class Noise implements NoiseConnection {
     const [secure, user] = DuplexPair();
     const network = connection.unwrap();
 
-    console.log("Unwrapped network: ", network)
-
     pipe(
       secure, // write to wrapper
       ensureBuffer, // ensure any type of data is converted to buffer

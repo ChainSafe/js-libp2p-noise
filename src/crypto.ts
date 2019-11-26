@@ -23,7 +23,9 @@ export function encryptStream(handshake: Handshake, session: NoiseSession) : IRe
 export function decryptStream(handshake: Handshake, session: NoiseSession) : IReturnEncryptionWrapper {
   return async function * (source) {
     for await (const chunk of source) {
+      console.log("Going to decrypt chunk: ", chunk)
       const decrypted = await handshake.decrypt(chunk, session);
+      console.log("Decrypted: ", decrypted)
       yield decrypted
     }
   }

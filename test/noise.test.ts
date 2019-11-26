@@ -38,47 +38,57 @@ describe("Noise", () => {
     }
   });
 
-  it("should test that secureOutbound is spec compliant", async(done) => {
+  it("should communicate through encrypted streams", async() => {
     const libp2pKeys = await generateEd25519Keys();
+    const libp2pKeys2 = await generateEd25519Keys();
 
-    const noise = new Noise(libp2pKeys._key);
+    const noiseInit = new Noise(libp2pKeys._key, localPeer.privKey.bytes);
+    const noiseResp = new Noise(libp2pKeys2._key, remotePeer.privKey.bytes);
 
     const [inboundConnection, outboundConnection] = DuplexPair();
     const [outbound, inbound] = await Promise.all([
-      noise.secureOutbound(localPeer, outboundConnection, remotePeer),
-      noise.secureInbound(remotePeer, inboundConnection, localPeer),
-
-      // (async () => {
-      //   const wrapped = Wrap(inboundConnection);
-      //   const prologue = Buffer.from('/noise');
-      //   const staticKeys = {
-      //     privateKey: remotePeer.privKey.bytes,
-      //     publicKey: remotePeer.pubKey.bytes,
-      //   };
-      //   const handshake = new Handshake('XX', false, localPeer.pubKey.bytes, prologue, staticKeys, wrapped);
-      //
-      //   // Finish handshake
-      //   const sessionResponder = await handshake.propose(Buffer.alloc(0));
-      //   await handshake.exchange(sessionResponder);
-      //   await handshake.finish(sessionResponder);
-      //
-      //   // Create the encrypted streams
-      //   console.log(sessionResponder);
-      // })(),
+      noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
+      noiseResp.secureInbound(remotePeer, inboundConnection, localPeer),
     ]);
     const wrappedInbound = Wrap(inbound.conn);
     const wrappedOutbound = Wrap(outbound.conn);
 
-    wrappedInbound.readLP().then((log) => {
-      console.log("Read this thing: ", log);
-      done();
-    });
-
     wrappedOutbound.writeLP(Buffer.from("test"));
-
-    console.log("Payload is: ", Buffer.from("test"))
-
-    // const response = (await inbound.conn.source.next()).value;
-    // console.log(response);
+    const response = await wrappedInbound.readLP();
+    expect(response.toString()).equal("test");
   })
+
+  /*
+  it("should test that secureOutbound is spec compliant", async(done) => {
+    const libp2pKeys = await generateEd25519Keys();
+    const libp2pKeys2 = await generateEd25519Keys();
+
+    const noiseInit = new Noise(libp2pKeys._key, localPeer.privKey.bytes);
+    const noiseResp = new Noise(libp2pKeys2._key, remotePeer.privKey.bytes);
+
+    const [inboundConnection, outboundConnection] = DuplexPair();
+    const [outbound, inbound] = await Promise.all([
+      noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
+      noiseResp.secureInbound(remotePeer, inboundConnection, localPeer),
+
+      (async () => {
+        const wrapped = Wrap(inboundConnection);
+        const prologue = Buffer.from('/noise');
+        const staticKeys = {
+          privateKey: remotePeer.privKey.bytes,
+          publicKey: remotePeer.pubKey.bytes,
+        };
+        const handshake = new Handshake('XX', false, localPeer.pubKey.bytes, prologue, staticKeys, wrapped);
+
+        // Finish handshake
+        const sessionResponder = await handshake.propose(Buffer.alloc(0));
+        await handshake.exchange(sessionResponder);
+        await handshake.finish(sessionResponder);
+
+        // Create the encrypted streams
+        console.log(sessionResponder);
+      })(),
+    ]);
+  })
+   */
 });

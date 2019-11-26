@@ -89,6 +89,8 @@ export class Handshake {
       const receivedMessageBuffer = (await this.connection.readLP()).slice();
       const plaintext = await this.xx.recvMessage(session, decodeMessageBuffer(receivedMessageBuffer));
     }
+
+    console.log("FINISHED HANDSHAKE, is initiator: ", this.isInitiator);
   }
 
   encrypt(plaintext: bytes, session: NoiseSession): bytes {
