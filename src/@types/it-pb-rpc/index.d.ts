@@ -2,8 +2,8 @@ declare module "it-pb-rpc" {
   import { Buffer } from "buffer";
   import { Duplex } from "it-pair";
   type WrappedDuplex = {
-    read(bytes: number): Buffer,
-    readLP(): Buffer,
+    read(bytes: number): Promise<Buffer>,
+    readLP(): Promise<Buffer>,
     write(input: Buffer): void,
     writeLP(input: Buffer): void,
     unwrap(): Duplex

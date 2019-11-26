@@ -10,7 +10,9 @@ interface IReturnEncryptionWrapper {
 export function encryptStream(handshake: Handshake, session: NoiseSession) : IReturnEncryptionWrapper {
   return async function * (source) {
     for await (const chunk of source) {
+      console.log("chunk: ", chunk);
       const data = await handshake.encrypt(chunk, session);
+      console.log("encrypted: ", data);
       yield data;
     }
   }

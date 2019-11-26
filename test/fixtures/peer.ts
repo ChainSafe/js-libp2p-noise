@@ -28,7 +28,7 @@ export async function createPeerIdsFromFixtures (length) {
 export async function createPeerIds (length) {
   const peerIds: any[] = [];
   for (let i = 0; i < length; i++) {
-    const id = await PeerId.create({ keyType: 'ed25519'});
+    const id = await PeerId.create({ keyType: 'ed25519', bits: 256 });
     peerIds.push(id);
   }
 

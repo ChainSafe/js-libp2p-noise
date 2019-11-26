@@ -83,17 +83,15 @@ export class Noise implements NoiseConnection {
     const prologue = Buffer.from(this.protocol);
     const handshake = new Handshake('XX', isInitiator, remotePublicKey, prologue, this.staticKeys, connection);
 
-    console.log("Starting with handshake in createSecureConnection")
-
     const session = await handshake.propose(this.earlyData);
     await handshake.exchange(session);
     await handshake.finish(session);
 
-    console.log("Finished handshake in createSecureConnection")
-
     // Create encryption box/unbox wrapper
     const [secure, user] = DuplexPair();
     const network = connection.unwrap();
+
+    console.log("Unwrapped network: ", network)
 
     pipe(
       secure, // write to wrapper
