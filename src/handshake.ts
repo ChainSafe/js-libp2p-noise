@@ -32,6 +32,7 @@ export class Handshake {
     prologue: bytes32,
     staticKeys: KeyPair,
     connection: WrappedConnection,
+    handshake?: XXHandshake,
   ) {
     this.type = type;
     this.isInitiator = isInitiator;
@@ -40,7 +41,7 @@ export class Handshake {
     this.staticKeys = staticKeys;
     this.connection = connection;
 
-    this.xx = new XXHandshake();
+    this.xx = handshake || new XXHandshake();
   }
 
   // stage 0
@@ -55,8 +56,7 @@ export class Handshake {
         earlyData,
         this.staticKeys.privateKey
       );
-      const message = Buffer.concat([Buffer.alloc(0), handshakePayload]);
-      const messageBuffer = await this.xx.sendMessage(ns, message);
+      const messageBuffer = await this.xx.sendMessage(ns, handshakePayload);
       this.connection.writeLP(encodeMessageBuffer(messageBuffer));
 
       logger("Stage 0 - Initiator finished proposing");
@@ -80,8 +80,7 @@ export class Handshake {
       const signedPayload = signPayload(this.staticKeys.privateKey, getHandshakePayload(this.staticKeys.publicKey));
       const handshakePayload = await createHandshakePayload(this.remotePublicKey, signedPayload);
 
-      const message = Buffer.concat([Buffer.alloc(0), handshakePayload]);
-      const messageBuffer = await this.xx.sendMessage(session, message);
+      const messageBuffer = await this.xx.sendMessage(session, handshakePayload);
       this.connection.writeLP(encodeMessageBuffer(messageBuffer));
       logger('Stage 1 - Responder sent the message.')
     }

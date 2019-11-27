@@ -308,6 +308,7 @@ export class XXHandshake {
       throw new Error("Handshake state `e` param is missing.");
     }
     this.mixKey(hs.ss, this.dh(hs.e.privateKey, hs.rs));
+
     const plaintext = await this.decryptAndHash(hs.ss, message.ciphertext);
     const { cs1, cs2 } = this.split(hs.ss);
 

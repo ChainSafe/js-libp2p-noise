@@ -5,10 +5,9 @@ import DuplexPair from 'it-pair/duplex';
 import ensureBuffer from 'it-buffer';
 import pipe from 'it-pipe';
 import lp from 'it-length-prefixed';
-const { int16BEEncode, int16BEDecode } = lp;
 
 import { Handshake } from "./handshake";
-import { generateKeypair } from "./utils";
+import { generateKeypair, int16BEDecode, int16BEEncode } from "./utils";
 import { decryptStream, encryptStream } from "./crypto";
 import { bytes } from "./@types/basic";
 import { NoiseConnection, PeerId, KeyPair, SecureOutbound } from "./@types/libp2p";
