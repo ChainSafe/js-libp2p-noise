@@ -11,7 +11,7 @@
     "check-types": "tsc --incremental --noEmit",
     "lint": "eslint --ext .ts src/",
     "pretest": "yarn check-types",
-    "test": "mocha -r ./babel-register.js \"test/**/*.test.ts\""
+    "test": "DEBUG=libp2p:noise mocha -r ./babel-register.js \"test/**/*.test.ts\""
   },
   "devDependencies": {
     "@babel/cli": "^7.6.4",
@@ -28,6 +28,7 @@
     "@typescript-eslint/parser": "^2.6.0",
     "bn.js-typings": "^1.0.1",
     "chai": "^4.2.0",
+    "debug": "^4.1.1",
     "eslint": "^6.6.0",
     "libp2p-crypto": "^0.17.1",
     "mocha": "^6.2.2",

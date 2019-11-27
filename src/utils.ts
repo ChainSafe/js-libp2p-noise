@@ -1,10 +1,13 @@
 import { x25519, ed25519 } from 'bcrypto';
 import protobuf from "protobufjs";
 import { Buffer } from "buffer";
+import debug from "debug";
 
 import { KeyPair } from "./@types/libp2p";
 import { bytes } from "./@types/basic";
 import { MessageBuffer } from "./xx";
+
+export const logger = debug('libp2p:noise');
 
 export async function loadPayloadProto () {
   const payloadProtoBuf = await protobuf.load("protos/payload.proto");

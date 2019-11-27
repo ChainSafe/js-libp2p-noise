@@ -1,15 +1,17 @@
+import { Buffer } from "buffer";
+
 import { bytes, bytes32 } from "./@types/basic";
 import { NoiseSession, XXHandshake } from "./xx";
 import { KeyPair } from "./@types/libp2p";
-import { Buffer } from "buffer";
 import {
   createHandshakePayload,
   decodeMessageBuffer,
   encodeMessageBuffer,
   getHandshakePayload,
-  signPayload
+  logger,
+  signPayload,
 } from "./utils";
-import {Noise, WrappedConnection} from "./noise";
+import { WrappedConnection } from "./noise";
 
 type handshakeType = "XX";
 
@@ -56,9 +58,12 @@ export class Handshake {
       const message = Buffer.concat([Buffer.alloc(0), handshakePayload]);
       const messageBuffer = await this.xx.sendMessage(ns, message);
       this.connection.writeLP(encodeMessageBuffer(messageBuffer));
+
+      logger("Stage 0 - Initiator finished proposing");
     } else {
       const receivedMessageBuffer = (await this.connection.readLP()).slice();
       const plaintext = await this.xx.recvMessage(ns, decodeMessageBuffer(receivedMessageBuffer));
+      logger("Stage 0 - Responder received proposed message.");
     }
 
     return ns;
@@ -69,6 +74,7 @@ export class Handshake {
     if (this.isInitiator) {
       const receivedMessageBuffer = (await this.connection.readLP()).slice();
       const plaintext = await this.xx.recvMessage(session, decodeMessageBuffer(receivedMessageBuffer));
+      logger('Stage 1 - Initiator received the message.');
     } else {
       // create payload as responder
       const signedPayload = signPayload(this.staticKeys.privateKey, getHandshakePayload(this.staticKeys.publicKey));
@@ -77,6 +83,7 @@ export class Handshake {
       const message = Buffer.concat([Buffer.alloc(0), handshakePayload]);
       const messageBuffer = await this.xx.sendMessage(session, message);
       this.connection.writeLP(encodeMessageBuffer(messageBuffer));
+      logger('Stage 1 - Responder sent the message.')
     }
   }
 
@@ -85,12 +92,12 @@ export class Handshake {
     if (this.isInitiator) {
       const messageBuffer = await this.xx.sendMessage(session, Buffer.alloc(0));
       this.connection.writeLP(encodeMessageBuffer(messageBuffer));
+      logger('Stage 2 - Initiator sent message.');
     } else {
       const receivedMessageBuffer = (await this.connection.readLP()).slice();
       const plaintext = await this.xx.recvMessage(session, decodeMessageBuffer(receivedMessageBuffer));
+      logger('Stage 2 - Responder received the message, finished handshake.')
     }
-
-    console.log("FINISHED HANDSHAKE, is initiator: ", this.isInitiator);
   }
 
   encrypt(plaintext: bytes, session: NoiseSession): bytes {
