@@ -6,7 +6,6 @@ import { bytes32, uint32, uint64, bytes } from './@types/basic'
 import { KeyPair } from './@types/libp2p'
 import { generateKeypair } from './utils';
 
-
 export interface MessageBuffer {
   ne: bytes32;
   ns: bytes;
@@ -156,7 +155,7 @@ export class XXHandshake {
     return { cs, ck, h };
   }
 
-  private mixKey(ss: SymmetricState, ikm: bytes32) {
+  private mixKey(ss: SymmetricState, ikm: bytes32): void {
     const [ ck, tempK ] = this.getHkdf(ss.ck, ikm);
     ss.cs = this.initializeKey(tempK) as CipherState;
     ss.ck = ck;
