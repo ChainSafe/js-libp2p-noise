@@ -17,7 +17,6 @@ export class Handshake {
   public isInitiator: boolean;
   public session: NoiseSession;
 
-  private remotePublicKey?: bytes;
   private libp2pPrivateKey: bytes;
   private libp2pPublicKey: bytes;
   private prologue: bytes32;
@@ -62,7 +61,6 @@ export class Handshake {
       logger("Stage 0 - Initiator finished proposing, sent signed NoiseHandshake payload.");
     } else {
       const receivedMessageBuffer = decodeMessageBuffer((await this.connection.readLP()).slice());
-      this.remotePublicKey = receivedMessageBuffer.ne;
 
       const plaintext = await this.xx.recvMessage(this.session, receivedMessageBuffer);
       logger("Stage 0 - Responder received proposed message and remote static public key.");
@@ -73,7 +71,6 @@ export class Handshake {
   async exchange() : Promise<void> {
     if (this.isInitiator) {
       const receivedMessageBuffer = decodeMessageBuffer((await this.connection.readLP()).slice());
-      this.remotePublicKey = receivedMessageBuffer.ne;
       const plaintext = await this.xx.recvMessage(this.session, receivedMessageBuffer);
       logger('Stage 1 - Initiator received the message.');
     } else {
