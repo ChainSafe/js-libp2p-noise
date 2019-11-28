@@ -150,7 +150,7 @@ export class XXHandshake {
 
     const ck = h;
     const key = this.createEmptyKey();
-    const cs:CipherState = this.initializeKey(key);
+    const cs: CipherState = this.initializeKey(key);
 
     return { cs, ck, h };
   }

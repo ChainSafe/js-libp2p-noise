@@ -45,7 +45,7 @@ export class Noise implements NoiseConnection {
    * @param {PeerId} remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer.
    * @returns {Promise<SecureOutbound>}
    */
-  public async secureOutbound(localPeer: PeerId, connection: any, remotePeer: PeerId) : Promise<SecureOutbound> {
+  public async secureOutbound(localPeer: PeerId, connection: any, remotePeer: PeerId): Promise<SecureOutbound> {
     const wrappedConnection = Wrap(connection);
     const libp2pPublicKey = localPeer.pubKey.marshal();
     const handshake = await this.performHandshake(wrappedConnection, true, libp2pPublicKey);
@@ -64,7 +64,7 @@ export class Noise implements NoiseConnection {
    * @param {PeerId} remotePeer - optional PeerId of the initiating peer, if known. This may only exist during transport upgrades.
    * @returns {Promise<SecureOutbound>}
    */
-  public async secureInbound(localPeer: PeerId, connection: any, remotePeer: PeerId) : Promise<SecureOutbound> {
+  public async secureInbound(localPeer: PeerId, connection: any, remotePeer: PeerId): Promise<SecureOutbound> {
     const wrappedConnection = Wrap(connection);
     const libp2pPublicKey = localPeer.pubKey.marshal();
     const handshake = await this.performHandshake(wrappedConnection, false, libp2pPublicKey);
@@ -94,7 +94,7 @@ export class Noise implements NoiseConnection {
   private async createSecureConnection(
     connection: WrappedConnection,
     handshake: Handshake,
-    ) : Promise<Duplex> {
+  ): Promise<Duplex> {
     // Create encryption box/unbox wrapper
     const [secure, user] = DuplexPair();
     const network = connection.unwrap();

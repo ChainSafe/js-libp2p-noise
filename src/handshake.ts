@@ -45,7 +45,7 @@ export class Handshake {
   }
 
   // stage 0
-  async propose(earlyData?: bytes) : Promise<void> {
+  async propose(earlyData?: bytes): Promise<void> {
     if (this.isInitiator) {
       const signedPayload = signPayload(this.libp2pPrivateKey, getHandshakePayload(this.staticKeys.publicKey));
       const signedEarlyDataPayload = signEarlyDataPayload(this.libp2pPrivateKey, earlyData || Buffer.alloc(0));
@@ -68,7 +68,7 @@ export class Handshake {
   }
 
   // stage 1
-  async exchange() : Promise<void> {
+  async exchange(): Promise<void> {
     if (this.isInitiator) {
       const receivedMessageBuffer = decodeMessageBuffer((await this.connection.readLP()).slice());
       const plaintext = await this.xx.recvMessage(this.session, receivedMessageBuffer);
@@ -89,7 +89,7 @@ export class Handshake {
   }
 
   // stage 2
-  async finish() : Promise<void> {
+  async finish(): Promise<void> {
     if (this.isInitiator) {
       const messageBuffer = await this.xx.sendMessage(this.session, Buffer.alloc(0));
       this.connection.writeLP(encodeMessageBuffer(messageBuffer));

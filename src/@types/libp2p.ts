@@ -2,28 +2,28 @@ import { bytes, bytes32 } from "./basic";
 import { Duplex } from "it-pair";
 
 export interface KeyPair {
-  publicKey: bytes32,
-  privateKey: bytes32,
+  publicKey: bytes32;
+  privateKey: bytes32;
 }
 
 export type PeerId = {
-  id: bytes,
+  id: bytes;
   privKey: {
-    marshal(): bytes,
-  },
+    marshal(): bytes;
+  };
   pubKey: {
-    marshal(): bytes,
-  },
+    marshal(): bytes;
+  };
 };
 
 export interface NoiseConnection {
-  remoteEarlyData?(): bytes,
-  secureOutbound(localPeer: PeerId, insecure: any, remotePeer: PeerId): Promise<SecureOutbound>,
-  secureInbound(localPeer: PeerId, insecure: any, remotePeer: PeerId): Promise<SecureOutbound>,
+  remoteEarlyData?(): bytes;
+  secureOutbound(localPeer: PeerId, insecure: any, remotePeer: PeerId): Promise<SecureOutbound>;
+  secureInbound(localPeer: PeerId, insecure: any, remotePeer: PeerId): Promise<SecureOutbound>;
 }
 
 export type SecureOutbound = {
-  conn: Duplex,
-  remotePeer: PeerId,
+  conn: Duplex;
+  remotePeer: PeerId;
 }
 
