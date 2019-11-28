@@ -50,18 +50,18 @@ export class XXHandshake {
     return Buffer.alloc(32);
   }
 
-  private async initializeInitiator(prologue: bytes32, s: KeyPair, rs: bytes32, psk: bytes32): Promise<HandshakeState> {
+  private initializeInitiator(prologue: bytes32, s: KeyPair, rs: bytes32, psk: bytes32): HandshakeState {
     const name = "Noise_XX_25519_ChaChaPoly_SHA256";
-    const ss = await this.initializeSymmetric(name);
+    const ss = this.initializeSymmetric(name);
     this.mixHash(ss, prologue);
     const re = Buffer.alloc(32);
 
     return { ss, s, rs, psk, re };
   }
 
-  private async initializeResponder(prologue: bytes32, s: KeyPair, rs: bytes32, psk: bytes32): Promise<HandshakeState> {
+  private initializeResponder(prologue: bytes32, s: KeyPair, rs: bytes32, psk: bytes32): HandshakeState {
     const name = "Noise_XX_25519_ChaChaPoly_SHA256";
-    const ss = await this.initializeSymmetric(name);
+    const ss = this.initializeSymmetric(name);
     this.mixHash(ss, prologue);
     const re = Buffer.alloc(32);
 
@@ -145,9 +145,9 @@ export class XXHandshake {
 
   // Symmetric state related
 
-  private async initializeSymmetric(protocolName: string): Promise<SymmetricState> {
+  private initializeSymmetric(protocolName: string): SymmetricState {
     const protocolNameBytes: bytes = Buffer.from(protocolName, 'utf-8');
-    const h = await this.hashProtocolName(protocolNameBytes);
+    const h = this.hashProtocolName(protocolNameBytes);
 
     const ck = h;
     const key = this.createEmptyKey();
@@ -162,7 +162,7 @@ export class XXHandshake {
     ss.ck = ck;
   }
 
-  private async hashProtocolName(protocolName: bytes): Promise<bytes32> {
+  private hashProtocolName(protocolName: bytes): bytes32 {
     if (protocolName.length <= 32) {
       const h = Buffer.alloc(32);
       protocolName.copy(h);
@@ -319,14 +319,15 @@ export class XXHandshake {
     return this.decryptWithAd(cs, Buffer.alloc(0), message.ciphertext);
   }
 
-  public async initSession(initiator: boolean, prologue: bytes32, s: KeyPair, rs: bytes32): Promise<NoiseSession> {
+  public initSession(initiator: boolean, prologue: bytes32, s: KeyPair): NoiseSession {
     const psk = this.createEmptyKey();
+    const rs = Buffer.alloc(32); // no static key yet
     let hs;
 
     if (initiator) {
-      hs = await this.initializeInitiator(prologue, s, rs, psk);
+      hs = this.initializeInitiator(prologue, s, rs, psk);
     } else {
-      hs = await this.initializeResponder(prologue, s, rs, psk);
+      hs = this.initializeResponder(prologue, s, rs, psk);
     }
 
     return {

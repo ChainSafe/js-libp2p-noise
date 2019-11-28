@@ -26,41 +26,49 @@ export function generateKeypair() : KeyPair {
 
 export async function createHandshakePayload(
   libp2pPublicKey: bytes,
+  libp2pPrivateKey: bytes,
   signedPayload: bytes,
-  earlyData?: bytes,
-  libp2pPrivateKey?: bytes,
+  signedEarlyData?: EarlyDataPayload,
 ) : Promise<bytes> {
   const NoiseHandshakePayload = await loadPayloadProto();
+  const earlyDataPayload = signedEarlyData ?
+    {
+      libp2pData: signedEarlyData.libp2pData,
+      libp2pDataSignature: signedEarlyData.libp2pDataSignature,
+    } : {};
+
   const payloadInit = NoiseHandshakePayload.create({
     libp2pKey: libp2pPublicKey,
     noiseStaticKeySignature: signedPayload,
-    ...resolveEarlyDataPayload(libp2pPrivateKey, earlyData),
+    ...earlyDataPayload,
   });
 
   return Buffer.from(NoiseHandshakePayload.encode(payloadInit).finish());
 }
 
 
-export function signPayload(privateKey: bytes, payload: bytes) {
-  return ed25519.sign(payload, privateKey);
+export function signPayload(libp2pPrivateKey: bytes, payload: bytes) {
+  return ed25519.sign(payload, libp2pPrivateKey);
 }
 
-export const getHandshakePayload = (publicKey: bytes ) => Buffer.concat([Buffer.from("noise-libp2p-static-key:"), publicKey]);
+type EarlyDataPayload = {
+  libp2pData: bytes;
+  libp2pDataSignature: bytes;
+}
 
-export const getEarlyDataPayload = (earlyData: bytes) => Buffer.concat([Buffer.from("noise-libp2p-early-data:"), earlyData]);
-
-function resolveEarlyDataPayload(privateKey?: bytes, earlyData?: bytes) : Object {
-  if (!earlyData || !privateKey) {
-    return {};
-  }
-
+export function signEarlyDataPayload(libp2pPrivateKey: bytes, earlyData: bytes) : EarlyDataPayload {
   const payload = getEarlyDataPayload(earlyData);
-  const signedPayload = signPayload(privateKey, payload);
+  const signedPayload = signPayload(libp2pPrivateKey, payload);
+
   return {
     libp2pData: payload,
     libp2pDataSignature: signedPayload,
   }
 }
+
+export const getHandshakePayload = (publicKey: bytes ) => Buffer.concat([Buffer.from("noise-libp2p-static-key:"), publicKey]);
+
+export const getEarlyDataPayload = (earlyData: bytes) => Buffer.concat([Buffer.from("noise-libp2p-early-data:"), earlyData]);
 
 export function encodeMessageBuffer(message: MessageBuffer) : bytes {
   return Buffer.concat([message.ne, message.ns, message.ciphertext]);
@@ -69,8 +77,8 @@ export function encodeMessageBuffer(message: MessageBuffer) : bytes {
 export function decodeMessageBuffer(message: bytes) : MessageBuffer {
   return {
     ne: message.slice(0, 32),
-    ns: message.slice(32, 80),
-    ciphertext: message.slice(80, message.length),
+    ns: message.slice(32, 64),
+    ciphertext: message.slice(64, message.length),
   }
 }
 
@@ -82,5 +90,6 @@ int16BEEncode.bytes = 2;
 
 export const int16BEDecode = data => {
   if (data.length < 2) throw RangeError('Could not decode int16BE');
-  return data.readInt16BE(0);}
+  return data.readInt16BE(0);
+};
 int16BEDecode.bytes = 2;

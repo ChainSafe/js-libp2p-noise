@@ -9,10 +9,10 @@ export interface KeyPair {
 export type PeerId = {
   id: bytes,
   privKey: {
-    bytes: bytes,
+    marshal(): bytes,
   },
   pubKey: {
-    bytes: bytes,
+    marshal(): bytes,
   },
 };
 

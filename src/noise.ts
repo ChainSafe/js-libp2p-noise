@@ -12,6 +12,7 @@ import { decryptStream, encryptStream } from "./crypto";
 import { bytes } from "./@types/basic";
 import { NoiseConnection, PeerId, KeyPair, SecureOutbound } from "./@types/libp2p";
 import { Duplex } from "./@types/it-pair";
+import {NoiseSession} from "./xx";
 
 export type WrappedConnection = ReturnType<typeof Wrap>;
 
@@ -27,7 +28,7 @@ export class Noise implements NoiseConnection {
     this.earlyData = earlyData || Buffer.alloc(0);
 
     if (staticNoiseKey) {
-      const publicKey = x25519.publicKeyCreate(staticNoiseKey);
+      const publicKey = x25519.publicKeyCreate(staticNoiseKey); // TODO: verify this
       this.staticKeys = {
         privateKey: staticNoiseKey,
         publicKey,
@@ -46,8 +47,9 @@ export class Noise implements NoiseConnection {
    */
   public async secureOutbound(localPeer: PeerId, connection: any, remotePeer: PeerId) : Promise<SecureOutbound> {
     const wrappedConnection = Wrap(connection);
-    const remotePublicKey = remotePeer.pubKey.bytes;
-    const conn = await this.createSecureConnection(wrappedConnection, remotePublicKey, true);
+    const libp2pPublicKey = localPeer.pubKey.marshal();
+    const handshake = await this.performHandshake(wrappedConnection, true, libp2pPublicKey);
+    const conn = await this.createSecureConnection(wrappedConnection, handshake);
 
     return {
       conn,
@@ -64,8 +66,9 @@ export class Noise implements NoiseConnection {
    */
   public async secureInbound(localPeer: PeerId, connection: any, remotePeer: PeerId) : Promise<SecureOutbound> {
     const wrappedConnection = Wrap(connection);
-    const remotePublicKey = remotePeer.pubKey.bytes;
-    const conn = await this.createSecureConnection(wrappedConnection, remotePublicKey, false);
+    const libp2pPublicKey = localPeer.pubKey.marshal();
+    const handshake = await this.performHandshake(wrappedConnection, false, libp2pPublicKey);
+    const conn = await this.createSecureConnection(wrappedConnection, handshake);
 
     return {
       conn,
@@ -73,19 +76,25 @@ export class Noise implements NoiseConnection {
     };
   }
 
+  private async performHandshake(
+    connection: WrappedConnection,
+    isInitiator: boolean,
+    libp2pPublicKey: bytes,
+  ): Promise<Handshake> {
+    const prologue = Buffer.from(this.protocol);
+    const handshake = new Handshake(isInitiator, this.privateKey, libp2pPublicKey, prologue, this.staticKeys, connection);
+
+    await handshake.propose(this.earlyData);
+    await handshake.exchange();
+    await handshake.finish();
+
+    return handshake;
+  }
+
   private async createSecureConnection(
     connection: WrappedConnection,
-    remotePublicKey: bytes,
-    isInitiator: boolean,
+    handshake: Handshake,
     ) : Promise<Duplex> {
-    // Perform handshake
-    const prologue = Buffer.from(this.protocol);
-    const handshake = new Handshake('XX', isInitiator, remotePublicKey, prologue, this.staticKeys, connection);
-
-    const session = await handshake.propose(this.earlyData);
-    await handshake.exchange(session);
-    await handshake.finish(session);
-
     // Create encryption box/unbox wrapper
     const [secure, user] = DuplexPair();
     const network = connection.unwrap();
@@ -93,12 +102,12 @@ export class Noise implements NoiseConnection {
     pipe(
       secure, // write to wrapper
       ensureBuffer, // ensure any type of data is converted to buffer
-      encryptStream(handshake, session), // data is encrypted
+      encryptStream(handshake, handshake.session), // data is encrypted
       lp.encode({ lengthEncoder: int16BEEncode }), // prefix with message length
       network, // send to the remote peer
       lp.decode({ lengthDecoder: int16BEDecode }), // read message length prefix
       ensureBuffer, // ensure any type of data is converted to buffer
-      decryptStream(handshake, session), // decrypt the incoming data
+      decryptStream(handshake, handshake.session), // decrypt the incoming data
       secure // pipe to the wrapper
     );
 
