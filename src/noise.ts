@@ -12,7 +12,6 @@ import { decryptStream, encryptStream } from "./crypto";
 import { bytes } from "./@types/basic";
 import { NoiseConnection, PeerId, KeyPair, SecureOutbound } from "./@types/libp2p";
 import { Duplex } from "./@types/it-pair";
-import {NoiseSession} from "./xx";
 
 export type WrappedConnection = ReturnType<typeof Wrap>;
 
@@ -102,12 +101,12 @@ export class Noise implements NoiseConnection {
     pipe(
       secure, // write to wrapper
       ensureBuffer, // ensure any type of data is converted to buffer
-      encryptStream(handshake, handshake.session), // data is encrypted
+      encryptStream(handshake), // data is encrypted
       lp.encode({ lengthEncoder: int16BEEncode }), // prefix with message length
       network, // send to the remote peer
       lp.decode({ lengthDecoder: int16BEDecode }), // read message length prefix
       ensureBuffer, // ensure any type of data is converted to buffer
-      decryptStream(handshake, handshake.session), // decrypt the incoming data
+      decryptStream(handshake), // decrypt the incoming data
       secure // pipe to the wrapper
     );
 

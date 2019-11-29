@@ -5,7 +5,7 @@ import Wrap from "it-pb-rpc";
 
 import {Handshake} from "../src/handshake";
 import {generateKeypair} from "../src/utils";
-import {createPeerIds, createPeerIdsFromFixtures} from "./fixtures/peer";
+import {createPeerIds} from "./fixtures/peer";
 
 
 describe("Handshake", () => {
