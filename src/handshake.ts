@@ -47,6 +47,7 @@ export class Handshake {
   // stage 0
   async propose(earlyData?: bytes): Promise<void> {
     if (this.isInitiator) {
+      logger("Stage 0 - Initiator starting to send first message.");
       const signedPayload = signPayload(this.libp2pPrivateKey, getHandshakePayload(this.staticKeys.publicKey));
       const signedEarlyDataPayload = signEarlyDataPayload(this.libp2pPrivateKey, earlyData || Buffer.alloc(0));
       const handshakePayload = await createHandshakePayload(
@@ -58,24 +59,26 @@ export class Handshake {
       const messageBuffer = await this.xx.sendMessage(this.session, handshakePayload);
       this.connection.writeLP(encodeMessageBuffer(messageBuffer));
 
-      logger("Stage 0 - Initiator finished proposing, sent signed NoiseHandshake payload.");
+      logger("Stage 0 - Initiator finished proposing, sent signed NoiseHandshake payload and static public key.");
     } else {
+      logger("Stage 0 - Responder waiting to receive first message...");
       const receivedMessageBuffer = decodeMessageBuffer((await this.connection.readLP()).slice());
       const plaintext = await this.xx.recvMessage(this.session, receivedMessageBuffer);
       // TODO: Verify payload
-      logger("Stage 0 - Responder received proposed message and remote static public key.");
+      logger("Stage 0 - Responder received first message.");
     }
   }
 
   // stage 1
   async exchange(): Promise<void> {
     if (this.isInitiator) {
+      logger('Stage 1 - Initiator waiting to receive first message from responder...');
       const receivedMessageBuffer = decodeMessageBuffer((await this.connection.readLP()).slice());
       const plaintext = await this.xx.recvMessage(this.session, receivedMessageBuffer);
       // TODO: Verify payload
       logger('Stage 1 - Initiator received the message. Got remote\'s static key.');
     } else {
-      // create payload as responder
+      logger('Stage 1 - Responder sending out first message with signed payload and static key.');
       const signedPayload = signPayload(this.libp2pPrivateKey, getHandshakePayload(this.staticKeys.publicKey));
       const handshakePayload = await createHandshakePayload(
         this.libp2pPublicKey,
@@ -85,20 +88,22 @@ export class Handshake {
 
       const messageBuffer = await this.xx.sendMessage(this.session, handshakePayload);
       this.connection.writeLP(encodeMessageBuffer(messageBuffer));
-      logger('Stage 1 - Responder sent the message.')
+      logger('Stage 1 - Responder sent the second handshake message.')
     }
   }
 
   // stage 2
   async finish(): Promise<void> {
     if (this.isInitiator) {
+      logger('Stage 2 - Initiator sending third handshake message.');
       const messageBuffer = await this.xx.sendMessage(this.session, Buffer.alloc(0));
       this.connection.writeLP(encodeMessageBuffer(messageBuffer));
       logger('Stage 2 - Initiator sent message.');
     } else {
+      logger('Stage 2 - Responder waiting for third handshake message...');
       const receivedMessageBuffer = (await this.connection.readLP()).slice();
       const plaintext = await this.xx.recvMessage(this.session, decodeMessageBuffer(receivedMessageBuffer));
-      logger('Stage 2 - Responder received the message, finished handshake. Got remote\'s static key.')
+      logger('Stage 2 - Responder received the message, finished handshake. Got remote\'s static key.');
     }
   }
 
