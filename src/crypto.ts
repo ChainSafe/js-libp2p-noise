@@ -1,4 +1,3 @@
-import { Duplex } from "it-pair";
 import { Handshake } from "./handshake";
 import { Buffer } from "buffer";
 
@@ -7,7 +6,7 @@ interface ReturnEncryptionWrapper {
 }
 
 // Returns generator that encrypts payload from the user
-  export function encryptStream(handshake: Handshake): ReturnEncryptionWrapper {
+export function encryptStream(handshake: Handshake): ReturnEncryptionWrapper {
   return async function * (source) {
     for await (const chunk of source) {
       const chunkBuffer = Buffer.from(chunk);

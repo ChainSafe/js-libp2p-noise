@@ -2,7 +2,7 @@ import { expect, assert } from "chai";
 import DuplexPair from 'it-pair/duplex';
 
 import { Noise } from "../src";
-import {createPeerIds, createPeerIdsFromFixtures} from "./fixtures/peer";
+import {createPeerIdsFromFixtures} from "./fixtures/peer";
 import Wrap from "it-pb-rpc";
 import {Handshake} from "../src/handshake";
 import {
@@ -10,7 +10,7 @@ import {
   decodeMessageBuffer,
   encodeMessageBuffer,
   generateKeypair,
-  getHandshakePayload, signEarlyDataPayload,
+  getHandshakePayload,
   signPayload
 } from "../src/utils";
 import {XXHandshake} from "../src/xx";
@@ -20,7 +20,7 @@ describe("Noise", () => {
   let remotePeer, localPeer;
 
   before(async () => {
-    [localPeer, remotePeer] = await createPeerIds(2);
+    [localPeer, remotePeer] = await createPeerIdsFromFixtures(2);
   });
 
   it("should communicate through encrypted streams", async() => {
