@@ -2,6 +2,7 @@ import { x25519, ed25519 } from 'bcrypto';
 import protobuf from "protobufjs";
 import { Buffer } from "buffer";
 import debug from "debug";
+import PeerId from "peer-id";
 
 import { KeyPair } from "./@types/libp2p";
 import { bytes } from "./@types/basic";
@@ -79,6 +80,21 @@ export function decodeMessageBuffer(message: bytes): MessageBuffer {
     ne: message.slice(0, 32),
     ns: message.slice(32, 64),
     ciphertext: message.slice(64, message.length),
+  }
+}
+
+export async function verifyPeerId(peerId: bytes, publicKey: bytes) {
+  const generatedPeerId = await PeerId.createFromPubKey(publicKey);
+  if (!generatedPeerId.equals(peerId)) {
+    Promise.reject("Peer ID doesn't match libp2p public key.");
+  }
+}
+
+export function verifySignedPayload(noiseStaticKey: bytes, plaintext: bytes, libp2pPublicKey: bytes) {
+  const generatedPayload = getHandshakePayload(noiseStaticKey);
+
+  if (!ed25519.verify(generatedPayload, signature, libp2pPublicKey)) {
+    throw new Error("Static key doesn't match to peer that signed payload!");
   }
 }
 

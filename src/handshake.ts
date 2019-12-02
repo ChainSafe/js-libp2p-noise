@@ -9,7 +9,7 @@ import {
   encodeMessageBuffer,
   getHandshakePayload,
   logger, signEarlyDataPayload,
-  signPayload,
+  signPayload, verifySignedPayload,
 } from "./utils";
 import { WrappedConnection } from "./noise";
 
@@ -70,13 +70,17 @@ export class Handshake {
   }
 
   // stage 1
-  async exchange(): Promise<void> {
+  async exchange(libp2pRemotekey?: bytes): Promise<void> {
     if (this.isInitiator) {
       logger('Stage 1 - Initiator waiting to receive first message from responder...');
       const receivedMessageBuffer = decodeMessageBuffer((await this.connection.readLP()).slice());
       const plaintext = await this.xx.recvMessage(this.session, receivedMessageBuffer);
-      // TODO: Verify payload
       logger('Stage 1 - Initiator received the message. Got remote\'s static key.');
+
+      if (!libp2pRemotekey) {
+        throw new Error("Missing remote's libp2p public key, can't verify signature.");
+      }
+      verifySignedPayload(receivedMessageBuffer.ns, plaintext, libp2pRemotekey);
     } else {
       logger('Stage 1 - Responder sending out first message with signed payload and static key.');
       const signedPayload = signPayload(this.libp2pPrivateKey, getHandshakePayload(this.staticKeys.publicKey));
