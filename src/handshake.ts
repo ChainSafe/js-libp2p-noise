@@ -61,8 +61,8 @@ export class Handshake {
       logger("Stage 0 - Initiator finished proposing, sent signed NoiseHandshake payload.");
     } else {
       const receivedMessageBuffer = decodeMessageBuffer((await this.connection.readLP()).slice());
-
       const plaintext = await this.xx.recvMessage(this.session, receivedMessageBuffer);
+      // TODO: Verify payload
       logger("Stage 0 - Responder received proposed message and remote static public key.");
     }
   }
@@ -72,7 +72,8 @@ export class Handshake {
     if (this.isInitiator) {
       const receivedMessageBuffer = decodeMessageBuffer((await this.connection.readLP()).slice());
       const plaintext = await this.xx.recvMessage(this.session, receivedMessageBuffer);
-      logger('Stage 1 - Initiator received the message.');
+      // TODO: Verify payload
+      logger('Stage 1 - Initiator received the message. Got remote\'s static key.');
     } else {
       // create payload as responder
       const signedPayload = signPayload(this.libp2pPrivateKey, getHandshakePayload(this.staticKeys.publicKey));
@@ -97,16 +98,17 @@ export class Handshake {
     } else {
       const receivedMessageBuffer = (await this.connection.readLP()).slice();
       const plaintext = await this.xx.recvMessage(this.session, decodeMessageBuffer(receivedMessageBuffer));
-      logger('Stage 2 - Responder received the message, finished handshake.')
+      logger('Stage 2 - Responder received the message, finished handshake. Got remote\'s static key.')
     }
   }
 
-  encrypt(plaintext: bytes, session: NoiseSession): bytes {
+  public encrypt(plaintext: bytes, session: NoiseSession): bytes {
     const cs = this.getCS(session);
+
     return this.xx.encryptWithAd(cs, Buffer.alloc(0), plaintext);
   }
 
-  decrypt(ciphertext: bytes, session: NoiseSession): bytes {
+  public decrypt(ciphertext: bytes, session: NoiseSession): bytes {
     const cs = this.getCS(session, false);
     return this.xx.decryptWithAd(cs, Buffer.alloc(0), ciphertext);
   }
