@@ -90,11 +90,13 @@ export async function verifyPeerId(peerId: bytes, publicKey: bytes) {
   }
 }
 
-export function verifySignedPayload(noiseStaticKey: bytes, plaintext: bytes, libp2pPublicKey: bytes) {
+export async function verifySignedPayload(noiseStaticKey: bytes, plaintext: bytes, libp2pPublicKey: bytes) {
+  const NoiseHandshakePayload = await loadPayloadProto();
+  const receivedPayload = NoiseHandshakePayload.toObject(NoiseHandshakePayload.decode(plaintext));
   const generatedPayload = getHandshakePayload(noiseStaticKey);
 
-  if (!ed25519.verify(generatedPayload, signature, libp2pPublicKey)) {
-    throw new Error("Static key doesn't match to peer that signed payload!");
+  if (!ed25519.verify(generatedPayload, receivedPayload.noiseStaticKeySignature, libp2pPublicKey)) {
+    Promise.reject("Static key doesn't match to peer that signed payload!");
   }
 }
 

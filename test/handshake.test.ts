@@ -31,7 +31,7 @@ describe("Handshake", () => {
     await handshakeResponder.propose();
 
     await handshakeResponder.exchange();
-    await handshakeInitator.exchange();
+    await handshakeInitator.exchange(peerB.pubKey.marshal());
 
     await handshakeInitator.finish();
     await handshakeResponder.finish();

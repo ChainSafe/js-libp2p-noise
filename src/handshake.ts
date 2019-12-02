@@ -80,7 +80,7 @@ export class Handshake {
       if (!libp2pRemotekey) {
         throw new Error("Missing remote's libp2p public key, can't verify signature.");
       }
-      verifySignedPayload(receivedMessageBuffer.ns, plaintext, libp2pRemotekey);
+      await verifySignedPayload(receivedMessageBuffer.ns, plaintext, libp2pRemotekey);
     } else {
       logger('Stage 1 - Responder sending out first message with signed payload and static key.');
       const signedPayload = signPayload(this.libp2pPrivateKey, getHandshakePayload(this.staticKeys.publicKey));
