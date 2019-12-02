@@ -2,7 +2,7 @@ import { Handshake } from "./handshake";
 import { Buffer } from "buffer";
 
 interface ReturnEncryptionWrapper {
-  (source: Iterable<Uint8Array>): any;
+  (source: Iterable<Uint8Array>): AsyncIterableIterator<Uint8Array>;
 }
 
 // Returns generator that encrypts payload from the user
