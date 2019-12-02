@@ -84,9 +84,13 @@ export class Noise implements NoiseConnection {
     const prologue = Buffer.from(this.protocol);
     const handshake = new Handshake(isInitiator, this.privateKey, libp2pPublicKey, prologue, this.staticKeys, connection);
 
-    await handshake.propose(this.earlyData);
-    await handshake.exchange(remotePeer.pubKey.marshal());
-    await handshake.finish();
+    try {
+      await handshake.propose();
+      await handshake.exchange();
+      await handshake.finish(this.earlyData);
+    } catch (e) {
+      throw new Error(`Error occurred during handshake: ${e.message}`);
+    }
 
     return handshake;
   }

@@ -2,7 +2,6 @@ import { expect, assert } from "chai";
 import DuplexPair from 'it-pair/duplex';
 
 import { Noise } from "../src";
-import { generateEd25519Keys } from "./utils";
 import {createPeerIds, createPeerIdsFromFixtures} from "./fixtures/peer";
 import Wrap from "it-pb-rpc";
 import {Handshake} from "../src/handshake";
@@ -11,7 +10,7 @@ import {
   decodeMessageBuffer,
   encodeMessageBuffer,
   generateKeypair,
-  getHandshakePayload,
+  getHandshakePayload, signEarlyDataPayload,
   signPayload
 } from "../src/utils";
 import {XXHandshake} from "../src/xx";
@@ -25,28 +24,32 @@ describe("Noise", () => {
   });
 
   it("should communicate through encrypted streams", async() => {
-    const libp2pInitPrivKey = localPeer.privKey.marshal().slice(0, 32);
-    const libp2pRespPrivKey = remotePeer.privKey.marshal().slice(0, 32);
+    try {
+      const libp2pInitPrivKey = localPeer.privKey.marshal().slice(0, 32);
+      const libp2pRespPrivKey = remotePeer.privKey.marshal().slice(0, 32);
 
-    const noiseInit = new Noise(libp2pInitPrivKey);
-    const noiseResp = new Noise(libp2pRespPrivKey);
+      const noiseInit = new Noise(libp2pInitPrivKey);
+      const noiseResp = new Noise(libp2pRespPrivKey);
 
-    const [inboundConnection, outboundConnection] = DuplexPair();
-    const [outbound, inbound] = await Promise.all([
-      noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
-      noiseResp.secureInbound(remotePeer, inboundConnection, localPeer),
-    ]);
-    const wrappedInbound = Wrap(inbound.conn);
-    const wrappedOutbound = Wrap(outbound.conn);
+      const [inboundConnection, outboundConnection] = DuplexPair();
+      const [outbound, inbound] = await Promise.all([
+        noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
+        noiseResp.secureInbound(remotePeer, inboundConnection, localPeer),
+      ]);
+      const wrappedInbound = Wrap(inbound.conn);
+      const wrappedOutbound = Wrap(outbound.conn);
 
-    wrappedOutbound.writeLP(Buffer.from("test"));
-    const response = await wrappedInbound.readLP();
-    expect(response.toString()).equal("test");
+      wrappedOutbound.writeLP(Buffer.from("test"));
+      const response = await wrappedInbound.readLP();
+      expect(response.toString()).equal("test");
+    } catch (e) {
+      assert(false, e.message);
+    }
   });
 
   it("should test that secureOutbound is spec compliant", async() => {
-    const libp2pPrivKey = localPeer.privKey.marshal().slice(0, 32);
-    const noiseInit = new Noise(libp2pPrivKey);
+    const libp2pInitPrivKey = localPeer.privKey.marshal().slice(0, 32);
+    const noiseInit = new Noise(libp2pInitPrivKey);
     const [inboundConnection, outboundConnection] = DuplexPair();
 
     const [outbound, { wrapped, handshake }] = await Promise.all([
@@ -56,7 +59,8 @@ describe("Noise", () => {
         const prologue = Buffer.from('/noise');
         const staticKeys = generateKeypair();
         const xx = new XXHandshake();
-        const libp2pPubKey = remotePeer.pubKey.marshal().slice(32, 64);
+        const libp2pPubKey = remotePeer.pubKey.marshal();
+        const libp2pPrivKey = remotePeer.privKey.marshal().slice(0, 32);
         const handshake = new Handshake(false, libp2pPrivKey, libp2pPubKey, prologue, staticKeys, wrapped, xx);
 
         let receivedMessageBuffer = decodeMessageBuffer((await wrapped.readLP()).slice());
@@ -74,19 +78,23 @@ describe("Noise", () => {
         // Stage 2 - finish handshake
         receivedMessageBuffer = decodeMessageBuffer((await wrapped.readLP()).slice());
         await xx.recvMessage(handshake.session, receivedMessageBuffer);
-        return { wrapped, handshake };
+        return {wrapped, handshake};
       })(),
     ]);
 
-    const wrappedOutbound = Wrap(outbound.conn);
-    wrappedOutbound.write(Buffer.from("test"));
+    try {
+      const wrappedOutbound = Wrap(outbound.conn);
+      wrappedOutbound.write(Buffer.from("test"));
 
-    // Check that noise message is prefixed with 16-bit big-endian unsigned integer
-    const receivedEncryptedPayload = (await wrapped.read()).slice();
-    const dataLength = receivedEncryptedPayload.readInt16BE(0);
-    const data = receivedEncryptedPayload.slice(2, dataLength + 2);
-    const decrypted = handshake.decrypt(data, handshake.session);
-    // Decrypted data should match
-    assert(decrypted.equals(Buffer.from("test")));
+      // Check that noise message is prefixed with 16-bit big-endian unsigned integer
+      const receivedEncryptedPayload = (await wrapped.read()).slice();
+      const dataLength = receivedEncryptedPayload.readInt16BE(0);
+      const data = receivedEncryptedPayload.slice(2, dataLength + 2);
+      const decrypted = handshake.decrypt(data, handshake.session);
+      // Decrypted data should match
+      assert(decrypted.equals(Buffer.from("test")));
+    } catch (e) {
+      assert(false, e.message);
+    }
   })
 });

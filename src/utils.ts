@@ -86,17 +86,17 @@ export function decodeMessageBuffer(message: bytes): MessageBuffer {
 export async function verifyPeerId(peerId: bytes, publicKey: bytes) {
   const generatedPeerId = await PeerId.createFromPubKey(publicKey);
   if (!generatedPeerId.equals(peerId)) {
-    Promise.reject("Peer ID doesn't match libp2p public key.");
+    throw new Error("Peer ID doesn't match libp2p public key.");
   }
 }
 
-export async function verifySignedPayload(noiseStaticKey: bytes, plaintext: bytes, libp2pPublicKey: bytes) {
+export async function verifySignedPayload(noiseStaticKey: bytes, plaintext: bytes) {
   const NoiseHandshakePayload = await loadPayloadProto();
   const receivedPayload = NoiseHandshakePayload.toObject(NoiseHandshakePayload.decode(plaintext));
   const generatedPayload = getHandshakePayload(noiseStaticKey);
 
-  if (!ed25519.verify(generatedPayload, receivedPayload.noiseStaticKeySignature, libp2pPublicKey)) {
-    Promise.reject("Static key doesn't match to peer that signed payload!");
+  if (!ed25519.verify(generatedPayload, receivedPayload.noiseStaticKeySignature, receivedPayload.libp2pKey)) {
+    throw new Error("Static key doesn't match to peer that signed payload!");
   }
 }
 
