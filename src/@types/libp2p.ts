@@ -7,9 +7,13 @@ export interface KeyPair {
 }
 
 export type PeerId = {
-  id: string;
-  privKey: string;
-  pubKey: string;
+  id: bytes;
+  privKey: {
+    marshal(): bytes;
+  };
+  pubKey: {
+    marshal(): bytes;
+  };
 };
 
 export interface NoiseConnection {

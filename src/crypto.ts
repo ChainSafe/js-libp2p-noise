@@ -1,15 +1,30 @@
 import { Duplex } from "it-pair";
-import { NoiseSession } from "./xx";
+import { Handshake } from "./handshake";
+import { Buffer } from "buffer";
 
-// Send encrypted payload from the user to stream
-export async function encryptStreams(streams: Duplex, session: NoiseSession): Promise<Duplex> {
-  // TODO: implement
-  return streams;
+interface ReturnEncryptionWrapper {
+  (source: Iterable<Uint8Array>): AsyncIterableIterator<Uint8Array>;
+}
+
+// Returns generator that encrypts payload from the user
+export function encryptStream(handshake: Handshake): ReturnEncryptionWrapper {
+  return async function * (source) {
+    for await (const chunk of source) {
+      const chunkBuffer = Buffer.from(chunk);
+      const data = await handshake.encrypt(chunkBuffer, handshake.session);
+      yield data;
+    }
+  }
 }
 
 
-// Decrypt received payload from the stream and pipe to user
-export async function decryptStreams(streams: Duplex, session: NoiseSession): Promise<Duplex> {
-  // TODO: implement
-  return streams;
+// Decrypt received payload to the user
+export function decryptStream(handshake: Handshake): ReturnEncryptionWrapper {
+  return async function * (source) {
+    for await (const chunk of source) {
+      const chunkBuffer = Buffer.from(chunk);
+      const decrypted = await handshake.decrypt(chunkBuffer, handshake.session);
+      yield decrypted
+    }
+  }
 }

@@ -10,13 +10,16 @@ describe("Index", () => {
   const prologue = Buffer.from("/noise", "utf-8");
 
   it("Test creating new XX session", async () => {
-    const xx = new XXHandshake();
+    try {
+      const xx = new XXHandshake();
 
-    const kpInitiator: KeyPair = await generateKeypair();
-    const kpResponder: KeyPair = await generateKeypair();
+      const kpInitiator: KeyPair = await generateKeypair();
+      const kpResponder: KeyPair = await generateKeypair();
 
-
-    const session = await xx.initSession(true, prologue, kpInitiator, kpResponder.publicKey);
+      const session = await xx.initSession(true, prologue, kpInitiator);
+    } catch (e) {
+      assert(false, e.message);
+    }
   });
 
   it("Test get HKDF", async () => {
@@ -45,14 +48,16 @@ describe("Index", () => {
     const respSignedPayload = await libp2pRespKeys.sign(getHandshakePayload(kpResp.publicKey));
 
     // initiator: new XX noise session
-    const nsInit = await xx.initSession(true, prologue, kpInit, kpResp.publicKey);
+    const nsInit = await xx.initSession(true, prologue, kpInit);
     // responder: new XX noise session
-    const nsResp = await xx.initSession(false, prologue, kpResp, kpInit.publicKey);
+    const nsResp = await xx.initSession(false, prologue, kpResp);
 
     /* STAGE 0 */
 
     // initiator creates payload
-    const payloadInitEnc = await createHandshakePayload(libp2pInitKeys.bytes, initSignedPayload)
+    const libp2pInitPrivKey = libp2pInitKeys.marshal().slice(0, 32);
+    const libp2pInitPubKey = libp2pInitKeys.marshal().slice(32, 64);
+    const payloadInitEnc = await createHandshakePayload(libp2pInitPubKey, libp2pInitPrivKey, initSignedPayload);
 
     // initiator sends message
     const message = Buffer.concat([Buffer.alloc(0), payloadInitEnc]);
@@ -67,7 +72,9 @@ describe("Index", () => {
     /* STAGE 1 */
 
     // responder creates payload
-    const payloadRespEnc = await createHandshakePayload(libp2pRespKeys.bytes, respSignedPayload);
+    const libp2pRespPrivKey = libp2pRespKeys.marshal().slice(0, 32);
+    const libp2pRespPubKey = libp2pRespKeys.marshal().slice(32, 64);
+    const payloadRespEnc = await createHandshakePayload(libp2pRespPubKey, libp2pRespPrivKey, respSignedPayload);
 
     const message1 = Buffer.concat([message, payloadRespEnc]);
     const messageBuffer2 = await xx.sendMessage(nsResp, message1);
@@ -95,36 +102,48 @@ describe("Index", () => {
   }
 
   it("Test handshake", async () => {
-    const xx = new XXHandshake();
-    await doHandshake(xx);
+    try {
+      const xx = new XXHandshake();
+      await doHandshake(xx);
+    } catch (e) {
+      assert(false, e.message);
+    }
   });
 
   it("Test symmetric encrypt and decrypt", async () => {
-    const xx = new XXHandshake();
-    const { nsInit, nsResp } = await doHandshake(xx);
-    const ad = Buffer.from("authenticated");
-    const message = Buffer.from("HelloCrypto");
+    try {
+      const xx = new XXHandshake();
+      const { nsInit, nsResp } = await doHandshake(xx);
+      const ad = Buffer.from("authenticated");
+      const message = Buffer.from("HelloCrypto");
 
-    xx.encryptWithAd(nsInit.cs1, ad, message);
-    assert(!Buffer.from("HelloCrypto").equals(message), "Encrypted message should not be same as plaintext.");
-    const decrypted = xx.decryptWithAd(nsResp.cs1, ad, message);
+      xx.encryptWithAd(nsInit.cs1, ad, message);
+      assert(!Buffer.from("HelloCrypto").equals(message), "Encrypted message should not be same as plaintext.");
+      const decrypted = xx.decryptWithAd(nsResp.cs1, ad, message);
 
-    assert(Buffer.from("HelloCrypto").equals(decrypted), "Decrypted text not equal to original message.");
+      assert(Buffer.from("HelloCrypto").equals(decrypted), "Decrypted text not equal to original message.");
+    } catch (e) {
+      assert(false, e.message);
+    }
   });
 
   it("Test multiple messages encryption and decryption", async () => {
-    const xx = new XXHandshake();
-    const { nsInit, nsResp } = await doHandshake(xx);
-    const ad = Buffer.from("authenticated");
-    const message = Buffer.from("ethereum1");
+    try {
+      const xx = new XXHandshake();
+      const { nsInit, nsResp } = await doHandshake(xx);
+      const ad = Buffer.from("authenticated");
+      const message = Buffer.from("ethereum1");
 
-    xx.encryptWithAd(nsInit.cs1, ad, message);
-    const decrypted = xx.decryptWithAd(nsResp.cs1, ad, message);
-    assert(Buffer.from("ethereum1").equals(decrypted), "Decrypted text not equal to original message.");
+      xx.encryptWithAd(nsInit.cs1, ad, message);
+      const decrypted = xx.decryptWithAd(nsResp.cs1, ad, message);
+      assert(Buffer.from("ethereum1").equals(decrypted), "Decrypted text not equal to original message.");
 
-    const message2 = Buffer.from("ethereum2");
-    xx.encryptWithAd(nsInit.cs1, ad, message2);
-    const decrypted2 = xx.decryptWithAd(nsResp.cs1, ad, message2);
-    assert(Buffer.from("ethereum2").equals(decrypted2), "Decrypted text not equal to original message.");
+      const message2 = Buffer.from("ethereum2");
+      xx.encryptWithAd(nsInit.cs1, ad, message2);
+      const decrypted2 = xx.decryptWithAd(nsResp.cs1, ad, message2);
+      assert(Buffer.from("ethereum2").equals(decrypted2), "Decrypted text not equal to original message.");
+    } catch (e) {
+      assert(false, e.message);
+    }
   });
 });

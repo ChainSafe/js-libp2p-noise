@@ -1,10 +1,14 @@
 import { x25519 } from 'bcrypto';
 import { Buffer } from "buffer";
 import Wrap from 'it-pb-rpc';
+import DuplexPair from 'it-pair/duplex';
+import ensureBuffer from 'it-buffer';
+import pipe from 'it-pipe';
+import lp from 'it-length-prefixed';
 
 import { Handshake } from "./handshake";
-import { generateKeypair } from "./utils";
-import { decryptStreams, encryptStreams } from "./crypto";
+import { generateKeypair, int16BEDecode, int16BEEncode } from "./utils";
+import { decryptStream, encryptStream } from "./crypto";
 import { bytes } from "./@types/basic";
 import { NoiseConnection, PeerId, KeyPair, SecureOutbound } from "./@types/libp2p";
 import { Duplex } from "./@types/it-pair";
@@ -20,10 +24,10 @@ export class Noise implements NoiseConnection {
 
   constructor(privateKey: bytes, staticNoiseKey?: bytes, earlyData?: bytes) {
     this.privateKey = privateKey;
-    this.earlyData = earlyData;
+    this.earlyData = earlyData || Buffer.alloc(0);
 
     if (staticNoiseKey) {
-      const publicKey = x25519.publicKeyCreate(staticNoiseKey);
+      const publicKey = x25519.publicKeyCreate(staticNoiseKey); // TODO: verify this
       this.staticKeys = {
         privateKey: staticNoiseKey,
         publicKey,
@@ -42,11 +46,12 @@ export class Noise implements NoiseConnection {
    */
   public async secureOutbound(localPeer: PeerId, connection: any, remotePeer: PeerId): Promise<SecureOutbound> {
     const wrappedConnection = Wrap(connection);
-    const remotePublicKey = Buffer.from(remotePeer.pubKey);
-    const session = await this.createSecureConnection(wrappedConnection, remotePublicKey, true);
+    const libp2pPublicKey = localPeer.pubKey.marshal();
+    const handshake = await this.performHandshake(wrappedConnection, true, libp2pPublicKey);
+    const conn = await this.createSecureConnection(wrappedConnection, handshake);
 
     return {
-      conn: session,
+      conn,
       remotePeer,
     }
   }
@@ -58,27 +63,54 @@ export class Noise implements NoiseConnection {
    * @param {PeerId} remotePeer - optional PeerId of the initiating peer, if known. This may only exist during transport upgrades.
    * @returns {Promise<SecureOutbound>}
    */
-  // tslint:disable-next-line
   public async secureInbound(localPeer: PeerId, connection: any, remotePeer: PeerId): Promise<SecureOutbound> {
+    const wrappedConnection = Wrap(connection);
+    const libp2pPublicKey = localPeer.pubKey.marshal();
+    const handshake = await this.performHandshake(wrappedConnection, false, libp2pPublicKey);
+    const conn = await this.createSecureConnection(wrappedConnection, handshake);
+
     return {
-      conn: undefined,
-      remotePeer
-    }
+      conn,
+      remotePeer,
+    };
+  }
+
+  private async performHandshake(
+    connection: WrappedConnection,
+    isInitiator: boolean,
+    libp2pPublicKey: bytes,
+  ): Promise<Handshake> {
+    const prologue = Buffer.from(this.protocol);
+    const handshake = new Handshake(isInitiator, this.privateKey, libp2pPublicKey, prologue, this.staticKeys, connection);
+
+    await handshake.propose(this.earlyData);
+    await handshake.exchange();
+    await handshake.finish();
+
+    return handshake;
   }
 
   private async createSecureConnection(
     connection: WrappedConnection,
-    remotePublicKey: bytes,
-    isInitiator: boolean,
+    handshake: Handshake,
   ): Promise<Duplex> {
-    const prologue = Buffer.from(this.protocol);
-    const handshake = new Handshake('XX', remotePublicKey, prologue, this.staticKeys, connection);
+    // Create encryption box/unbox wrapper
+    const [secure, user] = DuplexPair();
+    const network = connection.unwrap();
 
-    const session = await handshake.propose(isInitiator, this.earlyData);
-    await handshake.exchange(isInitiator, session);
-    await handshake.finish(isInitiator, session);
+    pipe(
+      secure, // write to wrapper
+      ensureBuffer, // ensure any type of data is converted to buffer
+      encryptStream(handshake), // data is encrypted
+      lp.encode({ lengthEncoder: int16BEEncode }), // prefix with message length
+      network, // send to the remote peer
+      lp.decode({ lengthDecoder: int16BEDecode }), // read message length prefix
+      ensureBuffer, // ensure any type of data is converted to buffer
+      decryptStream(handshake), // decrypt the incoming data
+      secure // pipe to the wrapper
+    );
 
-    return await encryptStreams(connection, session);
+    return user;
   }
 
 
