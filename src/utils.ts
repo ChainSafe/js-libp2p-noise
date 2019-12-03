@@ -3,6 +3,7 @@ import protobuf from "protobufjs";
 import { Buffer } from "buffer";
 import debug from "debug";
 import PeerId from "peer-id";
+import * as crypto from 'libp2p-crypto';
 
 import { KeyPair } from "./@types/libp2p";
 import { bytes } from "./@types/basic";
@@ -83,19 +84,23 @@ export function decodeMessageBuffer(message: bytes): MessageBuffer {
   }
 }
 
-export async function verifyPeerId(peerId: bytes, publicKey: bytes) {
-  const generatedPeerId = await PeerId.createFromPubKey(publicKey);
-  if (!generatedPeerId.equals(peerId)) {
-    throw new Error("Peer ID doesn't match libp2p public key.");
-  }
+async function isValidPeerId(peerId: bytes, publicKeyProtobuf: bytes) {
+  const generatedPeerId = await PeerId.createFromPubKey(publicKeyProtobuf);
+  return generatedPeerId.id.equals(peerId);
 }
 
-export async function verifySignedPayload(noiseStaticKey: bytes, plaintext: bytes) {
+export async function verifySignedPayload(noiseStaticKey: bytes, plaintext: bytes, peerId: bytes) {
   const NoiseHandshakePayload = await loadPayloadProto();
   const receivedPayload = NoiseHandshakePayload.toObject(NoiseHandshakePayload.decode(plaintext));
-  const generatedPayload = getHandshakePayload(noiseStaticKey);
 
-  if (!ed25519.verify(generatedPayload, receivedPayload.noiseStaticKeySignature, receivedPayload.libp2pKey)) {
+  if (!(await isValidPeerId(peerId, receivedPayload.libp2pKey)) ) {
+    throw new Error("Peer ID doesn't match libp2p public key.");
+  }
+
+  const generatedPayload = getHandshakePayload(noiseStaticKey);
+  // Unmarshaling from PublicKey protobuf and taking key buffer only.
+  const publicKey = crypto.keys.unmarshalPublicKey(receivedPayload.libp2pKey).marshal();
+  if (!ed25519.verify(generatedPayload, receivedPayload.noiseStaticKeySignature, publicKey)) {
     throw new Error("Static key doesn't match to peer that signed payload!");
   }
 }

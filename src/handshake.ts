@@ -2,14 +2,16 @@ import { Buffer } from "buffer";
 
 import { bytes, bytes32 } from "./@types/basic";
 import { NoiseSession, XXHandshake } from "./xx";
-import { KeyPair } from "./@types/libp2p";
+import { KeyPair, PeerId } from "./@types/libp2p";
 import {
   createHandshakePayload,
   decodeMessageBuffer,
   encodeMessageBuffer,
   getHandshakePayload,
-  logger, signEarlyDataPayload,
-  signPayload, verifySignedPayload,
+  logger,
+  signEarlyDataPayload,
+  signPayload,
+  verifySignedPayload,
 } from "./utils";
 import { WrappedConnection } from "./noise";
 
@@ -22,6 +24,7 @@ export class Handshake {
   private prologue: bytes32;
   private staticKeys: KeyPair;
   private connection: WrappedConnection;
+  private remotePeer: PeerId;
   private xx: XXHandshake;
 
   constructor(
@@ -31,6 +34,7 @@ export class Handshake {
     prologue: bytes32,
     staticKeys: KeyPair,
     connection: WrappedConnection,
+    remotePeer: PeerId,
     handshake?: XXHandshake,
   ) {
     this.isInitiator = isInitiator;
@@ -39,6 +43,7 @@ export class Handshake {
     this.prologue = prologue;
     this.staticKeys = staticKeys;
     this.connection = connection;
+    this.remotePeer = remotePeer;
 
     this.xx = handshake || new XXHandshake();
     this.session = this.xx.initSession(this.isInitiator, this.prologue, this.staticKeys);
@@ -67,11 +72,12 @@ export class Handshake {
       const plaintext = await this.xx.recvMessage(this.session, receivedMessageBuffer);
       logger('Stage 1 - Initiator received the message. Got remote\'s static key.');
 
-      // if (!libp2pRemotekey) {
-      //   throw new Error("Missing remote's libp2p public key, can't verify peer ID.");
-      // }
       logger("Initiator going to check remote's signature...");
-      await verifySignedPayload(receivedMessageBuffer.ns, plaintext);
+      try {
+        await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer.id);
+      } catch (e) {
+        throw new Error(`Error occurred while verifying signed payload: ${e.message}`);
+      }
       logger("All good with the signature!");
     } else {
       logger('Stage 1 - Responder sending out first message with signed payload and static key.');
@@ -111,11 +117,11 @@ export class Handshake {
       const plaintext = await this.xx.recvMessage(this.session, receivedMessageBuffer);
       logger('Stage 2 - Responder received the message, finished handshake. Got remote\'s static key.');
 
-      // if (!libp2pRemotekey) {
-      //   throw new Error("Missing remote's libp2p public key, can't verify signature.");
-      // }
-
-      await verifySignedPayload(receivedMessageBuffer.ns, plaintext);
+      try {
+        await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer.id);
+      } catch (e) {
+        throw new Error(`Error occurred while verifying signed payload: ${e.message}`);
+      }
     }
   }
 

@@ -21,12 +21,12 @@ describe("Handshake", () => {
       const [peerA, peerB] = await createPeerIds(2);
 
       const initiatorPrivKey = peerA.privKey.marshal().slice(0, 32);
-      const initiatorPubKey = peerA.pubKey.marshal();
-      const handshakeInitator = new Handshake(true, initiatorPrivKey, initiatorPubKey, prologue, staticKeysInitiator, connectionFrom);
+      const initiatorPubKey = peerA.marshalPubKey();
+      const handshakeInitator = new Handshake(true, initiatorPrivKey, initiatorPubKey, prologue, staticKeysInitiator, connectionFrom, peerB);
 
       const responderPrivKey = peerB.privKey.marshal().slice(0, 32);
-      const responderPubKey = peerB.pubKey.marshal();
-      const handshakeResponder = new Handshake(false, responderPrivKey, responderPubKey, prologue, staticKeysResponder, connectionTo);
+      const responderPubKey = peerB.marshalPubKey();
+      const handshakeResponder = new Handshake(false, responderPrivKey, responderPubKey, prologue, staticKeysResponder, connectionTo, peerA);
 
       await handshakeInitator.propose();
       await handshakeResponder.propose();
