@@ -5,6 +5,11 @@
   "repository": "git@github.com:NodeFactoryIo/js-libp2p-noise.git",
   "author": "NodeFactory <info@nodefactory.io>",
   "license": "MIT",
+  "keywords": [
+    "libp2p",
+    "noise",
+    "crypto"
+  ],
   "scripts": {
     "prebuild": "rm -rf lib",
     "build": "babel src -x .ts -d lib --source-maps",
@@ -12,6 +17,23 @@
     "lint": "eslint --ext .ts src/",
     "pretest": "yarn check-types",
     "test": "DEBUG=libp2p:noise mocha -r ./babel-register.js \"test/**/*.test.ts\""
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "targets": {
+            "node": "12"
+          }
+        }
+      ],
+      "@babel/preset-typescript"
+    ],
+    "plugins": [
+      "@babel/plugin-proposal-object-rest-spread",
+      "@babel/plugin-proposal-async-generator-functions"
+    ]
   },
   "devDependencies": {
     "@babel/cli": "^7.6.4",
@@ -31,23 +53,6 @@
     "eslint": "^6.6.0",
     "mocha": "^6.2.2",
     "typescript": "^3.6.4"
-  },
-  "babel": {
-    "presets": [
-      [
-        "@babel/preset-env",
-        {
-          "targets": {
-            "node": "12"
-          }
-        }
-      ],
-      "@babel/preset-typescript"
-    ],
-    "plugins": [
-      "@babel/plugin-proposal-object-rest-spread",
-      "@babel/plugin-proposal-async-generator-functions"
-    ]
   },
   "dependencies": {
     "bcrypto": "^4.2.3",
