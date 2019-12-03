@@ -7,7 +7,8 @@ import pipe from 'it-pipe';
 import lp from 'it-length-prefixed';
 
 import { Handshake } from "./handshake";
-import { generateKeypair, int16BEDecode, int16BEEncode } from "./utils";
+import { generateKeypair } from "./utils";
+import { int16BEDecode, int16BEEncode } from "./encoder";
 import { decryptStream, encryptStream } from "./crypto";
 import { bytes } from "./@types/basic";
 import { NoiseConnection, PeerId, KeyPair, SecureOutbound } from "./@types/libp2p";

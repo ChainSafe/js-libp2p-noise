@@ -5,14 +5,13 @@ import { NoiseSession, XXHandshake } from "./xx";
 import { KeyPair, PeerId } from "./@types/libp2p";
 import {
   createHandshakePayload,
-  decodeMessageBuffer,
-  encodeMessageBuffer,
   getHandshakePayload,
   logger,
   signEarlyDataPayload,
   signPayload,
   verifySignedPayload,
 } from "./utils";
+import { decodeMessageBuffer, encodeMessageBuffer } from "./encoder";
 import { WrappedConnection } from "./noise";
 
 export class Handshake {

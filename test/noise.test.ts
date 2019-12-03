@@ -7,12 +7,11 @@ import Wrap from "it-pb-rpc";
 import {Handshake} from "../src/handshake";
 import {
   createHandshakePayload,
-  decodeMessageBuffer,
-  encodeMessageBuffer,
   generateKeypair,
   getHandshakePayload,
   signPayload
 } from "../src/utils";
+import { decodeMessageBuffer, encodeMessageBuffer } from "../src/encoder";
 import {XXHandshake} from "../src/xx";
 import {Buffer} from "buffer";
 import {getKeyPairFromPeerId} from "./utils";
