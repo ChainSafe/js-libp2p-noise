@@ -10,8 +10,21 @@ This repository contains TypeScript implementation of noise protocol, an encrypt
 
 ## Usage
 
-TBD
+TBD (package not yet published)
 
 ## API
 
-TBD
+This module exposes a crypto interface, as defined in the repository [js-interfaces](https://github.com/libp2p/js-interfaces).
+
+[» API Docs](https://github.com/libp2p/js-interfaces/tree/master/src/crypto#api)
+
+
+## Contribute
+
+Feel free to join in. All welcome. Open an issue!
+
+[![](https://cdn.rawgit.com/jbenet/contribute-ipfs-gif/master/img/contribute.gif)](https://github.com/ipfs/community/blob/master/contributing.md)
+
+## License
+
+[MIT](LICENSE)
