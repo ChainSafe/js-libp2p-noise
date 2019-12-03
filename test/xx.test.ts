@@ -57,6 +57,7 @@ describe("Index", () => {
     // initiator creates payload
     const libp2pInitPrivKey = libp2pInitKeys.marshal().slice(0, 32);
     const libp2pInitPubKey = libp2pInitKeys.marshal().slice(32, 64);
+
     const payloadInitEnc = await createHandshakePayload(libp2pInitPubKey, libp2pInitPrivKey, initSignedPayload);
 
     // initiator sends message

@@ -15,6 +15,7 @@ import {
 } from "../src/utils";
 import {XXHandshake} from "../src/xx";
 import {Buffer} from "buffer";
+import {getKeyPairFromPeerId} from "./utils";
 
 describe("Noise", () => {
   let remotePeer, localPeer;
@@ -25,9 +26,8 @@ describe("Noise", () => {
 
   it("should communicate through encrypted streams", async() => {
     try {
-      const libp2pInitPrivKey = localPeer.privKey.marshal().slice(0, 32);
-      const libp2pRespPrivKey = remotePeer.privKey.marshal().slice(0, 32);
-
+      const { privateKey: libp2pInitPrivKey } = getKeyPairFromPeerId(localPeer);
+      const { privateKey: libp2pRespPrivKey } = getKeyPairFromPeerId(remotePeer);
       const noiseInit = new Noise(libp2pInitPrivKey);
       const noiseResp = new Noise(libp2pRespPrivKey);
 
@@ -48,7 +48,7 @@ describe("Noise", () => {
   });
 
   it("should test that secureOutbound is spec compliant", async() => {
-    const libp2pInitPrivKey = localPeer.privKey.marshal().slice(0, 32);
+    const { privateKey: libp2pInitPrivKey } = getKeyPairFromPeerId(localPeer);
     const noiseInit = new Noise(libp2pInitPrivKey);
     const [inboundConnection, outboundConnection] = DuplexPair();
 
@@ -59,8 +59,8 @@ describe("Noise", () => {
         const prologue = Buffer.from('/noise');
         const staticKeys = generateKeypair();
         const xx = new XXHandshake();
-        const libp2pPubKey = remotePeer.marshalPubKey();
-        const libp2pPrivKey = remotePeer.privKey.marshal().slice(0, 32);
+        const { privateKey: libp2pPrivKey, publicKey: libp2pPubKey } = getKeyPairFromPeerId(remotePeer);
+
         const handshake = new Handshake(false, libp2pPrivKey, libp2pPubKey, prologue, staticKeys, wrapped, localPeer, xx);
 
         let receivedMessageBuffer = decodeMessageBuffer((await wrapped.readLP()).slice());
