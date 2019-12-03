@@ -191,7 +191,7 @@ export class XXHandshake {
     return SHA256.digest(Buffer.from([...a, ...b]));
   }
 
-  private async encryptAndHash(ss: SymmetricState, plaintext: bytes): Promise<bytes> {
+  private encryptAndHash(ss: SymmetricState, plaintext: bytes): bytes {
     let ciphertext;
     if (this.hasKey(ss.cs)) {
       ciphertext = this.encryptWithAd(ss.cs, ss.h, plaintext);
@@ -203,7 +203,7 @@ export class XXHandshake {
     return ciphertext;
   }
 
-  private async decryptAndHash(ss: SymmetricState, ciphertext: bytes): Promise<bytes> {
+  private decryptAndHash(ss: SymmetricState, ciphertext: bytes): bytes {
     let plaintext;
     if (this.hasKey(ss.cs)) {
       plaintext = this.decryptWithAd(ss.cs, ss.h, ciphertext);
@@ -223,38 +223,38 @@ export class XXHandshake {
     return { cs1, cs2 };
   }
 
-  private async writeMessageA(hs: HandshakeState, payload: bytes): Promise<MessageBuffer> {
+  private writeMessageA(hs: HandshakeState, payload: bytes): MessageBuffer {
     const ns = Buffer.alloc(0);
     hs.e = generateKeypair();
 
     const ne = hs.e.publicKey;
 
     this.mixHash(hs.ss, ne);
-    const ciphertext = await this.encryptAndHash(hs.ss, payload);
+    const ciphertext = this.encryptAndHash(hs.ss, payload);
 
     return {ne, ns, ciphertext};
   }
 
-  private async writeMessageB(hs: HandshakeState, payload: bytes): Promise<MessageBuffer> {
+  private writeMessageB(hs: HandshakeState, payload: bytes): MessageBuffer {
     hs.e = generateKeypair();
     const ne = hs.e.publicKey;
     this.mixHash(hs.ss, ne);
 
     this.mixKey(hs.ss, this.dh(hs.e.privateKey, hs.re));
     const spk = Buffer.from(hs.s.publicKey);
-    const ns = await this.encryptAndHash(hs.ss, spk);
+    const ns = this.encryptAndHash(hs.ss, spk);
 
     this.mixKey(hs.ss, this.dh(hs.s.privateKey, hs.re));
-    const ciphertext = await this.encryptAndHash(hs.ss, payload);
+    const ciphertext = this.encryptAndHash(hs.ss, payload);
 
     return { ne, ns, ciphertext };
   }
 
-  private async writeMessageC(hs: HandshakeState, payload: bytes) {
+  private writeMessageC(hs: HandshakeState, payload: bytes) {
     const spk = Buffer.from(hs.s.publicKey);
-    const ns = await this.encryptAndHash(hs.ss, spk);
+    const ns = this.encryptAndHash(hs.ss, spk);
     this.mixKey(hs.ss, this.dh(hs.s.privateKey, hs.re));
-    const ciphertext = await this.encryptAndHash(hs.ss, payload);
+    const ciphertext = this.encryptAndHash(hs.ss, payload);
     const ne = this.createEmptyKey();
     const messageBuffer: MessageBuffer = {ne, ns, ciphertext};
     const { cs1, cs2 } = this.split(hs.ss);
@@ -262,7 +262,7 @@ export class XXHandshake {
     return { h: hs.ss.h, messageBuffer, cs1, cs2 };
   }
 
-  private async writeMessageRegular(cs: CipherState, payload: bytes): Promise<MessageBuffer> {
+  private writeMessageRegular(cs: CipherState, payload: bytes): MessageBuffer {
     const ciphertext = this.encryptWithAd(cs, Buffer.alloc(0), payload);
     const ne = this.createEmptyKey();
     const ns = Buffer.alloc(0);
@@ -270,16 +270,16 @@ export class XXHandshake {
     return { ne, ns, ciphertext };
   }
 
-  private async readMessageA(hs: HandshakeState, message: MessageBuffer): Promise<bytes> {
+  private readMessageA(hs: HandshakeState, message: MessageBuffer): bytes {
     if (x25519.publicKeyVerify(message.ne)) {
       hs.re = message.ne;
     }
 
     this.mixHash(hs.ss, hs.re);
-    return await this.decryptAndHash(hs.ss, message.ciphertext);
+    return this.decryptAndHash(hs.ss, message.ciphertext);
   }
 
-  private async readMessageB(hs: HandshakeState, message: MessageBuffer): Promise<bytes> {
+  private readMessageB(hs: HandshakeState, message: MessageBuffer): bytes {
     if (x25519.publicKeyVerify(message.ne)) {
       hs.re = message.ne;
     }
@@ -289,16 +289,16 @@ export class XXHandshake {
       throw new Error("Handshake state `e` param is missing.");
     }
     this.mixKey(hs.ss, this.dh(hs.e.privateKey, hs.re));
-    const ns = await this.decryptAndHash(hs.ss, message.ns);
+    const ns = this.decryptAndHash(hs.ss, message.ns);
     if (ns.length === 32 && x25519.publicKeyVerify(message.ns)) {
       hs.rs = ns;
     }
     this.mixKey(hs.ss, this.dh(hs.e.privateKey, hs.rs));
-    return await this.decryptAndHash(hs.ss, message.ciphertext);
+    return this.decryptAndHash(hs.ss, message.ciphertext);
   }
 
-  private async readMessageC(hs: HandshakeState, message: MessageBuffer) {
-    const ns = await this.decryptAndHash(hs.ss, message.ns);
+  private readMessageC(hs: HandshakeState, message: MessageBuffer) {
+    const ns = this.decryptAndHash(hs.ss, message.ns);
     if (ns.length === 32 && x25519.publicKeyVerify(message.ns)) {
       hs.rs = ns;
     }
@@ -308,7 +308,7 @@ export class XXHandshake {
     }
     this.mixKey(hs.ss, this.dh(hs.e.privateKey, hs.rs));
 
-    const plaintext = await this.decryptAndHash(hs.ss, message.ciphertext);
+    const plaintext = this.decryptAndHash(hs.ss, message.ciphertext);
     const { cs1, cs2 } = this.split(hs.ss);
 
     return { h: hs.ss.h, plaintext, cs1, cs2 };
@@ -336,14 +336,14 @@ export class XXHandshake {
     };
   }
 
-  public async sendMessage(session: NoiseSession, message: bytes): Promise<MessageBuffer> {
+  public sendMessage(session: NoiseSession, message: bytes): MessageBuffer {
     let messageBuffer: MessageBuffer;
     if (session.mc.eqn(0)) {
-      messageBuffer = await this.writeMessageA(session.hs, message);
+      messageBuffer = this.writeMessageA(session.hs, message);
     } else if (session.mc.eqn(1)) {
-      messageBuffer = await this.writeMessageB(session.hs, message);
+      messageBuffer = this.writeMessageB(session.hs, message);
     } else if (session.mc.eqn(2)) {
-      const { h, messageBuffer: resultingBuffer, cs1, cs2 } = await this.writeMessageC(session.hs, message);
+      const { h, messageBuffer: resultingBuffer, cs1, cs2 } = this.writeMessageC(session.hs, message);
       messageBuffer = resultingBuffer;
       session.h = h;
       session.cs1 = cs1;
@@ -354,13 +354,13 @@ export class XXHandshake {
           throw new Error("CS1 (cipher state) is not defined")
         }
 
-        messageBuffer = await this.writeMessageRegular(session.cs1, message);
+        messageBuffer = this.writeMessageRegular(session.cs1, message);
       } else {
         if (!session.cs2) {
           throw new Error("CS2 (cipher state) is not defined")
         }
 
-        messageBuffer = await this.writeMessageRegular(session.cs2, message);
+        messageBuffer = this.writeMessageRegular(session.cs2, message);
       }
     } else {
       throw new Error("Session invalid.")
@@ -370,14 +370,14 @@ export class XXHandshake {
     return messageBuffer;
   }
 
-  public async recvMessage(session: NoiseSession, message: MessageBuffer): Promise<bytes> {
+  public recvMessage(session: NoiseSession, message: MessageBuffer): bytes {
     let plaintext: bytes;
     if (session.mc.eqn(0)) {
-      plaintext = await this.readMessageA(session.hs, message);
+      plaintext = this.readMessageA(session.hs, message);
     } else if (session.mc.eqn(1)) {
-      plaintext = await this.readMessageB(session.hs, message);
+      plaintext = this.readMessageB(session.hs, message);
     } else if (session.mc.eqn(2)) {
-      const { h, plaintext: resultingPlaintext, cs1, cs2 } = await this.readMessageC(session.hs, message);
+      const { h, plaintext: resultingPlaintext, cs1, cs2 } = this.readMessageC(session.hs, message);
       plaintext = resultingPlaintext;
       session.h = h;
       session.cs1 = cs1;
@@ -387,12 +387,12 @@ export class XXHandshake {
         if (!session.cs2) {
           throw new Error("CS1 (cipher state) is not defined")
         }
-        plaintext = await this.readMessageRegular(session.cs2, message);
+        plaintext = this.readMessageRegular(session.cs2, message);
       } else {
         if (!session.cs1) {
           throw new Error("CS1 (cipher state) is not defined")
         }
-        plaintext = await this.readMessageRegular(session.cs1, message);
+        plaintext = this.readMessageRegular(session.cs1, message);
       }
     } else {
       throw new Error("Session invalid.");

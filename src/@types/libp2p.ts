@@ -14,6 +14,8 @@ export type PeerId = {
   pubKey: {
     marshal(): bytes;
   };
+  marshalPubKey(): bytes;
+  marshalPrivKey(): bytes;
 };
 
 export interface NoiseConnection {

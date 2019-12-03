@@ -1,13 +1,11 @@
 import { x25519, ed25519 } from 'bcrypto';
 import protobuf from "protobufjs";
 import { Buffer } from "buffer";
-import debug from "debug";
+import PeerId from "peer-id";
+import * as crypto from 'libp2p-crypto';
 
 import { KeyPair } from "./@types/libp2p";
 import { bytes } from "./@types/basic";
-import { MessageBuffer } from "./xx";
-
-export const logger = debug('libp2p:noise');
 
 export async function loadPayloadProto () {
   const payloadProtoBuf = await protobuf.load("protos/payload.proto");
@@ -70,26 +68,23 @@ export const getHandshakePayload = (publicKey: bytes ) => Buffer.concat([Buffer.
 
 export const getEarlyDataPayload = (earlyData: bytes) => Buffer.concat([Buffer.from("noise-libp2p-early-data:"), earlyData]);
 
-export function encodeMessageBuffer(message: MessageBuffer): bytes {
-  return Buffer.concat([message.ne, message.ns, message.ciphertext]);
+async function isValidPeerId(peerId: bytes, publicKeyProtobuf: bytes) {
+  const generatedPeerId = await PeerId.createFromPubKey(publicKeyProtobuf);
+  return generatedPeerId.id.equals(peerId);
 }
 
-export function decodeMessageBuffer(message: bytes): MessageBuffer {
-  return {
-    ne: message.slice(0, 32),
-    ns: message.slice(32, 64),
-    ciphertext: message.slice(64, message.length),
+export async function verifySignedPayload(noiseStaticKey: bytes, plaintext: bytes, peerId: bytes) {
+  const NoiseHandshakePayload = await loadPayloadProto();
+  const receivedPayload = NoiseHandshakePayload.toObject(NoiseHandshakePayload.decode(plaintext));
+
+  if (!(await isValidPeerId(peerId, receivedPayload.libp2pKey)) ) {
+    throw new Error("Peer ID doesn't match libp2p public key.");
+  }
+
+  const generatedPayload = getHandshakePayload(noiseStaticKey);
+  // Unmarshaling from PublicKey protobuf and taking key buffer only.
+  const publicKey = crypto.keys.unmarshalPublicKey(receivedPayload.libp2pKey).marshal();
+  if (!ed25519.verify(generatedPayload, receivedPayload.noiseStaticKeySignature, publicKey)) {
+    throw new Error("Static key doesn't match to peer that signed payload!");
   }
 }
-
-export const int16BEEncode = (value, target, offset) => {
-  target = target || Buffer.allocUnsafe(2);
-  return target.writeInt16BE(value, offset);
-};
-int16BEEncode.bytes = 2;
-
-export const int16BEDecode = data => {
-  if (data.length < 2) throw RangeError('Could not decode int16BE');
-  return data.readInt16BE(0);
-};
-int16BEDecode.bytes = 2;

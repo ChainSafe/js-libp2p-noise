@@ -7,7 +7,8 @@ import pipe from 'it-pipe';
 import lp from 'it-length-prefixed';
 
 import { Handshake } from "./handshake";
-import { generateKeypair, int16BEDecode, int16BEEncode } from "./utils";
+import { generateKeypair } from "./utils";
+import { int16BEDecode, int16BEEncode } from "./encoder";
 import { decryptStream, encryptStream } from "./crypto";
 import { bytes } from "./@types/basic";
 import { NoiseConnection, PeerId, KeyPair, SecureOutbound } from "./@types/libp2p";
@@ -46,8 +47,8 @@ export class Noise implements NoiseConnection {
    */
   public async secureOutbound(localPeer: PeerId, connection: any, remotePeer: PeerId): Promise<SecureOutbound> {
     const wrappedConnection = Wrap(connection);
-    const libp2pPublicKey = localPeer.pubKey.marshal();
-    const handshake = await this.performHandshake(wrappedConnection, true, libp2pPublicKey);
+    const libp2pPublicKey = localPeer.marshalPubKey();
+    const handshake = await this.performHandshake(wrappedConnection, true, libp2pPublicKey, remotePeer);
     const conn = await this.createSecureConnection(wrappedConnection, handshake);
 
     return {
@@ -65,8 +66,8 @@ export class Noise implements NoiseConnection {
    */
   public async secureInbound(localPeer: PeerId, connection: any, remotePeer: PeerId): Promise<SecureOutbound> {
     const wrappedConnection = Wrap(connection);
-    const libp2pPublicKey = localPeer.pubKey.marshal();
-    const handshake = await this.performHandshake(wrappedConnection, false, libp2pPublicKey);
+    const libp2pPublicKey = localPeer.marshalPubKey();
+    const handshake = await this.performHandshake(wrappedConnection, false, libp2pPublicKey, remotePeer);
     const conn = await this.createSecureConnection(wrappedConnection, handshake);
 
     return {
@@ -79,13 +80,18 @@ export class Noise implements NoiseConnection {
     connection: WrappedConnection,
     isInitiator: boolean,
     libp2pPublicKey: bytes,
+    remotePeer: PeerId,
   ): Promise<Handshake> {
     const prologue = Buffer.from(this.protocol);
-    const handshake = new Handshake(isInitiator, this.privateKey, libp2pPublicKey, prologue, this.staticKeys, connection);
+    const handshake = new Handshake(isInitiator, this.privateKey, libp2pPublicKey, prologue, this.staticKeys, connection, remotePeer);
 
-    await handshake.propose(this.earlyData);
-    await handshake.exchange();
-    await handshake.finish();
+    try {
+      await handshake.propose();
+      await handshake.exchange();
+      await handshake.finish(this.earlyData);
+    } catch (e) {
+      throw new Error(`Error occurred during handshake: ${e.message}`);
+    }
 
     return handshake;
   }

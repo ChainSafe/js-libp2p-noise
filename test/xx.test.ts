@@ -48,25 +48,26 @@ describe("Index", () => {
     const respSignedPayload = await libp2pRespKeys.sign(getHandshakePayload(kpResp.publicKey));
 
     // initiator: new XX noise session
-    const nsInit = await xx.initSession(true, prologue, kpInit);
+    const nsInit = xx.initSession(true, prologue, kpInit);
     // responder: new XX noise session
-    const nsResp = await xx.initSession(false, prologue, kpResp);
+    const nsResp = xx.initSession(false, prologue, kpResp);
 
     /* STAGE 0 */
 
     // initiator creates payload
     const libp2pInitPrivKey = libp2pInitKeys.marshal().slice(0, 32);
     const libp2pInitPubKey = libp2pInitKeys.marshal().slice(32, 64);
+
     const payloadInitEnc = await createHandshakePayload(libp2pInitPubKey, libp2pInitPrivKey, initSignedPayload);
 
     // initiator sends message
     const message = Buffer.concat([Buffer.alloc(0), payloadInitEnc]);
-    const messageBuffer = await xx.sendMessage(nsInit, message);
+    const messageBuffer = xx.sendMessage(nsInit, message);
 
     expect(messageBuffer.ne.length).not.equal(0);
 
     // responder receives message
-    const plaintext = await xx.recvMessage(nsResp, messageBuffer);
+    const plaintext = xx.recvMessage(nsResp, messageBuffer);
     console.log("Stage 0 responder payload: ", plaintext);
 
     /* STAGE 1 */
@@ -77,22 +78,22 @@ describe("Index", () => {
     const payloadRespEnc = await createHandshakePayload(libp2pRespPubKey, libp2pRespPrivKey, respSignedPayload);
 
     const message1 = Buffer.concat([message, payloadRespEnc]);
-    const messageBuffer2 = await xx.sendMessage(nsResp, message1);
+    const messageBuffer2 = xx.sendMessage(nsResp, message1);
 
     expect(messageBuffer2.ne.length).not.equal(0);
     expect(messageBuffer2.ns.length).not.equal(0);
 
     // initiator receive payload
-    const plaintext2 = await xx.recvMessage(nsInit, messageBuffer2);
+    const plaintext2 = xx.recvMessage(nsInit, messageBuffer2);
     console.log("Stage 1 responder payload: ", plaintext2);
 
     /* STAGE 2 */
 
     // initiator send message
-    const messageBuffer3 = await xx.sendMessage(nsInit, Buffer.alloc(0));
+    const messageBuffer3 = xx.sendMessage(nsInit, Buffer.alloc(0));
 
     // responder receive message
-    const plaintext3 = await xx.recvMessage(nsResp, messageBuffer3);
+    const plaintext3 = xx.recvMessage(nsResp, messageBuffer3);
     console.log("Stage 2 responder payload: ", plaintext3);
 
     assert(nsInit.cs1.k.equals(nsResp.cs1.k));

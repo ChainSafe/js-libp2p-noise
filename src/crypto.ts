@@ -1,4 +1,3 @@
-import { Duplex } from "it-pair";
 import { Handshake } from "./handshake";
 import { Buffer } from "buffer";
 
