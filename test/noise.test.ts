@@ -66,18 +66,18 @@ describe("Noise", () => {
         let receivedMessageBuffer = decodeMessageBuffer((await wrapped.readLP()).slice());
         // The first handshake message contains the initiator's ephemeral public key
         expect(receivedMessageBuffer.ne.length).equal(32);
-        await xx.recvMessage(handshake.session, receivedMessageBuffer);
+        xx.recvMessage(handshake.session, receivedMessageBuffer);
 
         // Stage 1
         const signedPayload = signPayload(libp2pPrivKey, getHandshakePayload(staticKeys.publicKey));
         const handshakePayload = await createHandshakePayload(libp2pPubKey, libp2pPrivKey, signedPayload);
 
-        const messageBuffer = await xx.sendMessage(handshake.session, handshakePayload);
+        const messageBuffer = xx.sendMessage(handshake.session, handshakePayload);
         wrapped.writeLP(encodeMessageBuffer(messageBuffer));
 
         // Stage 2 - finish handshake
         receivedMessageBuffer = decodeMessageBuffer((await wrapped.readLP()).slice());
-        await xx.recvMessage(handshake.session, receivedMessageBuffer);
+        xx.recvMessage(handshake.session, receivedMessageBuffer);
         return {wrapped, handshake};
       })(),
     ]);

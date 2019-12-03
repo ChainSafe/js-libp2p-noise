@@ -53,13 +53,13 @@ export class Handshake {
   async propose(): Promise<void> {
     if (this.isInitiator) {
       logger("Stage 0 - Initiator starting to send first message.");
-      const messageBuffer = await this.xx.sendMessage(this.session, Buffer.alloc(0));
+      const messageBuffer = this.xx.sendMessage(this.session, Buffer.alloc(0));
       this.connection.writeLP(encodeMessageBuffer(messageBuffer));
       logger("Stage 0 - Initiator finished sending first message.");
     } else {
       logger("Stage 0 - Responder waiting to receive first message...");
       const receivedMessageBuffer = decodeMessageBuffer((await this.connection.readLP()).slice());
-      await this.xx.recvMessage(this.session, receivedMessageBuffer);
+      this.xx.recvMessage(this.session, receivedMessageBuffer);
       logger("Stage 0 - Responder received first message.");
     }
   }
@@ -69,7 +69,7 @@ export class Handshake {
     if (this.isInitiator) {
       logger('Stage 1 - Initiator waiting to receive first message from responder...');
       const receivedMessageBuffer = decodeMessageBuffer((await this.connection.readLP()).slice());
-      const plaintext = await this.xx.recvMessage(this.session, receivedMessageBuffer);
+      const plaintext = this.xx.recvMessage(this.session, receivedMessageBuffer);
       logger('Stage 1 - Initiator received the message. Got remote\'s static key.');
 
       logger("Initiator going to check remote's signature...");
@@ -90,7 +90,7 @@ export class Handshake {
         signedEarlyDataPayload,
       );
 
-      const messageBuffer = await this.xx.sendMessage(this.session, handshakePayload);
+      const messageBuffer = this.xx.sendMessage(this.session, handshakePayload);
       this.connection.writeLP(encodeMessageBuffer(messageBuffer));
       logger('Stage 1 - Responder sent the second handshake message with signed payload.')
     }
@@ -108,13 +108,13 @@ export class Handshake {
         signedPayload,
         signedEarlyDataPayload
       );
-      const messageBuffer = await this.xx.sendMessage(this.session, handshakePayload);
+      const messageBuffer = this.xx.sendMessage(this.session, handshakePayload);
       this.connection.writeLP(encodeMessageBuffer(messageBuffer));
       logger('Stage 2 - Initiator sent message with signed payload.');
     } else {
       logger('Stage 2 - Responder waiting for third handshake message...');
       const receivedMessageBuffer = decodeMessageBuffer((await this.connection.readLP()).slice());
-      const plaintext = await this.xx.recvMessage(this.session, receivedMessageBuffer);
+      const plaintext = this.xx.recvMessage(this.session, receivedMessageBuffer);
       logger('Stage 2 - Responder received the message, finished handshake. Got remote\'s static key.');
 
       try {
