@@ -6,11 +6,11 @@ import { KeyPair, PeerId } from "./@types/libp2p";
 import {
   createHandshakePayload,
   getHandshakePayload,
-  logger,
   signEarlyDataPayload,
   signPayload,
   verifySignedPayload,
 } from "./utils";
+import { logger } from "./logger";
 import { decodeMessageBuffer, encodeMessageBuffer } from "./encoder";
 import { WrappedConnection } from "./noise";
 
