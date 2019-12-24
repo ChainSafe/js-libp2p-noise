@@ -7,13 +7,11 @@ interface ReturnEncryptionWrapper {
 
 const maxPlaintextLength = 65519;
 
-
 // Returns generator that encrypts payload from the user
 export function encryptStream(handshake: Handshake): ReturnEncryptionWrapper {
   return async function * (source) {
     for await (const chunk of source) {
       const chunkBuffer = Buffer.from(chunk);
-
 
       for (let i = 0; i < chunkBuffer.length; i += maxPlaintextLength) {
         let end = i + maxPlaintextLength;
@@ -27,7 +25,6 @@ export function encryptStream(handshake: Handshake): ReturnEncryptionWrapper {
     }
   }
 }
-
 
 
 // Decrypt received payload to the user
