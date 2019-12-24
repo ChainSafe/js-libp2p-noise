@@ -14,7 +14,7 @@ import {
 import { decodeMessageBuffer, encodeMessageBuffer } from "../src/encoder";
 import {XXHandshake} from "../src/xx";
 import {Buffer} from "buffer";
-import {getKeyPairFromPeerId} from "./utils";
+import {getKeyPairFromPeerId, getRandomBuffer} from "./utils";
 
 describe("Noise", () => {
   let remotePeer, localPeer;
@@ -96,4 +96,30 @@ describe("Noise", () => {
       assert(false, e.message);
     }
   })
+
+
+  it("should test large payloads", async() => {
+    try {
+      const { privateKey: libp2pInitPrivKey } = getKeyPairFromPeerId(localPeer);
+      const { privateKey: libp2pRespPrivKey } = getKeyPairFromPeerId(remotePeer);
+      const noiseInit = new Noise(libp2pInitPrivKey);
+      const noiseResp = new Noise(libp2pRespPrivKey);
+
+      const [inboundConnection, outboundConnection] = DuplexPair();
+      const [outbound, inbound] = await Promise.all([
+        noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
+        noiseResp.secureInbound(remotePeer, inboundConnection, localPeer),
+      ]);
+      const wrappedInbound = Wrap(inbound.conn);
+      const wrappedOutbound = Wrap(outbound.conn);
+
+      const largePlaintext = getRandomBuffer(100000);
+      wrappedOutbound.writeLP(largePlaintext);
+      const response = await wrappedInbound.readLP();
+      expect(response.equals(largePlaintext)).to.be.true;
+    } catch (e) {
+      console.error(e);
+      assert(false, e.message);
+    }
+  });
 });
