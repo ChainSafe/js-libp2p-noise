@@ -5,42 +5,8 @@ import { BN } from 'bn.js';
 import { bytes32, uint32, uint64, bytes } from '../@types/basic'
 import { KeyPair } from '../@types/libp2p'
 import { generateKeypair } from '../utils';
+import { CipherState, HandshakeState, Hkdf, MessageBuffer, NoiseSession, SymmetricState } from "../@types/handshake";
 
-export interface MessageBuffer {
-  ne: bytes32;
-  ns: bytes;
-  ciphertext: bytes;
-}
-
-type CipherState = {
-  k: bytes32;
-  n: uint32;
-}
-
-type SymmetricState = {
-  cs: CipherState;
-  ck: bytes32;  // chaining key
-  h: bytes32; // handshake hash
-}
-
-type HandshakeState = {
-  ss: SymmetricState;
-  s: KeyPair;
-  e?: KeyPair;
-  rs: bytes32;
-  re: bytes32;
-  psk: bytes32;
-}
-
-export type NoiseSession = {
-  hs: HandshakeState;
-  h?: bytes32;
-  cs1?: CipherState;
-  cs2?: CipherState;
-  mc: uint64;
-  i: boolean;
-}
-export type Hkdf = [bytes, bytes, bytes];
 
 const minNonce = 0;
 

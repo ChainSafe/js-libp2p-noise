@@ -1,8 +1,9 @@
 import { Buffer } from "buffer";
 
-import { bytes, bytes32 } from "./@types/basic";
-import { NoiseSession, XXHandshake } from "./handshakes/xx";
+import { XXHandshake } from "./handshakes/xx";
 import { KeyPair, PeerId } from "./@types/libp2p";
+import { bytes, bytes32 } from "./@types/basic";
+import { NoiseSession } from "./@types/handshake";
 import {
   createHandshakePayload,
   getHandshakePayload,

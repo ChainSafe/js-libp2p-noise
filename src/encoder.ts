@@ -1,6 +1,6 @@
 import {Buffer} from "buffer";
 import {bytes} from "./@types/basic";
-import {MessageBuffer} from "./handshakes/xx";
+import {MessageBuffer} from "./@types/handshake";
 
 export const int16BEEncode = (value, target, offset) => {
   target = target || Buffer.allocUnsafe(2);
