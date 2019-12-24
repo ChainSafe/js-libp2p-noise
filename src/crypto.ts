@@ -35,8 +35,17 @@ export function decryptStream(handshake: Handshake): ReturnEncryptionWrapper {
   return async function * (source) {
     for await (const chunk of source) {
       const chunkBuffer = Buffer.from(chunk);
-      const decrypted = await handshake.decrypt(chunkBuffer, handshake.session);
-      yield decrypted
+
+      for (let i = 0; i < chunkBuffer.length; i += maxPlaintextLength) {
+        let end = i + maxPlaintextLength;
+        if (end > chunkBuffer.length) {
+          end = chunkBuffer.length;
+        }
+
+        const chunk = chunkBuffer.slice(i, end);
+        const decrypted = await handshake.decrypt(chunk, handshake.session);
+        yield decrypted;
+      }
     }
   }
 }
