@@ -1,7 +1,7 @@
 import { Buffer } from "buffer";
 
 import { bytes, bytes32 } from "./@types/basic";
-import { NoiseSession, XXHandshake } from "./xx";
+import { NoiseSession, XXHandshake } from "./handshakes/xx";
 import { KeyPair, PeerId } from "./@types/libp2p";
 import {
   createHandshakePayload,

@@ -12,7 +12,7 @@ import {
   signPayload
 } from "../src/utils";
 import { decodeMessageBuffer, encodeMessageBuffer } from "../src/encoder";
-import {XXHandshake} from "../src/xx";
+import {XXHandshake} from "../src/handshakes/xx";
 import {Buffer} from "buffer";
 import {getKeyPairFromPeerId, getRandomBuffer} from "./utils";
 

@@ -1,10 +1,10 @@
 import { expect, assert } from "chai";
 import { Buffer } from 'buffer';
 
-import { XXHandshake } from "../src/xx";
-import { KeyPair } from "../src/@types/libp2p";
-import { generateEd25519Keys } from "./utils";
-import {createHandshakePayload, generateKeypair, getHandshakePayload} from "../src/utils";
+import { XXHandshake } from "../../src/handshakes/xx";
+import { KeyPair } from "../../src/@types/libp2p";
+import { generateEd25519Keys } from "../utils";
+import {createHandshakePayload, generateKeypair, getHandshakePayload} from "../../src/utils";
 
 describe("Index", () => {
   const prologue = Buffer.from("/noise", "utf-8");

@@ -2,9 +2,9 @@ import { Buffer } from 'buffer';
 import { AEAD, x25519, HKDF, SHA256 } from 'bcrypto';
 import { BN } from 'bn.js';
 
-import { bytes32, uint32, uint64, bytes } from './@types/basic'
-import { KeyPair } from './@types/libp2p'
-import { generateKeypair } from './utils';
+import { bytes32, uint32, uint64, bytes } from '../@types/basic'
+import { KeyPair } from '../@types/libp2p'
+import { generateKeypair } from '../utils';
 
 export interface MessageBuffer {
   ne: bytes32;
