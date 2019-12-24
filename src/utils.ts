@@ -1,11 +1,12 @@
-import { x25519, ed25519 } from 'bcrypto';
+import { x25519, ed25519, HKDF, SHA256 } from 'bcrypto';
 import protobuf from "protobufjs";
 import { Buffer } from "buffer";
 import PeerId from "peer-id";
 import * as crypto from 'libp2p-crypto';
 
 import { KeyPair } from "./@types/libp2p";
-import { bytes } from "./@types/basic";
+import {bytes, bytes32} from "./@types/basic";
+import {Hkdf} from "./@types/handshake";
 
 export async function loadPayloadProto () {
   const payloadProtoBuf = await protobuf.load("protos/payload.proto");
@@ -87,4 +88,16 @@ export async function verifySignedPayload(noiseStaticKey: bytes, plaintext: byte
   if (!ed25519.verify(generatedPayload, receivedPayload.noiseStaticKeySignature, publicKey)) {
     throw new Error("Static key doesn't match to peer that signed payload!");
   }
+}
+
+export function getHkdf(ck: bytes32, ikm: bytes): Hkdf {
+  const info = Buffer.alloc(0);
+  const prk = HKDF.extract(SHA256, ikm, ck);
+  const okm = HKDF.expand(SHA256, prk, info, 96);
+
+  const k1 = okm.slice(0, 32);
+  const k2 = okm.slice(32, 64);
+  const k3 = okm.slice(64, 96);
+
+  return [ k1, k2, k3 ];
 }

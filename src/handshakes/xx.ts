@@ -4,13 +4,12 @@ import { BN } from 'bn.js';
 
 import { bytes32, uint32, uint64, bytes } from '../@types/basic'
 import { KeyPair } from '../@types/libp2p'
-import { generateKeypair } from '../utils';
+import {generateKeypair, getHkdf} from '../utils';
 import { CipherState, HandshakeState, Hkdf, MessageBuffer, NoiseSession, SymmetricState } from "../@types/handshake";
+import {AbstractHandshake} from "./abstract-handshake";
 
 
-const minNonce = 0;
-
-export class XXHandshake {
+export class XXHandshake extends AbstractHandshake {
   private createEmptyKey(): bytes32 {
     return Buffer.alloc(32);
   }
@@ -33,36 +32,6 @@ export class XXHandshake {
     return { ss, s, rs, psk, re };
   }
 
-  private incrementNonce(n: uint32): uint32 {
-    return n + 1;
-  }
-
-  private dh(privateKey: bytes32, publicKey: bytes32): bytes32 {
-    const derived = x25519.derive(publicKey, privateKey);
-    const result = Buffer.alloc(32);
-    derived.copy(result);
-    return result;
-  }
-
-  private nonceToBytes(n: uint32): bytes {
-    const nonce = Buffer.alloc(12);
-    nonce.writeUInt32LE(n, 4);
-
-    return nonce;
-  }
-
-  private encrypt(k: bytes32, n: uint32, ad: bytes, plaintext: bytes): bytes {
-    const nonce = this.nonceToBytes(n);
-    const ctx = new AEAD();
-
-    ctx.init(k, nonce);
-    ctx.aad(ad);
-    ctx.encrypt(plaintext);
-
-    // Encryption is done on the sent reference
-    return plaintext;
-  }
-
   private decrypt(k: bytes32, n: uint32, ad: bytes, ciphertext: bytes): bytes {
     const nonce = this.nonceToBytes(n);
     const ctx = new AEAD();
@@ -81,11 +50,6 @@ export class XXHandshake {
   }
 
   // Cipher state related
-  private initializeKey(k: bytes32): CipherState {
-    const n = minNonce;
-    return { k, n };
-  }
-
   private hasKey(cs: CipherState): boolean {
     return !this.isEmptyKey(cs.k);
   }
@@ -121,12 +85,6 @@ export class XXHandshake {
     return { cs, ck, h };
   }
 
-  private mixKey(ss: SymmetricState, ikm: bytes32): void {
-    const [ ck, tempK ] = this.getHkdf(ss.ck, ikm);
-    ss.cs = this.initializeKey(tempK) as CipherState;
-    ss.ck = ck;
-  }
-
   private hashProtocolName(protocolName: bytes): bytes32 {
     if (protocolName.length <= 32) {
       const h = Buffer.alloc(32);
@@ -135,26 +93,6 @@ export class XXHandshake {
     } else {
       return this.getHash(protocolName, Buffer.alloc(0));
     }
-  }
-
-  public getHkdf(ck: bytes32, ikm: bytes): Hkdf {
-    const info = Buffer.alloc(0);
-    const prk = HKDF.extract(SHA256, ikm, ck);
-    const okm = HKDF.expand(SHA256, prk, info, 96);
-
-    const k1 = okm.slice(0, 32);
-    const k2 = okm.slice(32, 64);
-    const k3 = okm.slice(64, 96);
-
-    return [ k1, k2, k3 ];
-  }
-
-  private mixHash(ss: SymmetricState, data: bytes) {
-    ss.h = this.getHash(ss.h, data);
-  }
-
-  private getHash(a: bytes, b: bytes): bytes32 {
-    return SHA256.digest(Buffer.from([...a, ...b]));
   }
 
   private encryptAndHash(ss: SymmetricState, plaintext: bytes): bytes {
@@ -182,7 +120,7 @@ export class XXHandshake {
   }
 
   private split (ss: SymmetricState) {
-    const [ tempk1, tempk2 ] = this.getHkdf(ss.ck, Buffer.alloc(0));
+    const [ tempk1, tempk2 ] = getHkdf(ss.ck, Buffer.alloc(0));
     const cs1 = this.initializeKey(tempk1);
     const cs2 = this.initializeKey(tempk2);
 
