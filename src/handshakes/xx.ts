@@ -67,14 +67,6 @@ export class XXHandshake extends AbstractHandshake {
     return { h: hs.ss.h, messageBuffer, cs1, cs2 };
   }
 
-  private writeMessageRegular(cs: CipherState, payload: bytes): MessageBuffer {
-    const ciphertext = this.encryptWithAd(cs, Buffer.alloc(0), payload);
-    const ne = this.createEmptyKey();
-    const ns = Buffer.alloc(0);
-
-    return { ne, ns, ciphertext };
-  }
-
   private readMessageA(hs: HandshakeState, message: MessageBuffer): bytes {
     if (x25519.publicKeyVerify(message.ne)) {
       hs.re = message.ne;
@@ -117,10 +109,6 @@ export class XXHandshake extends AbstractHandshake {
     const { cs1, cs2 } = this.split(hs.ss);
 
     return { h: hs.ss.h, plaintext, cs1, cs2 };
-  }
-
-  private readMessageRegular(cs: CipherState, message: MessageBuffer): bytes {
-    return this.decryptWithAd(cs, Buffer.alloc(0), message.ciphertext);
   }
 
   public initSession(initiator: boolean, prologue: bytes32, s: KeyPair): NoiseSession {

@@ -2,7 +2,7 @@ import {Buffer} from "buffer";
 import { AEAD, x25519, HKDF, SHA256 } from 'bcrypto';
 
 import {bytes, bytes32, uint32} from "../@types/basic";
-import {CipherState, SymmetricState} from "../@types/handshake";
+import {CipherState, MessageBuffer, SymmetricState} from "../@types/handshake";
 import {getHkdf} from "../utils";
 
 export class AbstractHandshake {
@@ -149,11 +149,23 @@ export class AbstractHandshake {
     }
   }
 
-  protected split (ss: SymmetricState) {
+  protected split(ss: SymmetricState) {
     const [ tempk1, tempk2 ] = getHkdf(ss.ck, Buffer.alloc(0));
     const cs1 = this.initializeKey(tempk1);
     const cs2 = this.initializeKey(tempk2);
 
     return { cs1, cs2 };
+  }
+
+  protected writeMessageRegular(cs: CipherState, payload: bytes): MessageBuffer {
+    const ciphertext = this.encryptWithAd(cs, Buffer.alloc(0), payload);
+    const ne = this.createEmptyKey();
+    const ns = Buffer.alloc(0);
+
+    return { ne, ns, ciphertext };
+  }
+
+  protected readMessageRegular(cs: CipherState, message: MessageBuffer): bytes {
+    return this.decryptWithAd(cs, Buffer.alloc(0), message.ciphertext);
   }
 }
