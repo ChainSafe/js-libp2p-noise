@@ -4,7 +4,7 @@ import { Buffer } from 'buffer';
 import { XXHandshake } from "../../src/handshakes/xx";
 import { KeyPair } from "../../src/@types/libp2p";
 import { generateEd25519Keys } from "../utils";
-import {createHandshakePayload, generateKeypair, getHandshakePayload} from "../../src/utils";
+import {createHandshakePayload, generateKeypair, getHandshakePayload, getHkdf} from "../../src/utils";
 
 describe("Index", () => {
   const prologue = Buffer.from("/noise", "utf-8");
@@ -29,7 +29,7 @@ describe("Index", () => {
     const ck = Buffer.alloc(32);
     ckBytes.copy(ck);
 
-    const [k1, k2, k3] = xx.getHkdf(ck, ikm);
+    const [k1, k2, k3] = getHkdf(ck, ikm);
     expect(k1.toString('hex')).to.equal('cc5659adff12714982f806e2477a8d5ddd071def4c29bb38777b7e37046f6914');
     expect(k2.toString('hex')).to.equal('a16ada915e551ab623f38be674bb4ef15d428ae9d80688899c9ef9b62ef208fa');
     expect(k3.toString('hex')).to.equal('ff67bf9727e31b06efc203907e6786667d2c7a74ac412b4d31a80ba3fd766f68');

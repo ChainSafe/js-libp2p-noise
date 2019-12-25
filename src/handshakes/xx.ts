@@ -10,10 +10,6 @@ import {AbstractHandshake} from "./abstract-handshake";
 
 
 export class XXHandshake extends AbstractHandshake {
-  private createEmptyKey(): bytes32 {
-    return Buffer.alloc(32);
-  }
-
   private initializeInitiator(prologue: bytes32, s: KeyPair, rs: bytes32, psk: bytes32): HandshakeState {
     const name = "Noise_XX_25519_ChaChaPoly_SHA256";
     const ss = this.initializeSymmetric(name);
@@ -30,101 +26,6 @@ export class XXHandshake extends AbstractHandshake {
     const re = Buffer.alloc(32);
 
     return { ss, s, rs, psk, re };
-  }
-
-  private decrypt(k: bytes32, n: uint32, ad: bytes, ciphertext: bytes): bytes {
-    const nonce = this.nonceToBytes(n);
-    const ctx = new AEAD();
-
-    ctx.init(k, nonce);
-    ctx.aad(ad);
-    ctx.decrypt(ciphertext);
-
-    // Decryption is done on the sent reference
-    return ciphertext;
-  }
-
-  private isEmptyKey(k: bytes32): boolean {
-    const emptyKey = this.createEmptyKey();
-    return emptyKey.equals(k);
-  }
-
-  // Cipher state related
-  private hasKey(cs: CipherState): boolean {
-    return !this.isEmptyKey(cs.k);
-  }
-
-  private setNonce(cs: CipherState, nonce: uint32): void {
-    cs.n = nonce;
-  }
-
-  public encryptWithAd(cs: CipherState, ad: bytes, plaintext: bytes): bytes {
-    const e = this.encrypt(cs.k, cs.n, ad, plaintext);
-    this.setNonce(cs, this.incrementNonce(cs.n));
-
-    return e;
-  }
-
-  public decryptWithAd(cs: CipherState, ad: bytes, ciphertext: bytes): bytes {
-    const plaintext = this.decrypt(cs.k, cs.n, ad, ciphertext);
-    this.setNonce(cs, this.incrementNonce(cs.n));
-
-    return plaintext;
-  }
-
-  // Symmetric state related
-
-  private initializeSymmetric(protocolName: string): SymmetricState {
-    const protocolNameBytes: bytes = Buffer.from(protocolName, 'utf-8');
-    const h = this.hashProtocolName(protocolNameBytes);
-
-    const ck = h;
-    const key = this.createEmptyKey();
-    const cs: CipherState = this.initializeKey(key);
-
-    return { cs, ck, h };
-  }
-
-  private hashProtocolName(protocolName: bytes): bytes32 {
-    if (protocolName.length <= 32) {
-      const h = Buffer.alloc(32);
-      protocolName.copy(h);
-      return h;
-    } else {
-      return this.getHash(protocolName, Buffer.alloc(0));
-    }
-  }
-
-  private encryptAndHash(ss: SymmetricState, plaintext: bytes): bytes {
-    let ciphertext;
-    if (this.hasKey(ss.cs)) {
-      ciphertext = this.encryptWithAd(ss.cs, ss.h, plaintext);
-    } else {
-      ciphertext = plaintext;
-    }
-
-    this.mixHash(ss, ciphertext);
-    return ciphertext;
-  }
-
-  private decryptAndHash(ss: SymmetricState, ciphertext: bytes): bytes {
-    let plaintext;
-    if (this.hasKey(ss.cs)) {
-      plaintext = this.decryptWithAd(ss.cs, ss.h, ciphertext);
-    } else {
-      plaintext = ciphertext;
-    }
-
-    this.mixHash(ss, ciphertext);
-    return plaintext;
-  }
-
-  private split (ss: SymmetricState) {
-    const [ tempk1, tempk2 ] = getHkdf(ss.ck, Buffer.alloc(0));
-    const cs1 = this.initializeKey(tempk1);
-    const cs2 = this.initializeKey(tempk2);
-
-    return { cs1, cs2 };
   }
 
   private writeMessageA(hs: HandshakeState, payload: bytes): MessageBuffer {
