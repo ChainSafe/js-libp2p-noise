@@ -5,7 +5,7 @@ import {bytes, bytes32, uint32} from "../@types/basic";
 import {CipherState, MessageBuffer, SymmetricState} from "../@types/handshake";
 import {getHkdf} from "../utils";
 
-export class AbstractHandshake {
+export abstract class AbstractHandshake {
   protected minNonce = 0;
 
   public encryptWithAd(cs: CipherState, ad: bytes, plaintext: bytes): bytes {
