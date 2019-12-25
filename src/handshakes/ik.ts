@@ -97,7 +97,7 @@ export class IKHandshake extends AbstractHandshake {
     const spk = Buffer.from(hs.s.publicKey);
     const ns = this.encryptAndHash(hs.ss, spk);
 
-    this.mixKey(hs.ss, this.dh(hs.s.privateKey, hs.re));
+    this.mixKey(hs.ss, this.dh(hs.s.privateKey, hs.rs));
     const ciphertext = this.encryptAndHash(hs.ss, payload);
 
     return { ne, ns, ciphertext };

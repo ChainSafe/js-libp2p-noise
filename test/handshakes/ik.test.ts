@@ -10,7 +10,8 @@ describe("Index", () => {
 
   it("Test complete IK handshake", async () => {
     try {
-      const ik = new IKHandshake();
+      const ikI = new IKHandshake();
+      const ikR = new IKHandshake();
 
       // Generate static noise keys
       const kpInitiator: KeyPair = await generateKeypair();
@@ -21,8 +22,8 @@ describe("Index", () => {
       const libp2pRespKeys = await generateEd25519Keys();
 
       // Create sessions
-      const initiatorSession = await ik.initSession(true, prologue, kpInitiator, kpResponder.publicKey);
-      const responderSession = await ik.initSession(false, prologue, kpResponder, Buffer.alloc(32));
+      const initiatorSession = await ikI.initSession(true, prologue, kpInitiator, kpResponder.publicKey);
+      const responderSession = await ikR.initSession(false, prologue, kpResponder, Buffer.alloc(32));
 
       /* Stage 0 */
 
@@ -34,13 +35,12 @@ describe("Index", () => {
 
       // initiator sends message
       const message = Buffer.concat([Buffer.alloc(0), payloadInitEnc]);
-      const messageBuffer = ik.sendMessage(initiatorSession, message);
+      const messageBuffer = ikI.sendMessage(initiatorSession, message);
 
       expect(messageBuffer.ne.length).not.equal(0);
 
       // responder receives message
-      const plaintext = ik.recvMessage(responderSession, messageBuffer);
-      console.log("Stage 0 responder payload: ", plaintext);
+      const plaintext = ikR.recvMessage(responderSession, messageBuffer);
 
       /* Stage 1 */
 
@@ -51,12 +51,16 @@ describe("Index", () => {
       const payloadRespEnc = await createHandshakePayload(libp2pRespPubKey, libp2pRespPrivKey, respSignedPayload);
 
       const message1 = Buffer.concat([message, payloadRespEnc]);
-      const messageBuffer2 = ik.sendMessage(responderSession, message1);
+      const messageBuffer2 = ikR.sendMessage(responderSession, message1);
 
-      // initator receives message
-      const plaintext2 = ik.recvMessage(initiatorSession, messageBuffer2);
+      // initiator receives message
+      const plaintext2 = ikI.recvMessage(initiatorSession, messageBuffer2);
+
+      assert(initiatorSession.cs1.k.equals(responderSession.cs1.k));
+      assert(initiatorSession.cs2.k.equals(responderSession.cs2.k));
 
     } catch (e) {
+      console.log(e);
       assert(false, e.message);
     }
   });
