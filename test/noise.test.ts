@@ -4,6 +4,7 @@ import DuplexPair from 'it-pair/duplex';
 import { Noise } from "../src";
 import {createPeerIdsFromFixtures} from "./fixtures/peer";
 import Wrap from "it-pb-rpc";
+import { random } from "bcrypto";
 import {Handshake} from "../src/handshake";
 import {
   createHandshakePayload,
@@ -14,7 +15,7 @@ import {
 import { decodeMessageBuffer, encodeMessageBuffer } from "../src/encoder";
 import {XXHandshake} from "../src/xx";
 import {Buffer} from "buffer";
-import {getKeyPairFromPeerId, getRandomBuffer} from "./utils";
+import {getKeyPairFromPeerId} from "./utils";
 
 describe("Noise", () => {
   let remotePeer, localPeer;
@@ -113,7 +114,7 @@ describe("Noise", () => {
       const wrappedInbound = Wrap(inbound.conn);
       const wrappedOutbound = Wrap(outbound.conn);
 
-      const largePlaintext = getRandomBuffer(100000);
+      const largePlaintext = random.randomBytes(100000);
       wrappedOutbound.writeLP(largePlaintext);
       const response = await wrappedInbound.readLP();
 

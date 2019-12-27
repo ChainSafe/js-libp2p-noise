@@ -11,7 +11,7 @@ const maxPlaintextLength = 65519;
 export function encryptStream(handshake: Handshake): ReturnEncryptionWrapper {
   return async function * (source) {
     for await (const chunk of source) {
-      const chunkBuffer = Buffer.from(chunk);
+      const chunkBuffer = Buffer.from(chunk.buffer, chunk.byteOffset, chunk.length);
 
       for (let i = 0; i < chunkBuffer.length; i += maxPlaintextLength) {
         let end = i + maxPlaintextLength;
@@ -31,7 +31,7 @@ export function encryptStream(handshake: Handshake): ReturnEncryptionWrapper {
 export function decryptStream(handshake: Handshake): ReturnEncryptionWrapper {
   return async function * (source) {
     for await (const chunk of source) {
-      const chunkBuffer = Buffer.from(chunk);
+      const chunkBuffer = Buffer.from(chunk.buffer, chunk.byteOffset, chunk.length);
 
       for (let i = 0; i < chunkBuffer.length; i += maxPlaintextLength) {
         let end = i + maxPlaintextLength;
