@@ -12,15 +12,3 @@ export function getKeyPairFromPeerId(peerId: PeerId): KeyPair {
     publicKey: peerId.marshalPubKey(),
   }
 }
-
-export function getRandomBuffer(size: number) : bytes {
-  size = Math.max(1, size<<0);
-
-    const buf = Buffer.alloc(size);
-    let i = 0;
-    for (; i < size; ++i) {
-      buf[i] = (Math.random() * 0xFF) << 0;
-    }
-
-    return buf;
-}
