@@ -4,6 +4,7 @@ import DuplexPair from 'it-pair/duplex';
 import { Noise } from "../src";
 import {createPeerIdsFromFixtures} from "./fixtures/peer";
 import Wrap from "it-pb-rpc";
+import { random } from "bcrypto";
 import {Handshake} from "../src/handshake";
 import {
   createHandshakePayload,
@@ -96,4 +97,31 @@ describe("Noise", () => {
       assert(false, e.message);
     }
   })
+
+
+  it("should test large payloads", async() => {
+    try {
+      const { privateKey: libp2pInitPrivKey } = getKeyPairFromPeerId(localPeer);
+      const { privateKey: libp2pRespPrivKey } = getKeyPairFromPeerId(remotePeer);
+      const noiseInit = new Noise(libp2pInitPrivKey);
+      const noiseResp = new Noise(libp2pRespPrivKey);
+
+      const [inboundConnection, outboundConnection] = DuplexPair();
+      const [outbound, inbound] = await Promise.all([
+        noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
+        noiseResp.secureInbound(remotePeer, inboundConnection, localPeer),
+      ]);
+      const wrappedInbound = Wrap(inbound.conn);
+      const wrappedOutbound = Wrap(outbound.conn);
+
+      const largePlaintext = random.randomBytes(100000);
+      wrappedOutbound.writeLP(largePlaintext);
+      const response = await wrappedInbound.readLP();
+
+      expect(response.length).equals(largePlaintext.length);
+    } catch (e) {
+      console.error(e);
+      assert(false, e.message);
+    }
+  });
 });
