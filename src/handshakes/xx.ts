@@ -1,11 +1,10 @@
 import { Buffer } from 'buffer';
-import { AEAD, x25519, HKDF, SHA256 } from 'bcrypto';
 import { BN } from 'bn.js';
 
-import { bytes32, uint32, uint64, bytes } from '../@types/basic'
+import { bytes32, bytes } from '../@types/basic'
 import { KeyPair } from '../@types/libp2p'
-import {generateKeypair, getHkdf} from '../utils';
-import { CipherState, HandshakeState, Hkdf, MessageBuffer, NoiseSession, SymmetricState } from "../@types/handshake";
+import {generateKeypair, getHkdf, isValidPublicKey} from '../utils';
+import { HandshakeState, MessageBuffer, NoiseSession } from "../@types/handshake";
 import {AbstractHandshake} from "./abstract-handshake";
 
 
@@ -68,7 +67,7 @@ export class XXHandshake extends AbstractHandshake {
   }
 
   private readMessageA(hs: HandshakeState, message: MessageBuffer): bytes {
-    if (x25519.publicKeyVerify(message.ne)) {
+    if (isValidPublicKey(message.ne)) {
       hs.re = message.ne;
     }
 
@@ -77,7 +76,7 @@ export class XXHandshake extends AbstractHandshake {
   }
 
   private readMessageB(hs: HandshakeState, message: MessageBuffer): bytes {
-    if (x25519.publicKeyVerify(message.ne)) {
+    if (isValidPublicKey(message.ne)) {
       hs.re = message.ne;
     }
 
@@ -87,7 +86,7 @@ export class XXHandshake extends AbstractHandshake {
     }
     this.mixKey(hs.ss, this.dh(hs.e.privateKey, hs.re));
     const ns = this.decryptAndHash(hs.ss, message.ns);
-    if (ns.length === 32 && x25519.publicKeyVerify(message.ns)) {
+    if (ns.length === 32 && isValidPublicKey(message.ns)) {
       hs.rs = ns;
     }
     this.mixKey(hs.ss, this.dh(hs.e.privateKey, hs.rs));
@@ -96,7 +95,7 @@ export class XXHandshake extends AbstractHandshake {
 
   private readMessageC(hs: HandshakeState, message: MessageBuffer) {
     const ns = this.decryptAndHash(hs.ss, message.ns);
-    if (ns.length === 32 && x25519.publicKeyVerify(message.ns)) {
+    if (ns.length === 32 && isValidPublicKey(message.ns)) {
       hs.rs = ns;
     }
 
@@ -141,6 +140,7 @@ export class XXHandshake extends AbstractHandshake {
       session.h = h;
       session.cs1 = cs1;
       session.cs2 = cs2;
+      delete session.hs;
     } else if (session.mc.gtn(2)) {
       if (session.i) {
         if (!session.cs1) {

@@ -1,12 +1,11 @@
 import {Buffer} from "buffer";
-import {x25519} from "bcrypto";
+import {BN} from "bn.js";
 
-import {CipherState, HandshakeState, MessageBuffer, NoiseSession, SymmetricState} from "../@types/handshake";
+import {HandshakeState, MessageBuffer, NoiseSession} from "../@types/handshake";
 import {bytes, bytes32} from "../@types/basic";
-import {generateKeypair, getHkdf} from "../utils";
+import {generateKeypair, getHkdf, isValidPublicKey} from "../utils";
 import {AbstractHandshake} from "./abstract-handshake";
 import {KeyPair} from "../@types/libp2p";
-import {BN} from "bn.js";
 
 
 export class IKHandshake extends AbstractHandshake {
@@ -69,6 +68,7 @@ export class IKHandshake extends AbstractHandshake {
       session.h = h;
       session.cs1 = cs1;
       session.cs2 = cs2;
+      delete session.hs;
     } else if (session.mc.gtn(1)) {
       if (session.i) {
         if (!session.cs2) {
@@ -119,14 +119,14 @@ export class IKHandshake extends AbstractHandshake {
   }
 
   private readMessageA(hs: HandshakeState, message: MessageBuffer): bytes {
-    if (x25519.publicKeyVerify(message.ne)) {
+    if (isValidPublicKey(message.ne)) {
       hs.re = message.ne;
     }
 
     this.mixHash(hs.ss, hs.re);
     this.mixKey(hs.ss, this.dh(hs.s.privateKey, hs.re));
     const ns = this.decryptAndHash(hs.ss, message.ns);
-    if (ns.length === 32 && x25519.publicKeyVerify(message.ns)) {
+    if (ns.length === 32 && isValidPublicKey(message.ns)) {
       hs.rs = ns;
     }
     this.mixKey(hs.ss, this.dh(hs.s.privateKey, hs.rs));
@@ -134,7 +134,7 @@ export class IKHandshake extends AbstractHandshake {
   }
 
   private readMessageB(hs: HandshakeState, message: MessageBuffer) {
-    if (x25519.publicKeyVerify(message.ne)) {
+    if (isValidPublicKey(message.ne)) {
       hs.re = message.ne;
     }
 

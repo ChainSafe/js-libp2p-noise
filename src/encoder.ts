@@ -2,17 +2,17 @@ import {Buffer} from "buffer";
 import {bytes} from "./@types/basic";
 import {MessageBuffer} from "./@types/handshake";
 
-export const int16BEEncode = (value, target, offset) => {
+export const uint16BEEncode = (value, target, offset) => {
   target = target || Buffer.allocUnsafe(2);
   return target.writeUInt16BE(value, offset);
 };
-int16BEEncode.bytes = 2;
+uint16BEEncode.bytes = 2;
 
-export const int16BEDecode = data => {
+export const uint16BEDecode = data => {
   if (data.length < 2) throw RangeError('Could not decode int16BE');
   return data.readUInt16BE(0);
 };
-int16BEDecode.bytes = 2;
+uint16BEDecode.bytes = 2;
 
 export function encodeMessageBuffer(message: MessageBuffer): bytes {
   return Buffer.concat([message.ne, message.ns, message.ciphertext]);

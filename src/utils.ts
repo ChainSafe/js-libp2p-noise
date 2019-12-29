@@ -101,3 +101,7 @@ export function getHkdf(ck: bytes32, ikm: bytes): Hkdf {
 
   return [ k1, k2, k3 ];
 }
+
+export function isValidPublicKey(pk: bytes): boolean {
+  return x25519.publicKeyVerify(pk);
+}

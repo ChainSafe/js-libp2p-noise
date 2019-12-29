@@ -8,7 +8,7 @@ import lp from 'it-length-prefixed';
 
 import { Handshake } from "./handshake";
 import { generateKeypair } from "./utils";
-import { int16BEDecode, int16BEEncode } from "./encoder";
+import { uint16BEDecode, uint16BEEncode } from "./encoder";
 import { decryptStream, encryptStream } from "./crypto";
 import { bytes } from "./@types/basic";
 import { NoiseConnection, PeerId, KeyPair, SecureOutbound } from "./@types/libp2p";
@@ -108,9 +108,9 @@ export class Noise implements NoiseConnection {
       secure, // write to wrapper
       ensureBuffer, // ensure any type of data is converted to buffer
       encryptStream(handshake), // data is encrypted
-      lp.encode({ lengthEncoder: int16BEEncode }), // prefix with message length
+      lp.encode({ lengthEncoder: uint16BEEncode }), // prefix with message length
       network, // send to the remote peer
-      lp.decode({ lengthDecoder: int16BEDecode }), // read message length prefix
+      lp.decode({ lengthDecoder: uint16BEDecode }), // read message length prefix
       ensureBuffer, // ensure any type of data is converted to buffer
       decryptStream(handshake), // decrypt the incoming data
       secure // pipe to the wrapper

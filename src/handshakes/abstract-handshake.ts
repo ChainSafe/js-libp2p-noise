@@ -1,13 +1,13 @@
 import {Buffer} from "buffer";
-import { AEAD, x25519, HKDF, SHA256 } from 'bcrypto';
+import { AEAD, x25519, SHA256 } from 'bcrypto';
 
 import {bytes, bytes32, uint32} from "../@types/basic";
 import {CipherState, MessageBuffer, SymmetricState} from "../@types/handshake";
 import {getHkdf} from "../utils";
 
-export abstract class AbstractHandshake {
-  protected minNonce = 0;
+const minNonce = 0;
 
+export abstract class AbstractHandshake {
   public encryptWithAd(cs: CipherState, ad: bytes, plaintext: bytes): bytes {
     const e = this.encrypt(cs.k, cs.n, ad, plaintext);
     this.setNonce(cs, this.incrementNonce(cs.n));
@@ -122,7 +122,7 @@ export abstract class AbstractHandshake {
   }
 
   protected initializeKey(k: bytes32): CipherState {
-    const n = this.minNonce;
+    const n = minNonce;
     return { k, n };
   }
 
