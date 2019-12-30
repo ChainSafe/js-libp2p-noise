@@ -5,7 +5,7 @@ import {bytes, bytes32, uint32} from "../@types/basic";
 import {CipherState, MessageBuffer, SymmetricState} from "../@types/handshake";
 import {getHkdf} from "../utils";
 
-const minNonce = 0;
+export const MIN_NONCE = 0;
 
 export abstract class AbstractHandshake {
   public encryptWithAd(cs: CipherState, ad: bytes, plaintext: bytes): bytes {
@@ -122,7 +122,7 @@ export abstract class AbstractHandshake {
   }
 
   protected initializeKey(k: bytes32): CipherState {
-    const n = minNonce;
+    const n = MIN_NONCE;
     return { k, n };
   }
 
