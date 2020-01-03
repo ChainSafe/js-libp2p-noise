@@ -4,7 +4,7 @@ import {KeyPair, PeerId} from "./@types/libp2p";
 import {WrappedConnection} from "./noise";
 import {IKHandshake} from "./handshakes/ik";
 
-export class Handshake {
+export class Handshake { // implements HandshakeHandler
   public isInitiator: boolean;
   public session: NoiseSession;
 

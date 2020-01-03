@@ -4,6 +4,7 @@ import { XXHandshake } from "./handshakes/xx";
 import { KeyPair, PeerId } from "./@types/libp2p";
 import { bytes, bytes32 } from "./@types/basic";
 import { NoiseSession } from "./@types/handshake";
+import {HandshakeInterface} from "./@types/handshake-interface";
 import {
   createHandshakePayload,
   getHandshakePayload,
@@ -15,7 +16,7 @@ import { logger } from "./logger";
 import { decodeMessageBuffer, encodeMessageBuffer } from "./encoder";
 import { WrappedConnection } from "./noise";
 
-export class Handshake {
+export class Handshake implements HandshakeInterface {
   public isInitiator: boolean;
   public session: NoiseSession;
 
@@ -50,7 +51,7 @@ export class Handshake {
   }
 
   // stage 0
-  async propose(): Promise<void> {
+  public async propose(): Promise<void> {
     if (this.isInitiator) {
       logger("Stage 0 - Initiator starting to send first message.");
       const messageBuffer = this.xx.sendMessage(this.session, Buffer.alloc(0));
@@ -65,7 +66,7 @@ export class Handshake {
   }
 
   // stage 1
-  async exchange(): Promise<void> {
+  public async exchange(): Promise<void> {
     if (this.isInitiator) {
       logger('Stage 1 - Initiator waiting to receive first message from responder...');
       const receivedMessageBuffer = decodeMessageBuffer((await this.connection.readLP()).slice());
@@ -97,7 +98,7 @@ export class Handshake {
   }
 
   // stage 2
-  async finish(earlyData?: bytes): Promise<void> {
+  public async finish(earlyData?: bytes): Promise<void> {
     if (this.isInitiator) {
       logger('Stage 2 - Initiator sending third handshake message.');
       const signedPayload = signPayload(this.libp2pPrivateKey, getHandshakePayload(this.staticKeys.publicKey));

@@ -6,13 +6,15 @@ import ensureBuffer from 'it-buffer';
 import pipe from 'it-pipe';
 import lp from 'it-length-prefixed';
 
-import { Handshake } from "./handshake-xx";
+import { Handshake as XX } from "./handshake-xx";
 import { generateKeypair } from "./utils";
 import { uint16BEDecode, uint16BEEncode } from "./encoder";
 import { decryptStream, encryptStream } from "./crypto";
 import { bytes } from "./@types/basic";
 import { NoiseConnection, PeerId, KeyPair, SecureOutbound } from "./@types/libp2p";
 import { Duplex } from "./@types/it-pair";
+import {XXHandshake} from "./handshakes/xx";
+import {HandshakeInterface} from "./@types/handshake-interface";
 
 export type WrappedConnection = ReturnType<typeof Wrap>;
 
@@ -89,24 +91,22 @@ export class Noise implements NoiseConnection {
     isInitiator: boolean,
     libp2pPublicKey: bytes,
     remotePeer: PeerId,
-  ): Promise<Handshake> {
+  ): Promise<HandshakeInterface> {
+    // TODO: Implement noise pipes
+
     if (false) {
-      // TODO: Implement noise pipes
 
     } else {
-      return await this.performXXHandshake(connection, isInitiator, libp2pPublicKey, remotePeer)
+      const prologue = Buffer.from(this.protocol);
+      const handshake = new XX(isInitiator, this.privateKey, libp2pPublicKey, prologue, this.staticKeys, connection, remotePeer);
+
+      return await this.performXXHandshake(handshake);
     }
   }
 
   private async performXXHandshake(
-    connection: WrappedConnection,
-    isInitiator: boolean,
-    libp2pPublicKey: bytes,
-    remotePeer: PeerId,
-  ): Promise<Handshake> {
-    const prologue = Buffer.from(this.protocol);
-    const handshake = new Handshake(isInitiator, this.privateKey, libp2pPublicKey, prologue, this.staticKeys, connection, remotePeer);
-
+    handshake: XX
+  ): Promise<HandshakeInterface> {
     try {
       await handshake.propose();
       await handshake.exchange();
@@ -120,7 +120,7 @@ export class Noise implements NoiseConnection {
 
   private async createSecureConnection(
     connection: WrappedConnection,
-    handshake: Handshake,
+    handshake: HandshakeInterface,
   ): Promise<Duplex> {
     // Create encryption box/unbox wrapper
     const [secure, user] = DuplexPair();
