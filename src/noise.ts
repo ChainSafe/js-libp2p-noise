@@ -48,7 +48,7 @@ export class Noise implements NoiseConnection {
   public async secureOutbound(localPeer: PeerId, connection: any, remotePeer: PeerId): Promise<SecureOutbound> {
     const wrappedConnection = Wrap(connection);
     const libp2pPublicKey = localPeer.marshalPubKey();
-    const handshake = await this.performXXHandshake(wrappedConnection, true, libp2pPublicKey, remotePeer);
+    const handshake = await this.performHandshake(wrappedConnection, true, libp2pPublicKey, remotePeer);
     const conn = await this.createSecureConnection(wrappedConnection, handshake);
 
     return {
@@ -67,13 +67,35 @@ export class Noise implements NoiseConnection {
   public async secureInbound(localPeer: PeerId, connection: any, remotePeer: PeerId): Promise<SecureOutbound> {
     const wrappedConnection = Wrap(connection);
     const libp2pPublicKey = localPeer.marshalPubKey();
-    const handshake = await this.performXXHandshake(wrappedConnection, false, libp2pPublicKey, remotePeer);
+    const handshake = await this.performHandshake(wrappedConnection, false, libp2pPublicKey, remotePeer);
     const conn = await this.createSecureConnection(wrappedConnection, handshake);
 
     return {
       conn,
       remotePeer,
     };
+  }
+
+  /**
+   * If Noise pipes supported, tries IK handshake first with XX as fallback if it fails.
+   * If remote peer static key is unknown, use XX.
+   * @param connection
+   * @param isInitiator
+   * @param libp2pPublicKey
+   * @param remotePeer
+   */
+  private async performHandshake(
+    connection: WrappedConnection,
+    isInitiator: boolean,
+    libp2pPublicKey: bytes,
+    remotePeer: PeerId,
+  ): Promise<Handshake> {
+    if (false) {
+      // TODO: Implement noise pipes
+
+    } else {
+      return await this.performXXHandshake(connection, isInitiator, libp2pPublicKey, remotePeer)
+    }
   }
 
   private async performXXHandshake(
