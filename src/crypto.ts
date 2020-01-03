@@ -1,5 +1,5 @@
 import { Buffer } from "buffer";
-import { Handshake } from "./handshake";
+import { Handshake } from "./handshake-xx";
 
 interface ReturnEncryptionWrapper {
   (source: Iterable<Uint8Array>): AsyncIterableIterator<Uint8Array>;

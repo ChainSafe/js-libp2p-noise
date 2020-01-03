@@ -3,7 +3,7 @@ import Duplex from 'it-pair/duplex';
 import {Buffer} from "buffer";
 import Wrap from "it-pb-rpc";
 
-import {Handshake} from "../src/handshake";
+import {Handshake} from "../src/handshake-xx";
 import {generateKeypair} from "../src/utils";
 import {createPeerIdsFromFixtures} from "./fixtures/peer";
 import {getKeyPairFromPeerId} from "./utils";

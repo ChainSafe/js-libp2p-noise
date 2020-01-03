@@ -5,7 +5,7 @@ import { Noise } from "../src";
 import {createPeerIdsFromFixtures} from "./fixtures/peer";
 import Wrap from "it-pb-rpc";
 import { random } from "bcrypto";
-import {Handshake} from "../src/handshake";
+import {Handshake} from "../src/handshake-xx";
 import {
   createHandshakePayload,
   generateKeypair,
