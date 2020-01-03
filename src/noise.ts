@@ -7,6 +7,7 @@ import pipe from 'it-pipe';
 import lp from 'it-length-prefixed';
 
 import { Handshake as XX } from "./handshake-xx";
+import { Handshake as IK } from "./handshake-ik";
 import { generateKeypair } from "./utils";
 import { uint16BEDecode, uint16BEEncode } from "./encoder";
 import { decryptStream, encryptStream } from "./crypto";
@@ -21,6 +22,7 @@ export type WrappedConnection = ReturnType<typeof Wrap>;
 export class Noise implements NoiseConnection {
   public protocol = "/noise";
 
+  private readonly prologue = Buffer.from(this.protocol);
   private readonly privateKey: bytes;
   private readonly staticKeys: KeyPair;
   private readonly earlyData?: bytes;
@@ -92,21 +94,29 @@ export class Noise implements NoiseConnection {
     libp2pPublicKey: bytes,
     remotePeer: PeerId,
   ): Promise<HandshakeInterface> {
+
     // TODO: Implement noise pipes
 
-    if (false) {
+    const IKhandshake = new IK(isInitiator, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer);
 
+    if(true) {
+      // XX fallback
+      const ephemeralKeys = IKhandshake.getRemoteEphemeralKeys();
+      return await this.performXXHandshake(connection, isInitiator, libp2pPublicKey, remotePeer, ephemeralKeys);
     } else {
-      const prologue = Buffer.from(this.protocol);
-      const handshake = new XX(isInitiator, this.privateKey, libp2pPublicKey, prologue, this.staticKeys, connection, remotePeer);
-
-      return await this.performXXHandshake(handshake);
+      return await this.performXXHandshake(connection, isInitiator, libp2pPublicKey, remotePeer);
     }
   }
 
   private async performXXHandshake(
-    handshake: XX
+    connection: WrappedConnection,
+    isInitiator: boolean,
+    libp2pPublicKey: bytes,
+    remotePeer: PeerId,
+    ephemeralKeys?: KeyPair,
   ): Promise<HandshakeInterface> {
+    const handshake = new XX(isInitiator, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer, ephemeralKeys);
+
     try {
       await handshake.propose();
       await handshake.exchange();

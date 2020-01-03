@@ -27,9 +27,14 @@ export class XXHandshake extends AbstractHandshake {
     return { ss, s, rs, psk, re };
   }
 
-  private writeMessageA(hs: HandshakeState, payload: bytes): MessageBuffer {
+  private writeMessageA(hs: HandshakeState, payload: bytes, e?: KeyPair): MessageBuffer {
     const ns = Buffer.alloc(0);
-    hs.e = generateKeypair();
+
+    if (e) {
+      hs.e = e;
+    } else {
+      hs.e = generateKeypair();
+    }
 
     const ne = hs.e.publicKey;
 
@@ -128,10 +133,10 @@ export class XXHandshake extends AbstractHandshake {
     };
   }
 
-  public sendMessage(session: NoiseSession, message: bytes): MessageBuffer {
+  public sendMessage(session: NoiseSession, message: bytes, ephemeral?: KeyPair): MessageBuffer {
     let messageBuffer: MessageBuffer;
     if (session.mc.eqn(0)) {
-      messageBuffer = this.writeMessageA(session.hs, message);
+      messageBuffer = this.writeMessageA(session.hs, message, ephemeral);
     } else if (session.mc.eqn(1)) {
       messageBuffer = this.writeMessageB(session.hs, message);
     } else if (session.mc.eqn(2)) {

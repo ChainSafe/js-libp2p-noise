@@ -36,6 +36,7 @@ export class Handshake implements HandshakeInterface {
     staticKeys: KeyPair,
     connection: WrappedConnection,
     remotePeer: PeerId,
+    ephemeralKeys?: KeyPair,
     handshake?: XXHandshake,
   ) {
     this.isInitiator = isInitiator;
