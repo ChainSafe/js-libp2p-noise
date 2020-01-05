@@ -20,13 +20,14 @@ export class Handshake implements HandshakeInterface {
   public isInitiator: boolean;
   public session: NoiseSession;
 
-  private libp2pPrivateKey: bytes;
-  private libp2pPublicKey: bytes;
+  protected connection: WrappedConnection;
+  protected xx: XXHandshake;
+
+  protected libp2pPrivateKey: bytes;
+  protected libp2pPublicKey: bytes;
   private prologue: bytes32;
-  private staticKeys: KeyPair;
-  private connection: WrappedConnection;
+  protected staticKeys: KeyPair;
   private remotePeer: PeerId;
-  private xx: XXHandshake;
 
   constructor(
     isInitiator: boolean,
@@ -36,7 +37,6 @@ export class Handshake implements HandshakeInterface {
     staticKeys: KeyPair,
     connection: WrappedConnection,
     remotePeer: PeerId,
-    ephemeralKeys?: KeyPair,
     handshake?: XXHandshake,
   ) {
     this.isInitiator = isInitiator;

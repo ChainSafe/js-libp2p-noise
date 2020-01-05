@@ -54,7 +54,11 @@ export class Handshake implements HandshakeInterface {
     return this.ik.encryptWithAd(cs, Buffer.alloc(0), plaintext);
   }
 
-  public getRemoteEphemeralKeys(): KeyPair | undefined {
+  public getRemoteEphemeralKeys(): KeyPair {
+    if (!this.session.hs.e) {
+      throw new Error("Ephemeral keys do not exist.");
+    }
+
     return this.session.hs.e;
   }
 

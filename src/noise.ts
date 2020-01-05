@@ -8,6 +8,7 @@ import lp from 'it-length-prefixed';
 
 import { Handshake as XX } from "./handshake-xx";
 import { Handshake as IK } from "./handshake-ik";
+import { Handshake as XXFallback } from "./handshake-xx-fallback";
 import { generateKeypair } from "./utils";
 import { uint16BEDecode, uint16BEEncode } from "./encoder";
 import { decryptStream, encryptStream } from "./crypto";
@@ -18,6 +19,13 @@ import {XXHandshake} from "./handshakes/xx";
 import {HandshakeInterface} from "./@types/handshake-interface";
 
 export type WrappedConnection = ReturnType<typeof Wrap>;
+
+type HandshakeParams = {
+  connection: WrappedConnection;
+  isInitiator: boolean;
+  libp2pPublicKey: bytes;
+  remotePeer: PeerId;
+};
 
 export class Noise implements NoiseConnection {
   public protocol = "/noise";
@@ -52,7 +60,12 @@ export class Noise implements NoiseConnection {
   public async secureOutbound(localPeer: PeerId, connection: any, remotePeer: PeerId): Promise<SecureOutbound> {
     const wrappedConnection = Wrap(connection);
     const libp2pPublicKey = localPeer.marshalPubKey();
-    const handshake = await this.performHandshake(wrappedConnection, true, libp2pPublicKey, remotePeer);
+    const handshake = await this.performHandshake({
+      connection: wrappedConnection,
+      isInitiator: true,
+      libp2pPublicKey,
+      remotePeer,
+    });
     const conn = await this.createSecureConnection(wrappedConnection, handshake);
 
     return {
@@ -71,7 +84,12 @@ export class Noise implements NoiseConnection {
   public async secureInbound(localPeer: PeerId, connection: any, remotePeer: PeerId): Promise<SecureOutbound> {
     const wrappedConnection = Wrap(connection);
     const libp2pPublicKey = localPeer.marshalPubKey();
-    const handshake = await this.performHandshake(wrappedConnection, false, libp2pPublicKey, remotePeer);
+    const handshake = await this.performHandshake({
+      connection: wrappedConnection,
+      isInitiator: false,
+      libp2pPublicKey,
+      remotePeer
+    });
     const conn = await this.createSecureConnection(wrappedConnection, handshake);
 
     return {
@@ -88,42 +106,68 @@ export class Noise implements NoiseConnection {
    * @param libp2pPublicKey
    * @param remotePeer
    */
-  private async performHandshake(
-    connection: WrappedConnection,
-    isInitiator: boolean,
-    libp2pPublicKey: bytes,
-    remotePeer: PeerId,
-  ): Promise<HandshakeInterface> {
-
+  private async performHandshake(params: HandshakeParams): Promise<HandshakeInterface> {
     // TODO: Implement noise pipes
 
-    const IKhandshake = new IK(isInitiator, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer);
-
-    if(true) {
-      // XX fallback
-      const ephemeralKeys = IKhandshake.getRemoteEphemeralKeys();
-      return await this.performXXHandshake(connection, isInitiator, libp2pPublicKey, remotePeer, ephemeralKeys);
+    if (false) {
+      let IKhandshake;
+      try {
+        IKhandshake = await this.performIKHandshake(params);
+        return IKhandshake;
+      } catch (e) {
+        // XX fallback
+        const ephemeralKeys = IKhandshake.getRemoteEphemeralKeys();
+        return await this.performXXFallbackHandshake(params, ephemeralKeys, e.initialMsg);
+      }
     } else {
-      return await this.performXXHandshake(connection, isInitiator, libp2pPublicKey, remotePeer);
+      return await this.performXXHandshake(params);
     }
   }
 
-  private async performXXHandshake(
-    connection: WrappedConnection,
-    isInitiator: boolean,
-    libp2pPublicKey: bytes,
-    remotePeer: PeerId,
-    ephemeralKeys?: KeyPair,
-  ): Promise<HandshakeInterface> {
-    const handshake = new XX(isInitiator, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer, ephemeralKeys);
+  private async performXXFallbackHandshake(
+    params: HandshakeParams,
+    ephemeralKeys: KeyPair,
+    initialMsg: bytes,
+  ): Promise<XXFallback> {
+    const { isInitiator, libp2pPublicKey, remotePeer, connection } = params;
+    const handshake =
+      new XXFallback(isInitiator, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer, ephemeralKeys, initialMsg);
 
     try {
       await handshake.propose();
       await handshake.exchange();
       await handshake.finish(this.earlyData);
     } catch (e) {
-      throw new Error(`Error occurred during handshake: ${e.message}`);
+      throw new Error(`Error occurred during XX Fallback handshake: ${e.message}`);
     }
+
+    return handshake;
+  }
+
+  private async performXXHandshake(
+    params: HandshakeParams,
+  ): Promise<XX> {
+    const { isInitiator, libp2pPublicKey, remotePeer, connection } = params;
+    const handshake = new XX(isInitiator, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer);
+
+    try {
+      await handshake.propose();
+      await handshake.exchange();
+      await handshake.finish(this.earlyData);
+    } catch (e) {
+      throw new Error(`Error occurred during XX handshake: ${e.message}`);
+    }
+
+    return handshake;
+  }
+
+  private async performIKHandshake(
+    params: HandshakeParams,
+  ): Promise<IK> {
+    const { isInitiator, libp2pPublicKey, remotePeer, connection } = params;
+    const handshake = new IK(params.isInitiator, this.privateKey, params.libp2pPublicKey, this.prologue, this.staticKeys, params.connection, remotePeer);
+
+    // TODO
 
     return handshake;
   }
