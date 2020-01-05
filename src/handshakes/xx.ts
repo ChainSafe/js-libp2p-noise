@@ -3,12 +3,12 @@ import { BN } from 'bn.js';
 
 import { bytes32, bytes } from '../@types/basic'
 import { KeyPair } from '../@types/libp2p'
-import {generateKeypair, getHkdf, isValidPublicKey} from '../utils';
+import {generateKeypair, isValidPublicKey} from '../utils';
 import { HandshakeState, MessageBuffer, NoiseSession } from "../@types/handshake";
 import {AbstractHandshake} from "./abstract-handshake";
 
 
-export class XXHandshake extends AbstractHandshake {
+export class XX extends AbstractHandshake {
   private initializeInitiator(prologue: bytes32, s: KeyPair, rs: bytes32, psk: bytes32): HandshakeState {
     const name = "Noise_XX_25519_ChaChaPoly_SHA256";
     const ss = this.initializeSymmetric(name);

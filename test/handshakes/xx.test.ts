@@ -1,7 +1,7 @@
 import { expect, assert } from "chai";
 import { Buffer } from 'buffer';
 
-import { XXHandshake } from "../../src/handshakes/xx";
+import { XX } from "../../src/handshakes/xx";
 import { KeyPair } from "../../src/@types/libp2p";
 import { generateEd25519Keys } from "../utils";
 import {createHandshakePayload, generateKeypair, getHandshakePayload, getHkdf} from "../../src/utils";
@@ -11,7 +11,7 @@ describe("Index", () => {
 
   it("Test creating new XX session", async () => {
     try {
-      const xx = new XXHandshake();
+      const xx = new XX();
 
       const kpInitiator: KeyPair = await generateKeypair();
       const kpResponder: KeyPair = await generateKeypair();
@@ -23,7 +23,7 @@ describe("Index", () => {
   });
 
   it("Test get HKDF", async () => {
-    const xx = new XXHandshake();
+    const xx = new XX();
     const ckBytes = Buffer.from('4e6f6973655f58585f32353531395f58436861436861506f6c795f53484132353600000000000000000000000000000000000000000000000000000000000000', 'hex');
     const ikm = Buffer.from('a3eae50ea37a47e8a7aa0c7cd8e16528670536dcd538cebfd724fb68ce44f1910ad898860666227d4e8dd50d22a9a64d1c0a6f47ace092510161e9e442953da3', 'hex');
     const ck = Buffer.alloc(32);
@@ -104,7 +104,7 @@ describe("Index", () => {
 
   it("Test handshake", async () => {
     try {
-      const xx = new XXHandshake();
+      const xx = new XX();
       await doHandshake(xx);
     } catch (e) {
       assert(false, e.message);
@@ -113,7 +113,7 @@ describe("Index", () => {
 
   it("Test symmetric encrypt and decrypt", async () => {
     try {
-      const xx = new XXHandshake();
+      const xx = new XX();
       const { nsInit, nsResp } = await doHandshake(xx);
       const ad = Buffer.from("authenticated");
       const message = Buffer.from("HelloCrypto");
@@ -130,7 +130,7 @@ describe("Index", () => {
 
   it("Test multiple messages encryption and decryption", async () => {
     try {
-      const xx = new XXHandshake();
+      const xx = new XX();
       const { nsInit, nsResp } = await doHandshake(xx);
       const ad = Buffer.from("authenticated");
       const message = Buffer.from("ethereum1");

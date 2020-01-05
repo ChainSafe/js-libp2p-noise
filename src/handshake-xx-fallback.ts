@@ -1,7 +1,7 @@
 import { Buffer } from "buffer";
 
 import { Handshake as XXHandshake } from "./handshake-xx";
-import { XXHandshake as XX } from "./handshakes/xx";
+import { XX } from "./handshakes/xx";
 import { KeyPair, PeerId } from "./@types/libp2p";
 import { bytes, bytes32 } from "./@types/basic";
 import {

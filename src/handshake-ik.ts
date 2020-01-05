@@ -1,5 +1,5 @@
 import {WrappedConnection} from "./noise";
-import {IKHandshake} from "./handshakes/ik";
+import {IK} from "./handshakes/ik";
 import {NoiseSession} from "./@types/handshake";
 import {bytes, bytes32} from "./@types/basic";
 import {KeyPair, PeerId} from "./@types/libp2p";
@@ -16,7 +16,7 @@ export class Handshake implements HandshakeInterface {
   private staticKeys: KeyPair;
   private connection: WrappedConnection;
   private remotePeer: PeerId;
-  private ik: IKHandshake;
+  private ik: IK;
 
   constructor(
     isInitiator: boolean,
@@ -26,7 +26,7 @@ export class Handshake implements HandshakeInterface {
     staticKeys: KeyPair,
     connection: WrappedConnection,
     remotePeer: PeerId,
-    handshake?: IKHandshake,
+    handshake?: IK,
   ) {
     this.isInitiator = isInitiator;
     this.libp2pPrivateKey = libp2pPrivateKey;
@@ -36,7 +36,7 @@ export class Handshake implements HandshakeInterface {
     this.connection = connection;
     this.remotePeer = remotePeer;
 
-    this.ik = handshake || new IKHandshake();
+    this.ik = handshake || new IK();
 
     // Dummy data
     // TODO: Load remote static keys if found

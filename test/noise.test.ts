@@ -13,7 +13,7 @@ import {
   signPayload
 } from "../src/utils";
 import { decodeMessageBuffer, encodeMessageBuffer } from "../src/encoder";
-import {XXHandshake} from "../src/handshakes/xx";
+import {XX} from "../src/handshakes/xx";
 import {Buffer} from "buffer";
 import {getKeyPairFromPeerId} from "./utils";
 
@@ -58,7 +58,7 @@ describe("Noise", () => {
         const wrapped = Wrap(inboundConnection);
         const prologue = Buffer.from('/noise');
         const staticKeys = generateKeypair();
-        const xx = new XXHandshake();
+        const xx = new XX();
         const { privateKey: libp2pPrivKey, publicKey: libp2pPubKey } = getKeyPairFromPeerId(remotePeer);
 
         const handshake = new Handshake(false, libp2pPrivKey, libp2pPubKey, prologue, staticKeys, wrapped, localPeer, xx);

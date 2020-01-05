@@ -1,6 +1,6 @@
 import { Buffer } from "buffer";
 
-import { XXHandshake } from "./handshakes/xx";
+import { XX } from "./handshakes/xx";
 import { KeyPair, PeerId } from "./@types/libp2p";
 import { bytes, bytes32 } from "./@types/basic";
 import { NoiseSession } from "./@types/handshake";
@@ -21,7 +21,7 @@ export class Handshake implements HandshakeInterface {
   public session: NoiseSession;
 
   protected connection: WrappedConnection;
-  protected xx: XXHandshake;
+  protected xx: XX;
 
   protected libp2pPrivateKey: bytes;
   protected libp2pPublicKey: bytes;
@@ -37,7 +37,7 @@ export class Handshake implements HandshakeInterface {
     staticKeys: KeyPair,
     connection: WrappedConnection,
     remotePeer: PeerId,
-    handshake?: XXHandshake,
+    handshake?: XX,
   ) {
     this.isInitiator = isInitiator;
     this.libp2pPrivateKey = libp2pPrivateKey;
@@ -47,7 +47,7 @@ export class Handshake implements HandshakeInterface {
     this.connection = connection;
     this.remotePeer = remotePeer;
 
-    this.xx = handshake || new XXHandshake();
+    this.xx = handshake || new XX();
     this.session = this.xx.initSession(this.isInitiator, this.prologue, this.staticKeys);
   }
 

@@ -15,7 +15,6 @@ import { decryptStream, encryptStream } from "./crypto";
 import { bytes } from "./@types/basic";
 import { NoiseConnection, PeerId, KeyPair, SecureOutbound } from "./@types/libp2p";
 import { Duplex } from "./@types/it-pair";
-import {XXHandshake} from "./handshakes/xx";
 import {HandshakeInterface} from "./@types/handshake-interface";
 
 export type WrappedConnection = ReturnType<typeof Wrap>;

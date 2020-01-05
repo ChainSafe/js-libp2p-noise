@@ -1,5 +1,5 @@
 import {Buffer} from "buffer";
-import {IKHandshake} from "../../src/handshakes/ik";
+import {IK} from "../../src/handshakes/ik";
 import {KeyPair} from "../../src/@types/libp2p";
 import {createHandshakePayload, generateKeypair, getHandshakePayload} from "../../src/utils";
 import {assert, expect} from "chai";
@@ -10,8 +10,8 @@ describe("Index", () => {
 
   it("Test complete IK handshake", async () => {
     try {
-      const ikI = new IKHandshake();
-      const ikR = new IKHandshake();
+      const ikI = new IK();
+      const ikR = new IK();
 
       // Generate static noise keys
       const kpInitiator: KeyPair = await generateKeypair();
