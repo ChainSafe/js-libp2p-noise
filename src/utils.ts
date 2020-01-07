@@ -46,7 +46,7 @@ export async function createHandshakePayload(
 }
 
 
-export function signPayload(libp2pPrivateKey: bytes, payload: bytes) {
+export function signPayload(libp2pPrivateKey: bytes, payload: bytes): bytes {
   return ed25519.sign(payload, libp2pPrivateKey);
 }
 

@@ -164,7 +164,7 @@ export class Noise implements NoiseConnection {
     params: HandshakeParams,
   ): Promise<IK> {
     const { isInitiator, libp2pPublicKey, remotePeer, connection } = params;
-    const handshake = new IK(params.isInitiator, this.privateKey, params.libp2pPublicKey, this.prologue, this.staticKeys, params.connection, remotePeer);
+    const handshake = new IK(isInitiator, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer);
 
     // TODO
 

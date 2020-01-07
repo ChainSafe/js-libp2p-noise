@@ -6,7 +6,6 @@ import {
   createHandshakePayload,
   generateKeypair,
   getHandshakePayload,
-  signEarlyDataPayload,
   signPayload
 } from "../src/utils";
 import {generateEd25519Keys, getKeyPairFromPeerId} from "./utils";

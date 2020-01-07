@@ -71,7 +71,7 @@ export class Handshake extends XXHandshake {
       }
       logger("All good with the signature!");
     } else {
-      logger('Stage 1 - Responder sending out first message with signed payload and static key.');
+      logger('XX Fallback Stage 1 - Responder sending out first message with signed payload and static key.');
       const signedPayload = signPayload(this.libp2pPrivateKey, getHandshakePayload(this.staticKeys.publicKey));
       const signedEarlyDataPayload = signEarlyDataPayload(this.libp2pPrivateKey, Buffer.alloc(0));
       const handshakePayload = await createHandshakePayload(
@@ -83,7 +83,7 @@ export class Handshake extends XXHandshake {
 
       const messageBuffer = this.xx.sendMessage(this.session, handshakePayload);
       this.connection.writeLP(encode1(messageBuffer));
-      logger('Stage 1 - Responder sent the second handshake message with signed payload.')
+      logger('XX Fallback Stage 1 - Responder sent the second handshake message with signed payload.')
     }
   }
 }
