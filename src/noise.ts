@@ -8,12 +8,8 @@ import lp from 'it-length-prefixed';
 
 import { Handshake } from "./handshake";
 import {
-  createHandshakePayload,
   generateKeypair,
-  getHandshakePayload,
   getPayload,
-  signEarlyDataPayload,
-  signPayload
 } from "./utils";
 import { uint16BEDecode, uint16BEEncode } from "./encoder";
 import { decryptStream, encryptStream } from "./crypto";
@@ -86,13 +82,13 @@ export class Noise implements NoiseConnection {
     remotePeer: PeerId,
   ): Promise<Handshake> {
     const prologue = Buffer.from(this.protocol);
-    const payload = await getPayload(localPeer, this.staticKeys.publicKey);
+    const payload = await getPayload(localPeer, this.staticKeys.publicKey, this.earlyData);
     const handshake = new Handshake(isInitiator, payload, prologue, this.staticKeys, connection, remotePeer);
 
     try {
       await handshake.propose();
       await handshake.exchange();
-      await handshake.finish(this.earlyData);
+      await handshake.finish();
     } catch (e) {
       throw new Error(`Error occurred during handshake: ${e.message}`);
     }

@@ -3,7 +3,7 @@ import { BN } from 'bn.js';
 
 import { bytes32, bytes } from '../@types/basic'
 import { KeyPair } from '../@types/libp2p'
-import {generateKeypair, getHkdf, isValidPublicKey} from '../utils';
+import {generateKeypair, isValidPublicKey} from '../utils';
 import { HandshakeState, MessageBuffer, NoiseSession } from "../@types/handshake";
 import {AbstractHandshake} from "./abstract-handshake";
 

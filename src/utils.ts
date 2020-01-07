@@ -1,4 +1,4 @@
-import { x25519, ed25519, HKDF, SHA256 } from 'bcrypto';
+import { x25519, HKDF, SHA256 } from 'bcrypto';
 import protobuf from "protobufjs";
 import { Buffer } from "buffer";
 import PeerId from "peer-id";

@@ -81,7 +81,7 @@ export class Handshake {
   }
 
   // stage 2
-  async finish(earlyData?: bytes): Promise<void> {
+  async finish(): Promise<void> {
     if (this.isInitiator) {
       logger('Stage 2 - Initiator sending third handshake message.');
       const messageBuffer = this.xx.sendMessage(this.session, this.payload);
