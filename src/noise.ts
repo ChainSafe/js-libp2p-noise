@@ -6,16 +6,16 @@ import ensureBuffer from 'it-buffer';
 import pipe from 'it-pipe';
 import lp from 'it-length-prefixed';
 
-import { Handshake as XX } from "./handshake-xx";
-import { Handshake as IK } from "./handshake-ik";
-import { Handshake as XXFallback } from "./handshake-xx-fallback";
+import { XXHandshake } from "./handshake-xx";
+import { IKHandshake } from "./handshake-ik";
+import { XXFallbackHandshake } from "./handshake-xx-fallback";
 import { generateKeypair } from "./utils";
 import { uint16BEDecode, uint16BEEncode } from "./encoder";
 import { decryptStream, encryptStream } from "./crypto";
 import { bytes } from "./@types/basic";
 import { NoiseConnection, PeerId, KeyPair, SecureOutbound } from "./@types/libp2p";
 import { Duplex } from "./@types/it-pair";
-import {HandshakeInterface} from "./@types/handshake-interface";
+import {IHandshake} from "./@types/handshake-interface";
 
 export type WrappedConnection = ReturnType<typeof Wrap>;
 
@@ -105,7 +105,7 @@ export class Noise implements NoiseConnection {
    * @param libp2pPublicKey
    * @param remotePeer
    */
-  private async performHandshake(params: HandshakeParams): Promise<HandshakeInterface> {
+  private async performHandshake(params: HandshakeParams): Promise<IHandshake> {
     // TODO: Implement noise pipes
 
     if (false) {
@@ -127,10 +127,10 @@ export class Noise implements NoiseConnection {
     params: HandshakeParams,
     ephemeralKeys: KeyPair,
     initialMsg: bytes,
-  ): Promise<XXFallback> {
+  ): Promise<XXFallbackHandshake> {
     const { isInitiator, libp2pPublicKey, remotePeer, connection } = params;
     const handshake =
-      new XXFallback(isInitiator, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer, initialMsg, ephemeralKeys);
+      new XXFallbackHandshake(isInitiator, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer, initialMsg, ephemeralKeys);
 
     try {
       await handshake.propose();
@@ -145,9 +145,9 @@ export class Noise implements NoiseConnection {
 
   private async performXXHandshake(
     params: HandshakeParams,
-  ): Promise<XX> {
+  ): Promise<XXHandshake> {
     const { isInitiator, libp2pPublicKey, remotePeer, connection } = params;
-    const handshake = new XX(isInitiator, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer);
+    const handshake = new XXHandshake(isInitiator, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer);
 
     try {
       await handshake.propose();
@@ -162,9 +162,9 @@ export class Noise implements NoiseConnection {
 
   private async performIKHandshake(
     params: HandshakeParams,
-  ): Promise<IK> {
+  ): Promise<IKHandshake> {
     const { isInitiator, libp2pPublicKey, remotePeer, connection } = params;
-    const handshake = new IK(isInitiator, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer);
+    const handshake = new IKHandshake(isInitiator, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer);
 
     // TODO
 
@@ -173,7 +173,7 @@ export class Noise implements NoiseConnection {
 
   private async createSecureConnection(
     connection: WrappedConnection,
-    handshake: HandshakeInterface,
+    handshake: IHandshake,
   ): Promise<Duplex> {
     // Create encryption box/unbox wrapper
     const [secure, user] = DuplexPair();

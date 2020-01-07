@@ -9,7 +9,7 @@ import {
   signPayload
 } from "../src/utils";
 import {generateEd25519Keys, getKeyPairFromPeerId} from "./utils";
-import {Handshake} from "../src/handshake-xx-fallback";
+import {XXFallbackHandshake} from "../src/handshake-xx-fallback";
 import {createPeerIdsFromFixtures} from "./fixtures/peer";
 import {assert} from "chai";
 import {encode0, encode1} from "../src/encoder";
@@ -48,10 +48,10 @@ describe("XX Fallback Handshake", () => {
       });
 
       const handshakeInit =
-        new Handshake(true, initiatorPrivKey, initiatorPubKey, prologue, staticKeysInitiator, connectionFrom, peerB, initialMsg, ephemeralKeys);
+        new XXFallbackHandshake(true, initiatorPrivKey, initiatorPubKey, prologue, staticKeysInitiator, connectionFrom, peerB, initialMsg, ephemeralKeys);
 
       const handshakeResp =
-        new Handshake(false, responderPrivKey, responderPubKey, prologue, staticKeysResponder, connectionTo, peerA, initialMsg);
+        new XXFallbackHandshake(false, responderPrivKey, responderPubKey, prologue, staticKeysResponder, connectionTo, peerA, initialMsg);
 
 
       await handshakeInit.propose();

@@ -3,17 +3,17 @@ import {IK} from "./handshakes/ik";
 import {NoiseSession} from "./@types/handshake";
 import {bytes, bytes32} from "./@types/basic";
 import {KeyPair, PeerId} from "./@types/libp2p";
-import {HandshakeInterface} from "./@types/handshake-interface";
+import {IHandshake} from "./@types/handshake-interface";
 import {Buffer} from "buffer";
 
-export class Handshake implements HandshakeInterface {
+export class IKHandshake implements IHandshake {
   public isInitiator: boolean;
   public session: NoiseSession;
 
   private libp2pPrivateKey: bytes;
   private libp2pPublicKey: bytes;
   private prologue: bytes32;
-  private staticKeys: KeyPair;
+  private staticKeypair: KeyPair;
   private connection: WrappedConnection;
   private remotePeer: PeerId;
   private ik: IK;
@@ -23,7 +23,7 @@ export class Handshake implements HandshakeInterface {
     libp2pPrivateKey: bytes,
     libp2pPublicKey: bytes,
     prologue: bytes32,
-    staticKeys: KeyPair,
+    staticKeypair: KeyPair,
     connection: WrappedConnection,
     remotePeer: PeerId,
     handshake?: IK,
@@ -32,7 +32,7 @@ export class Handshake implements HandshakeInterface {
     this.libp2pPrivateKey = libp2pPrivateKey;
     this.libp2pPublicKey = libp2pPublicKey;
     this.prologue = prologue;
-    this.staticKeys = staticKeys;
+    this.staticKeypair = staticKeypair;
     this.connection = connection;
     this.remotePeer = remotePeer;
 
@@ -40,8 +40,8 @@ export class Handshake implements HandshakeInterface {
 
     // Dummy data
     // TODO: Load remote static keys if found
-    const remoteStaticKeys = this.staticKeys;
-    this.session = this.ik.initSession(this.isInitiator, this.prologue, this.staticKeys, remoteStaticKeys.publicKey);
+    const remoteStaticKeys = this.staticKeypair;
+    this.session = this.ik.initSession(this.isInitiator, this.prologue, this.staticKeypair, remoteStaticKeys.publicKey);
   }
 
   public decrypt(ciphertext: Buffer, session: NoiseSession): Buffer {

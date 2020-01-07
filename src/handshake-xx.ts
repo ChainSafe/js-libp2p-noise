@@ -4,7 +4,7 @@ import { XX } from "./handshakes/xx";
 import { KeyPair, PeerId } from "./@types/libp2p";
 import { bytes, bytes32 } from "./@types/basic";
 import { NoiseSession } from "./@types/handshake";
-import {HandshakeInterface} from "./@types/handshake-interface";
+import {IHandshake} from "./@types/handshake-interface";
 import {
   createHandshakePayload,
   getHandshakePayload,
@@ -16,7 +16,7 @@ import { logger } from "./logger";
 import { decode0, decode1, encode0, encode1 } from "./encoder";
 import { WrappedConnection } from "./noise";
 
-export class Handshake implements HandshakeInterface {
+export class XXHandshake implements IHandshake {
   public isInitiator: boolean;
   public session: NoiseSession;
 
@@ -24,7 +24,7 @@ export class Handshake implements HandshakeInterface {
   protected xx: XX;
   protected libp2pPrivateKey: bytes;
   protected libp2pPublicKey: bytes;
-  protected staticKeys: KeyPair;
+  protected staticKeypair: KeyPair;
   protected remotePeer: PeerId;
 
   private prologue: bytes32;
@@ -34,7 +34,7 @@ export class Handshake implements HandshakeInterface {
     libp2pPrivateKey: bytes,
     libp2pPublicKey: bytes,
     prologue: bytes32,
-    staticKeys: KeyPair,
+    staticKeypair: KeyPair,
     connection: WrappedConnection,
     remotePeer: PeerId,
     handshake?: XX,
@@ -43,12 +43,12 @@ export class Handshake implements HandshakeInterface {
     this.libp2pPrivateKey = libp2pPrivateKey;
     this.libp2pPublicKey = libp2pPublicKey;
     this.prologue = prologue;
-    this.staticKeys = staticKeys;
+    this.staticKeypair = staticKeypair;
     this.connection = connection;
     this.remotePeer = remotePeer;
 
     this.xx = handshake || new XX();
-    this.session = this.xx.initSession(this.isInitiator, this.prologue, this.staticKeys);
+    this.session = this.xx.initSession(this.isInitiator, this.prologue, this.staticKeypair);
   }
 
   // stage 0
@@ -83,7 +83,7 @@ export class Handshake implements HandshakeInterface {
       logger("All good with the signature!");
     } else {
       logger('Stage 1 - Responder sending out first message with signed payload and static key.');
-      const signedPayload = signPayload(this.libp2pPrivateKey, getHandshakePayload(this.staticKeys.publicKey));
+      const signedPayload = signPayload(this.libp2pPrivateKey, getHandshakePayload(this.staticKeypair.publicKey));
       const signedEarlyDataPayload = signEarlyDataPayload(this.libp2pPrivateKey, Buffer.alloc(0));
       const handshakePayload = await createHandshakePayload(
         this.libp2pPublicKey,
@@ -102,7 +102,7 @@ export class Handshake implements HandshakeInterface {
   public async finish(earlyData?: bytes): Promise<void> {
     if (this.isInitiator) {
       logger('Stage 2 - Initiator sending third handshake message.');
-      const signedPayload = signPayload(this.libp2pPrivateKey, getHandshakePayload(this.staticKeys.publicKey));
+      const signedPayload = signPayload(this.libp2pPrivateKey, getHandshakePayload(this.staticKeypair.publicKey));
       const signedEarlyDataPayload = signEarlyDataPayload(this.libp2pPrivateKey, earlyData || Buffer.alloc(0));
       const handshakePayload = await createHandshakePayload(
         this.libp2pPublicKey,

@@ -5,7 +5,7 @@ import { Noise } from "../src";
 import {createPeerIdsFromFixtures} from "./fixtures/peer";
 import Wrap from "it-pb-rpc";
 import { random } from "bcrypto";
-import {Handshake} from "../src/handshake-xx";
+import {XXHandshake} from "../src/handshake-xx";
 import {
   createHandshakePayload,
   generateKeypair,
@@ -61,7 +61,7 @@ describe("Noise", () => {
         const xx = new XX();
         const { privateKey: libp2pPrivKey, publicKey: libp2pPubKey } = getKeyPairFromPeerId(remotePeer);
 
-        const handshake = new Handshake(false, libp2pPrivKey, libp2pPubKey, prologue, staticKeys, wrapped, localPeer, xx);
+        const handshake = new XXHandshake(false, libp2pPrivKey, libp2pPubKey, prologue, staticKeys, wrapped, localPeer, xx);
 
         let receivedMessageBuffer = decode0((await wrapped.readLP()).slice());
         // The first handshake message contains the initiator's ephemeral public key

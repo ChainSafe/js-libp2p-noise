@@ -1,5 +1,5 @@
 import { Buffer } from "buffer";
-import {HandshakeInterface} from "./@types/handshake-interface";
+import {IHandshake} from "./@types/handshake-interface";
 
 interface ReturnEncryptionWrapper {
   (source: Iterable<Uint8Array>): AsyncIterableIterator<Uint8Array>;
@@ -8,7 +8,7 @@ interface ReturnEncryptionWrapper {
 const maxPlaintextLength = 65519;
 
 // Returns generator that encrypts payload from the user
-export function encryptStream(handshake: HandshakeInterface): ReturnEncryptionWrapper {
+export function encryptStream(handshake: IHandshake): ReturnEncryptionWrapper {
   return async function * (source) {
     for await (const chunk of source) {
       const chunkBuffer = Buffer.from(chunk.buffer, chunk.byteOffset, chunk.length);
@@ -28,7 +28,7 @@ export function encryptStream(handshake: HandshakeInterface): ReturnEncryptionWr
 
 
 // Decrypt received payload to the user
-export function decryptStream(handshake: HandshakeInterface): ReturnEncryptionWrapper {
+export function decryptStream(handshake: IHandshake): ReturnEncryptionWrapper {
   return async function * (source) {
     for await (const chunk of source) {
       const chunkBuffer = Buffer.from(chunk.buffer, chunk.byteOffset, chunk.length);

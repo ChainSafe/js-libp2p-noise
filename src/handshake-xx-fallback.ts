@@ -1,6 +1,6 @@
 import { Buffer } from "buffer";
 
-import { Handshake as XXHandshake } from "./handshake-xx";
+import { XXHandshake } from "./handshake-xx";
 import { XX } from "./handshakes/xx";
 import { KeyPair, PeerId } from "./@types/libp2p";
 import { bytes, bytes32 } from "./@types/basic";
@@ -15,7 +15,7 @@ import { logger } from "./logger";
 import { WrappedConnection } from "./noise";
 import {decode0, decode1, encode1} from "./encoder";
 
-export class Handshake extends XXHandshake {
+export class XXFallbackHandshake extends XXHandshake {
   private ephemeralKeys?: KeyPair;
   private initialMsg: bytes;
 
@@ -24,14 +24,14 @@ export class Handshake extends XXHandshake {
     libp2pPrivateKey: bytes,
     libp2pPublicKey: bytes,
     prologue: bytes32,
-    staticKeys: KeyPair,
+    staticKeypair: KeyPair,
     connection: WrappedConnection,
     remotePeer: PeerId,
     initialMsg: bytes,
     ephemeralKeys?: KeyPair,
     handshake?: XX,
   ) {
-    super(isInitiator, libp2pPrivateKey, libp2pPublicKey, prologue, staticKeys, connection, remotePeer, handshake);
+    super(isInitiator, libp2pPrivateKey, libp2pPublicKey, prologue, staticKeypair, connection, remotePeer, handshake);
     if (ephemeralKeys) {
       this.ephemeralKeys = ephemeralKeys;
     }
@@ -59,7 +59,7 @@ export class Handshake extends XXHandshake {
   public async exchange(): Promise<void> {
     if (this.isInitiator) {
       logger('XX Fallback Stage 1 - Initiator waiting to receive first message from responder...');
-      const receivedMessageBuffer = decode1((await this.connection.readLP()).slice());
+      const receivedMessageBuffer = decode1((await this.connection.readLP()));
       // const receivedMessageBuffer = decode1(this.initialMsg);
       logger("Initiator receivedMessageBuffer in stage 1", receivedMessageBuffer);
       const plaintext = this.xx.recvMessage(this.session, receivedMessageBuffer);
@@ -74,7 +74,7 @@ export class Handshake extends XXHandshake {
       logger("All good with the signature!");
     } else {
       logger('XX Fallback Stage 1 - Responder sending out first message with signed payload and static key.');
-      const signedPayload = signPayload(this.libp2pPrivateKey, getHandshakePayload(this.staticKeys.publicKey));
+      const signedPayload = signPayload(this.libp2pPrivateKey, getHandshakePayload(this.staticKeypair.publicKey));
       const signedEarlyDataPayload = signEarlyDataPayload(this.libp2pPrivateKey, Buffer.alloc(0));
       const handshakePayload = await createHandshakePayload(
         this.libp2pPublicKey,
