@@ -39,17 +39,16 @@ export class Handshake extends XXHandshake {
   // stage 0
   public async propose(): Promise<void> {
     if (this.isInitiator) {
-      logger("XX Fallback Stage 0 - Initiator starting to send first message.");
-      const messageBuffer = this.xx.sendMessage(this.session, Buffer.alloc(0), this.ephemeralKeys);
-      this.connection.writeLP(encodeMessageBuffer(messageBuffer));
-      logger("XX Fallback Stage 0 - Initiator finished sending first message.");
+      this.xx.sendMessage(this.session, Buffer.alloc(0), this.ephemeralKeys);
+      logger("XX Fallback Stage 0 - Initialized state as the first message was sent by initiator.");
     } else {
       logger("XX Fallback Stage 0 - Responder waiting to receive first message...");
-      const receivedMessageBuffer = this.xx.decode0(this.initialMsg);
+      const receivedMessageBuffer = decodeMessageBuffer(this.initialMsg);
+      console.log("receivedMessageBuffer: ", receivedMessageBuffer)
       this.xx.recvMessage(this.session, {
         ne: receivedMessageBuffer.ne,
-        ns: Buffer.alloc(0),
-        ciphertext: Buffer.alloc(0),
+        ns: Buffer.alloc(32),
+        ciphertext: Buffer.alloc(32),
       });
       logger("XX Fallback Stage 0 - Responder received first message.");
     }
@@ -59,7 +58,7 @@ export class Handshake extends XXHandshake {
   public async exchange(): Promise<void> {
     if (this.isInitiator) {
       logger('XX Fallback Stage 1 - Initiator waiting to receive first message from responder...');
-      const receivedMessageBuffer = this.xx.decode1(this.initialMsg);
+      const receivedMessageBuffer = decodeMessageBuffer(this.initialMsg);
       const plaintext = this.xx.recvMessage(this.session, receivedMessageBuffer);
       logger('XX Fallback Stage 1 - Initiator received the message. Got remote\'s static key.');
 

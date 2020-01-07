@@ -9,7 +9,7 @@ import {createPeerIdsFromFixtures} from "./fixtures/peer";
 import {getKeyPairFromPeerId} from "./utils";
 
 
-describe("Handshake", () => {
+describe("XX Handshake", () => {
   let peerA, peerB, fakePeer;
 
   before(async () => {

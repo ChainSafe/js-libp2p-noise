@@ -22,12 +22,12 @@ export class Handshake implements HandshakeInterface {
 
   protected connection: WrappedConnection;
   protected xx: XX;
-
   protected libp2pPrivateKey: bytes;
   protected libp2pPublicKey: bytes;
-  private prologue: bytes32;
   protected staticKeys: KeyPair;
-  private remotePeer: PeerId;
+  protected remotePeer: PeerId;
+
+  private prologue: bytes32;
 
   constructor(
     isInitiator: boolean,
