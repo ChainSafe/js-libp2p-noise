@@ -44,11 +44,10 @@ export class Handshake extends XXHandshake {
     } else {
       logger("XX Fallback Stage 0 - Responder waiting to receive first message...");
       const receivedMessageBuffer = decode0(this.initialMsg);
-      console.log("receivedMessageBuffer: ", receivedMessageBuffer)
       this.xx.recvMessage(this.session, {
         ne: receivedMessageBuffer.ne,
-        ns: Buffer.alloc(32),
-        ciphertext: Buffer.alloc(32),
+        ns: Buffer.alloc(0),
+        ciphertext: Buffer.alloc(0),
       });
       logger("XX Fallback Stage 0 - Responder received first message.");
     }
@@ -58,17 +57,19 @@ export class Handshake extends XXHandshake {
   public async exchange(): Promise<void> {
     if (this.isInitiator) {
       logger('XX Fallback Stage 1 - Initiator waiting to receive first message from responder...');
-      const receivedMessageBuffer = decode1(this.initialMsg);
+      const receivedMessageBuffer = decode1((await this.connection.readLP()).slice());
+      // const receivedMessageBuffer = decode1(this.initialMsg);
+      logger("Initiator receivedMessageBuffer in stage 1", receivedMessageBuffer);
       const plaintext = this.xx.recvMessage(this.session, receivedMessageBuffer);
       logger('XX Fallback Stage 1 - Initiator received the message. Got remote\'s static key.');
 
-      // logger("Initiator going to check remote's signature...");
-      // try {
-      //   await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer.id);
-      // } catch (e) {
-      //   throw new Error(`Error occurred while verifying signed payload: ${e.message}`);
-      // }
-      // logger("All good with the signature!");
+      logger("Initiator going to check remote's signature...");
+      try {
+        await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer.id);
+      } catch (e) {
+        throw new Error(`Error occurred while verifying signed payload: ${e.message}`);
+      }
+      logger("All good with the signature!");
     } else {
       logger('Stage 1 - Responder sending out first message with signed payload and static key.');
       const signedPayload = signPayload(this.libp2pPrivateKey, getHandshakePayload(this.staticKeys.publicKey));
