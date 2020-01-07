@@ -12,7 +12,7 @@ import {
   getHandshakePayload,
   signPayload
 } from "../src/utils";
-import { decodeMessageBuffer, encodeMessageBuffer } from "../src/encoder";
+import {decode0, decode1, encode1} from "../src/encoder";
 import {XX} from "../src/handshakes/xx";
 import {Buffer} from "buffer";
 import {getKeyPairFromPeerId} from "./utils";
@@ -63,7 +63,7 @@ describe("Noise", () => {
 
         const handshake = new Handshake(false, libp2pPrivKey, libp2pPubKey, prologue, staticKeys, wrapped, localPeer, xx);
 
-        let receivedMessageBuffer = decodeMessageBuffer((await wrapped.readLP()).slice());
+        let receivedMessageBuffer = decode0((await wrapped.readLP()).slice());
         // The first handshake message contains the initiator's ephemeral public key
         expect(receivedMessageBuffer.ne.length).equal(32);
         xx.recvMessage(handshake.session, receivedMessageBuffer);
@@ -73,10 +73,10 @@ describe("Noise", () => {
         const handshakePayload = await createHandshakePayload(libp2pPubKey, libp2pPrivKey, signedPayload);
 
         const messageBuffer = xx.sendMessage(handshake.session, handshakePayload);
-        wrapped.writeLP(encodeMessageBuffer(messageBuffer));
+        wrapped.writeLP(encode1(messageBuffer));
 
         // Stage 2 - finish handshake
-        receivedMessageBuffer = decodeMessageBuffer((await wrapped.readLP()).slice());
+        receivedMessageBuffer = decode1((await wrapped.readLP()).slice());
         xx.recvMessage(handshake.session, receivedMessageBuffer);
         return {wrapped, handshake};
       })(),

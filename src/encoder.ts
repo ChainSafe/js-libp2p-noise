@@ -14,14 +14,34 @@ export const uint16BEDecode = data => {
 };
 uint16BEDecode.bytes = 2;
 
-export function encodeMessageBuffer(message: MessageBuffer): bytes {
+export function encode0(message: MessageBuffer): bytes {
+  return Buffer.concat([message.ne, message.ciphertext]);
+}
+
+export function encode1(message: MessageBuffer): bytes {
   return Buffer.concat([message.ne, message.ns, message.ciphertext]);
 }
 
-export function decodeMessageBuffer(message: bytes): MessageBuffer {
+export function decode0(input: bytes): MessageBuffer {
+  if (input.length < 32) {
+    throw new Error("Cannot decode stage 0 MessageBuffer: length less than 32 bytes.");
+  }
+
   return {
-    ne: message.slice(0, 32),
-    ns: message.slice(32, 64),
-    ciphertext: message.slice(64, message.length),
+    ne: input.slice(0, 32),
+    ciphertext: input.slice(32, input.length),
+    ns: Buffer.alloc(0),
+  }
+}
+
+export function decode1(input: bytes): MessageBuffer {
+  if (input.length < 96) {
+    throw new Error("Cannot decode stage 0 MessageBuffer: length less than 96 bytes.");
+  }
+
+  return {
+    ne: input.slice(0, 32),
+    ns: input.slice(32, 64),
+    ciphertext: input.slice(64, input.length),
   }
 }

@@ -12,8 +12,8 @@ import {
   verifySignedPayload,
 } from "./utils";
 import { logger } from "./logger";
-import { decodeMessageBuffer, encodeMessageBuffer } from "./encoder";
 import { WrappedConnection } from "./noise";
+import {decode0, decode1, encode1} from "./encoder";
 
 export class Handshake extends XXHandshake {
   private ephemeralKeys: KeyPair;
@@ -43,7 +43,7 @@ export class Handshake extends XXHandshake {
       logger("XX Fallback Stage 0 - Initialized state as the first message was sent by initiator.");
     } else {
       logger("XX Fallback Stage 0 - Responder waiting to receive first message...");
-      const receivedMessageBuffer = decodeMessageBuffer(this.initialMsg);
+      const receivedMessageBuffer = decode0(this.initialMsg);
       console.log("receivedMessageBuffer: ", receivedMessageBuffer)
       this.xx.recvMessage(this.session, {
         ne: receivedMessageBuffer.ne,
@@ -58,7 +58,7 @@ export class Handshake extends XXHandshake {
   public async exchange(): Promise<void> {
     if (this.isInitiator) {
       logger('XX Fallback Stage 1 - Initiator waiting to receive first message from responder...');
-      const receivedMessageBuffer = decodeMessageBuffer(this.initialMsg);
+      const receivedMessageBuffer = decode1(this.initialMsg);
       const plaintext = this.xx.recvMessage(this.session, receivedMessageBuffer);
       logger('XX Fallback Stage 1 - Initiator received the message. Got remote\'s static key.');
 
@@ -81,7 +81,7 @@ export class Handshake extends XXHandshake {
       );
 
       const messageBuffer = this.xx.sendMessage(this.session, handshakePayload);
-      this.connection.writeLP(encodeMessageBuffer(messageBuffer));
+      this.connection.writeLP(encode1(messageBuffer));
       logger('Stage 1 - Responder sent the second handshake message with signed payload.')
     }
   }

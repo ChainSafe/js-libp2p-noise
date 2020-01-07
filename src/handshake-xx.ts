@@ -13,7 +13,7 @@ import {
   verifySignedPayload,
 } from "./utils";
 import { logger } from "./logger";
-import { decodeMessageBuffer, encodeMessageBuffer } from "./encoder";
+import { decode0, decode1, encode0, encode1 } from "./encoder";
 import { WrappedConnection } from "./noise";
 
 export class Handshake implements HandshakeInterface {
@@ -56,11 +56,11 @@ export class Handshake implements HandshakeInterface {
     if (this.isInitiator) {
       logger("Stage 0 - Initiator starting to send first message.");
       const messageBuffer = this.xx.sendMessage(this.session, Buffer.alloc(0));
-      this.connection.writeLP(encodeMessageBuffer(messageBuffer));
+      this.connection.writeLP(encode0(messageBuffer));
       logger("Stage 0 - Initiator finished sending first message.");
     } else {
       logger("Stage 0 - Responder waiting to receive first message...");
-      const receivedMessageBuffer = decodeMessageBuffer((await this.connection.readLP()).slice());
+      const receivedMessageBuffer = decode0((await this.connection.readLP()).slice());
       this.xx.recvMessage(this.session, receivedMessageBuffer);
       logger("Stage 0 - Responder received first message.");
     }
@@ -70,7 +70,7 @@ export class Handshake implements HandshakeInterface {
   public async exchange(): Promise<void> {
     if (this.isInitiator) {
       logger('Stage 1 - Initiator waiting to receive first message from responder...');
-      const receivedMessageBuffer = decodeMessageBuffer((await this.connection.readLP()).slice());
+      const receivedMessageBuffer = decode1((await this.connection.readLP()).slice());
       const plaintext = this.xx.recvMessage(this.session, receivedMessageBuffer);
       logger('Stage 1 - Initiator received the message. Got remote\'s static key.');
 
@@ -93,7 +93,7 @@ export class Handshake implements HandshakeInterface {
       );
 
       const messageBuffer = this.xx.sendMessage(this.session, handshakePayload);
-      this.connection.writeLP(encodeMessageBuffer(messageBuffer));
+      this.connection.writeLP(encode1(messageBuffer));
       logger('Stage 1 - Responder sent the second handshake message with signed payload.')
     }
   }
@@ -111,11 +111,11 @@ export class Handshake implements HandshakeInterface {
         signedEarlyDataPayload
       );
       const messageBuffer = this.xx.sendMessage(this.session, handshakePayload);
-      this.connection.writeLP(encodeMessageBuffer(messageBuffer));
+      this.connection.writeLP(encode1(messageBuffer));
       logger('Stage 2 - Initiator sent message with signed payload.');
     } else {
       logger('Stage 2 - Responder waiting for third handshake message...');
-      const receivedMessageBuffer = decodeMessageBuffer((await this.connection.readLP()).slice());
+      const receivedMessageBuffer = decode1((await this.connection.readLP()).slice());
       const plaintext = this.xx.recvMessage(this.session, receivedMessageBuffer);
       logger('Stage 2 - Responder received the message, finished handshake. Got remote\'s static key.');
 

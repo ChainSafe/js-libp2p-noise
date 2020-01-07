@@ -199,28 +199,4 @@ export class XX extends AbstractHandshake {
     session.mc = session.mc.add(new BN(1));
     return plaintext;
   }
-
-  public decode0(input: bytes): MessageBuffer {
-    if (input.length < 32) {
-      throw new Error("Cannot decode stage 0 MessageBuffer: length less than 32 bytes.");
-    }
-
-    return {
-      ne: input.slice(0, 32),
-      ciphertext: input.slice(32, input.length),
-      ns: Buffer.alloc(0),
-    }
-  }
-
-  public decode1(input: bytes): MessageBuffer {
-    if (input.length < 96) {
-      throw new Error("Cannot decode stage 0 MessageBuffer: length less than 96 bytes.");
-    }
-
-    return {
-      ne: input.slice(0, 32),
-      ns: input.slice(32, 80),
-      ciphertext: input.slice(80, input.length),
-    }
-  }
 }

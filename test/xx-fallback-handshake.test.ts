@@ -13,7 +13,7 @@ import {generateEd25519Keys, getKeyPairFromPeerId} from "./utils";
 import {Handshake} from "../src/handshake-xx-fallback";
 import {createPeerIdsFromFixtures} from "./fixtures/peer";
 import {assert} from "chai";
-import {encodeMessageBuffer} from "../src/encoder";
+import {encode0} from "../src/encoder";
 
 describe("XX Fallback Handshake", () => {
   let peerA, peerB, fakePeer;
@@ -43,7 +43,7 @@ describe("XX Fallback Handshake", () => {
         signedPayload,
         signedEarlyDataPayload,
       );
-      const initialMsg = encodeMessageBuffer({
+      const initialMsg = encode0({
         ne: staticKeysInitiator.publicKey,
         ns: Buffer.alloc(32),
         ciphertext: handshakePayload,
