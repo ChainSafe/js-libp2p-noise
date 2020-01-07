@@ -99,7 +99,8 @@ export async function verifySignedPayload(noiseStaticKey: bytes, plaintext: byte
   }
 
   const generatedPayload = getHandshakePayload(noiseStaticKey);
-  // Unmarshaling from PublicKey protobuf and taking key buffer only.
+
+  // Unmarshaling from PublicKey protobuf
   const publicKey = crypto.keys.unmarshalPublicKey(receivedPayload.libp2pKey);
   if (!publicKey.verify(generatedPayload, receivedPayload.noiseStaticKeySignature)) {
     throw new Error("Static key doesn't match to peer that signed payload!");
