@@ -5,10 +5,6 @@ import { KeyPair, PeerId } from "./@types/libp2p";
 import { bytes, bytes32 } from "./@types/basic";
 import { NoiseSession } from "./@types/handshake";
 import {
-  createHandshakePayload,
-  getHandshakePayload,
-  signEarlyDataPayload,
-  signPayload,
   verifySignedPayload,
 } from "./utils";
 import { logger } from "./logger";
@@ -19,8 +15,7 @@ export class Handshake {
   public isInitiator: boolean;
   public session: NoiseSession;
 
-  private libp2pPrivateKey: bytes;
-  private libp2pPublicKey: bytes;
+  private payload: bytes;
   private prologue: bytes32;
   private staticKeys: KeyPair;
   private connection: WrappedConnection;
@@ -29,8 +24,7 @@ export class Handshake {
 
   constructor(
     isInitiator: boolean,
-    libp2pPrivateKey: bytes,
-    libp2pPublicKey: bytes,
+    payload: bytes,
     prologue: bytes32,
     staticKeys: KeyPair,
     connection: WrappedConnection,
@@ -38,8 +32,7 @@ export class Handshake {
     handshake?: XXHandshake,
   ) {
     this.isInitiator = isInitiator;
-    this.libp2pPrivateKey = libp2pPrivateKey;
-    this.libp2pPublicKey = libp2pPublicKey;
+    this.payload = payload;
     this.prologue = prologue;
     this.staticKeys = staticKeys;
     this.connection = connection;
@@ -81,16 +74,7 @@ export class Handshake {
       logger("All good with the signature!");
     } else {
       logger('Stage 1 - Responder sending out first message with signed payload and static key.');
-      const signedPayload = signPayload(this.libp2pPrivateKey, getHandshakePayload(this.staticKeys.publicKey));
-      const signedEarlyDataPayload = signEarlyDataPayload(this.libp2pPrivateKey, Buffer.alloc(0));
-      const handshakePayload = await createHandshakePayload(
-        this.libp2pPublicKey,
-        this.libp2pPrivateKey,
-        signedPayload,
-        signedEarlyDataPayload,
-      );
-
-      const messageBuffer = this.xx.sendMessage(this.session, handshakePayload);
+      const messageBuffer = this.xx.sendMessage(this.session, this.payload);
       this.connection.writeLP(encodeMessageBuffer(messageBuffer));
       logger('Stage 1 - Responder sent the second handshake message with signed payload.')
     }
@@ -100,15 +84,7 @@ export class Handshake {
   async finish(earlyData?: bytes): Promise<void> {
     if (this.isInitiator) {
       logger('Stage 2 - Initiator sending third handshake message.');
-      const signedPayload = signPayload(this.libp2pPrivateKey, getHandshakePayload(this.staticKeys.publicKey));
-      const signedEarlyDataPayload = signEarlyDataPayload(this.libp2pPrivateKey, earlyData || Buffer.alloc(0));
-      const handshakePayload = await createHandshakePayload(
-        this.libp2pPublicKey,
-        this.libp2pPrivateKey,
-        signedPayload,
-        signedEarlyDataPayload
-      );
-      const messageBuffer = this.xx.sendMessage(this.session, handshakePayload);
+      const messageBuffer = this.xx.sendMessage(this.session, this.payload);
       this.connection.writeLP(encodeMessageBuffer(messageBuffer));
       logger('Stage 2 - Initiator sent message with signed payload.');
     } else {
