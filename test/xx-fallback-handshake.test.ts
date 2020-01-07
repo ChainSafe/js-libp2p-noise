@@ -48,10 +48,10 @@ describe("XX Fallback Handshake", () => {
       });
 
       const handshakeInit =
-        new Handshake(true, initiatorPrivKey, initiatorPubKey, prologue, staticKeysInitiator, connectionFrom, peerB, ephemeralKeys, initialMsg);
+        new Handshake(true, initiatorPrivKey, initiatorPubKey, prologue, staticKeysInitiator, connectionFrom, peerB, initialMsg, ephemeralKeys);
 
       const handshakeResp =
-        new Handshake(false, responderPrivKey, responderPubKey, prologue, staticKeysResponder, connectionTo, peerA, ephemeralKeys, initialMsg);
+        new Handshake(false, responderPrivKey, responderPubKey, prologue, staticKeysResponder, connectionTo, peerA, initialMsg);
 
 
       await handshakeInit.propose();

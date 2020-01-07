@@ -16,7 +16,7 @@ import { WrappedConnection } from "./noise";
 import {decode0, decode1, encode1} from "./encoder";
 
 export class Handshake extends XXHandshake {
-  private ephemeralKeys: KeyPair;
+  private ephemeralKeys?: KeyPair;
   private initialMsg: bytes;
 
   constructor(
@@ -27,12 +27,14 @@ export class Handshake extends XXHandshake {
     staticKeys: KeyPair,
     connection: WrappedConnection,
     remotePeer: PeerId,
-    ephemeralKeys: KeyPair,
     initialMsg: bytes,
+    ephemeralKeys?: KeyPair,
     handshake?: XX,
   ) {
     super(isInitiator, libp2pPrivateKey, libp2pPublicKey, prologue, staticKeys, connection, remotePeer, handshake);
-    this.ephemeralKeys = ephemeralKeys;
+    if (ephemeralKeys) {
+      this.ephemeralKeys = ephemeralKeys;
+    }
     this.initialMsg = initialMsg;
   }
 

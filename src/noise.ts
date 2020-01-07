@@ -130,7 +130,7 @@ export class Noise implements NoiseConnection {
   ): Promise<XXFallback> {
     const { isInitiator, libp2pPublicKey, remotePeer, connection } = params;
     const handshake =
-      new XXFallback(isInitiator, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer, ephemeralKeys, initialMsg);
+      new XXFallback(isInitiator, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer, initialMsg, ephemeralKeys);
 
     try {
       await handshake.propose();
