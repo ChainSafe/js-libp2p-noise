@@ -33,7 +33,6 @@ export async function getPayload(
 
   return await createHandshakePayload(
     localPeer.marshalPubKey(),
-    localPeer.marshalPrivKey(),
     signedPayload,
     signedEarlyDataPayload
   );
@@ -41,7 +40,6 @@ export async function getPayload(
 
 export async function createHandshakePayload(
   libp2pPublicKey: bytes,
-  libp2pPrivateKey: bytes,
   signedPayload: bytes,
   signedEarlyData?: EarlyDataPayload,
 ): Promise<bytes> {
