@@ -9,7 +9,7 @@ import {Handshake} from "../src/handshake";
 import {
   createHandshakePayload,
   generateKeypair,
-  getHandshakePayload,
+  getHandshakePayload, getPayload,
   signPayload
 } from "../src/utils";
 import { decodeMessageBuffer, encodeMessageBuffer } from "../src/encoder";
@@ -26,10 +26,8 @@ describe("Noise", () => {
 
   it("should communicate through encrypted streams", async() => {
     try {
-      const { privateKey: libp2pInitPrivKey } = getKeyPairFromPeerId(localPeer);
-      const { privateKey: libp2pRespPrivKey } = getKeyPairFromPeerId(remotePeer);
-      const noiseInit = new Noise(libp2pInitPrivKey);
-      const noiseResp = new Noise(libp2pRespPrivKey);
+      const noiseInit = new Noise();
+      const noiseResp = new Noise();
 
       const [inboundConnection, outboundConnection] = DuplexPair();
       const [outbound, inbound] = await Promise.all([
@@ -48,8 +46,7 @@ describe("Noise", () => {
   });
 
   it("should test that secureOutbound is spec compliant", async() => {
-    const { privateKey: libp2pInitPrivKey } = getKeyPairFromPeerId(localPeer);
-    const noiseInit = new Noise(libp2pInitPrivKey);
+    const noiseInit = new Noise();
     const [inboundConnection, outboundConnection] = DuplexPair();
 
     const [outbound, { wrapped, handshake }] = await Promise.all([
@@ -59,9 +56,9 @@ describe("Noise", () => {
         const prologue = Buffer.from('/noise');
         const staticKeys = generateKeypair();
         const xx = new XXHandshake();
-        const { privateKey: libp2pPrivKey, publicKey: libp2pPubKey } = getKeyPairFromPeerId(remotePeer);
 
-        const handshake = new Handshake(false, libp2pPrivKey, libp2pPubKey, prologue, staticKeys, wrapped, localPeer, xx);
+        const payload = await getPayload(remotePeer, staticKeys.publicKey);
+        const handshake = new Handshake(false, payload, prologue, staticKeys, wrapped, localPeer, xx);
 
         let receivedMessageBuffer = decodeMessageBuffer((await wrapped.readLP()).slice());
         // The first handshake message contains the initiator's ephemeral public key
@@ -69,7 +66,8 @@ describe("Noise", () => {
         xx.recvMessage(handshake.session, receivedMessageBuffer);
 
         // Stage 1
-        const signedPayload = signPayload(libp2pPrivKey, getHandshakePayload(staticKeys.publicKey));
+        const { privateKey: libp2pPrivKey, publicKey: libp2pPubKey } = getKeyPairFromPeerId(remotePeer);
+        const signedPayload = await signPayload(remotePeer, getHandshakePayload(staticKeys.publicKey));
         const handshakePayload = await createHandshakePayload(libp2pPubKey, libp2pPrivKey, signedPayload);
 
         const messageBuffer = xx.sendMessage(handshake.session, handshakePayload);
@@ -101,10 +99,8 @@ describe("Noise", () => {
 
   it("should test large payloads", async() => {
     try {
-      const { privateKey: libp2pInitPrivKey } = getKeyPairFromPeerId(localPeer);
-      const { privateKey: libp2pRespPrivKey } = getKeyPairFromPeerId(remotePeer);
-      const noiseInit = new Noise(libp2pInitPrivKey);
-      const noiseResp = new Noise(libp2pRespPrivKey);
+      const noiseInit = new Noise();
+      const noiseResp = new Noise();
 
       const [inboundConnection, outboundConnection] = DuplexPair();
       const [outbound, inbound] = await Promise.all([

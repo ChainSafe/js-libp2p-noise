@@ -1,4 +1,4 @@
-import { x25519, ed25519, HKDF, SHA256 } from 'bcrypto';
+import { x25519, HKDF, SHA256 } from 'bcrypto';
 import protobuf from "protobufjs";
 import { Buffer } from "buffer";
 import PeerId from "peer-id";
@@ -23,9 +23,23 @@ export function generateKeypair(): KeyPair {
   }
 }
 
+export async function getPayload(
+  localPeer: PeerId,
+  staticPublicKey: bytes,
+  earlyData?: bytes,
+): Promise<bytes> {
+  const signedPayload = await signPayload(localPeer, getHandshakePayload(staticPublicKey));
+  const signedEarlyDataPayload = await signEarlyDataPayload(localPeer, earlyData || Buffer.alloc(0));
+
+  return await createHandshakePayload(
+    localPeer.marshalPubKey(),
+    signedPayload,
+    signedEarlyDataPayload
+  );
+}
+
 export async function createHandshakePayload(
   libp2pPublicKey: bytes,
-  libp2pPrivateKey: bytes,
   signedPayload: bytes,
   signedEarlyData?: EarlyDataPayload,
 ): Promise<bytes> {
@@ -46,8 +60,8 @@ export async function createHandshakePayload(
 }
 
 
-export function signPayload(libp2pPrivateKey: bytes, payload: bytes) {
-  return ed25519.sign(payload, libp2pPrivateKey);
+export async function signPayload(peerId: PeerId, payload: bytes): Promise<bytes> {
+  return peerId.privKey.sign(payload);
 }
 
 type EarlyDataPayload = {
@@ -55,9 +69,9 @@ type EarlyDataPayload = {
   libp2pDataSignature: bytes;
 }
 
-export function signEarlyDataPayload(libp2pPrivateKey: bytes, earlyData: bytes): EarlyDataPayload {
+export async function signEarlyDataPayload(peerId: PeerId, earlyData: bytes): Promise<EarlyDataPayload> {
   const payload = getEarlyDataPayload(earlyData);
-  const signedPayload = signPayload(libp2pPrivateKey, payload);
+  const signedPayload = await signPayload(peerId, payload);
 
   return {
     libp2pData: payload,
@@ -83,9 +97,10 @@ export async function verifySignedPayload(noiseStaticKey: bytes, plaintext: byte
   }
 
   const generatedPayload = getHandshakePayload(noiseStaticKey);
-  // Unmarshaling from PublicKey protobuf and taking key buffer only.
-  const publicKey = crypto.keys.unmarshalPublicKey(receivedPayload.libp2pKey).marshal();
-  if (!ed25519.verify(generatedPayload, receivedPayload.noiseStaticKeySignature, publicKey)) {
+
+  // Unmarshaling from PublicKey protobuf
+  const publicKey = crypto.keys.unmarshalPublicKey(receivedPayload.libp2pKey);
+  if (!publicKey.verify(generatedPayload, receivedPayload.noiseStaticKeySignature)) {
     throw new Error("Static key doesn't match to peer that signed payload!");
   }
 }

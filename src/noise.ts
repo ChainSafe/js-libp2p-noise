@@ -7,7 +7,10 @@ import pipe from 'it-pipe';
 import lp from 'it-length-prefixed';
 
 import { Handshake } from "./handshake";
-import { generateKeypair } from "./utils";
+import {
+  generateKeypair,
+  getPayload,
+} from "./utils";
 import { uint16BEDecode, uint16BEEncode } from "./encoder";
 import { decryptStream, encryptStream } from "./crypto";
 import { bytes } from "./@types/basic";
@@ -19,12 +22,10 @@ export type WrappedConnection = ReturnType<typeof Wrap>;
 export class Noise implements NoiseConnection {
   public protocol = "/noise";
 
-  private readonly privateKey: bytes;
   private readonly staticKeys: KeyPair;
   private readonly earlyData?: bytes;
 
-  constructor(privateKey: bytes, staticNoiseKey?: bytes, earlyData?: bytes) {
-    this.privateKey = privateKey;
+  constructor(staticNoiseKey?: bytes, earlyData?: bytes) {
     this.earlyData = earlyData || Buffer.alloc(0);
 
     if (staticNoiseKey) {
@@ -47,8 +48,7 @@ export class Noise implements NoiseConnection {
    */
   public async secureOutbound(localPeer: PeerId, connection: any, remotePeer: PeerId): Promise<SecureOutbound> {
     const wrappedConnection = Wrap(connection);
-    const libp2pPublicKey = localPeer.marshalPubKey();
-    const handshake = await this.performHandshake(wrappedConnection, true, libp2pPublicKey, remotePeer);
+    const handshake = await this.performHandshake(wrappedConnection, true, localPeer, remotePeer);
     const conn = await this.createSecureConnection(wrappedConnection, handshake);
 
     return {
@@ -66,8 +66,7 @@ export class Noise implements NoiseConnection {
    */
   public async secureInbound(localPeer: PeerId, connection: any, remotePeer: PeerId): Promise<SecureOutbound> {
     const wrappedConnection = Wrap(connection);
-    const libp2pPublicKey = localPeer.marshalPubKey();
-    const handshake = await this.performHandshake(wrappedConnection, false, libp2pPublicKey, remotePeer);
+    const handshake = await this.performHandshake(wrappedConnection, false, localPeer, remotePeer);
     const conn = await this.createSecureConnection(wrappedConnection, handshake);
 
     return {
@@ -79,16 +78,17 @@ export class Noise implements NoiseConnection {
   private async performHandshake(
     connection: WrappedConnection,
     isInitiator: boolean,
-    libp2pPublicKey: bytes,
+    localPeer: PeerId,
     remotePeer: PeerId,
   ): Promise<Handshake> {
     const prologue = Buffer.from(this.protocol);
-    const handshake = new Handshake(isInitiator, this.privateKey, libp2pPublicKey, prologue, this.staticKeys, connection, remotePeer);
+    const payload = await getPayload(localPeer, this.staticKeys.publicKey, this.earlyData);
+    const handshake = new Handshake(isInitiator, payload, prologue, this.staticKeys, connection, remotePeer);
 
     try {
       await handshake.propose();
       await handshake.exchange();
-      await handshake.finish(this.earlyData);
+      await handshake.finish();
     } catch (e) {
       throw new Error(`Error occurred during handshake: ${e.message}`);
     }
@@ -118,6 +118,5 @@ export class Noise implements NoiseConnection {
 
     return user;
   }
-
 
 }
