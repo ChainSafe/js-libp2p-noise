@@ -3,17 +3,13 @@ import {Buffer} from "buffer";
 import Duplex from 'it-pair/duplex';
 
 import {
-  createHandshakePayload,
   generateKeypair,
-  getHandshakePayload,
-  signPayload
+  getPayload,
 } from "../src/utils";
-import {generateEd25519Keys, getKeyPairFromPeerId} from "./utils";
 import {XXFallbackHandshake} from "../src/handshake-xx-fallback";
 import {createPeerIdsFromFixtures} from "./fixtures/peer";
 import {assert} from "chai";
 import {decode1, encode0, encode1} from "../src/encoder";
-import {XX} from "../src/handshakes/xx";
 
 describe("XX Fallback Handshake", () => {
   let peerA, peerB, fakePeer;
@@ -33,24 +29,17 @@ describe("XX Fallback Handshake", () => {
       const staticKeysResponder = generateKeypair();
       const ephemeralKeys = generateKeypair();
 
-      const {privateKey: initiatorPrivKey, publicKey: initiatorPubKey} = getKeyPairFromPeerId(peerA);
-      const {privateKey: responderPrivKey, publicKey: responderPubKey} = getKeyPairFromPeerId(peerB);
-
       // Initial msg for responder is IK first message from initiator
-      const signedPayload = signPayload(initiatorPrivKey, getHandshakePayload(staticKeysInitiator.publicKey));
-      const handshakePayload = await createHandshakePayload(
-        initiatorPubKey,
-        initiatorPrivKey,
-        signedPayload,
-      );
+      const handshakePayload = await getPayload(peerA, staticKeysInitiator.publicKey);
       const initialMsgR = encode0({
         ne: ephemeralKeys.publicKey,
         ns: Buffer.alloc(0),
         ciphertext: handshakePayload,
       });
 
+      const respPayload = await getPayload(peerB, staticKeysResponder.publicKey);
       const handshakeResp =
-        new XXFallbackHandshake(false, responderPrivKey, responderPubKey, prologue, staticKeysResponder, connectionTo, peerA, initialMsgR);
+        new XXFallbackHandshake(false, respPayload, prologue, staticKeysResponder, connectionTo, peerA, initialMsgR);
 
       await handshakeResp.propose();
       await handshakeResp.exchange();
@@ -59,7 +48,7 @@ describe("XX Fallback Handshake", () => {
       // This is the point where initiator falls back from IK
       const initialMsgI = await connectionFrom.readLP();
       const handshakeInit =
-        new XXFallbackHandshake(true, initiatorPrivKey, initiatorPubKey, prologue, staticKeysInitiator, connectionFrom, peerB, initialMsgI, ephemeralKeys);
+        new XXFallbackHandshake(true, handshakePayload, prologue, staticKeysInitiator, connectionFrom, peerB, initialMsgI, ephemeralKeys);
 
       await handshakeInit.propose();
       await handshakeInit.exchange();

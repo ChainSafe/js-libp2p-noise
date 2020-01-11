@@ -16,15 +16,13 @@ export class XXHandshake implements IHandshake {
   public isInitiator: boolean;
   public session: NoiseSession;
 
+  protected payload: bytes;
   protected connection: WrappedConnection;
   protected xx: XX;
-  protected libp2pPrivateKey: bytes;
-  protected libp2pPublicKey: bytes;
   protected staticKeypair: KeyPair;
   protected remotePeer: PeerId;
 
   private prologue: bytes32;
-  private payload: bytes;
 
   constructor(
     isInitiator: boolean,

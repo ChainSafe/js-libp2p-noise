@@ -10,8 +10,7 @@ export class IKHandshake implements IHandshake {
   public isInitiator: boolean;
   public session: NoiseSession;
 
-  private libp2pPrivateKey: bytes;
-  private libp2pPublicKey: bytes;
+  private payload: bytes;
   private prologue: bytes32;
   private staticKeypair: KeyPair;
   private connection: WrappedConnection;
@@ -20,8 +19,7 @@ export class IKHandshake implements IHandshake {
 
   constructor(
     isInitiator: boolean,
-    libp2pPrivateKey: bytes,
-    libp2pPublicKey: bytes,
+    payload: bytes,
     prologue: bytes32,
     staticKeypair: KeyPair,
     connection: WrappedConnection,
@@ -29,8 +27,7 @@ export class IKHandshake implements IHandshake {
     handshake?: IK,
   ) {
     this.isInitiator = isInitiator;
-    this.libp2pPrivateKey = libp2pPrivateKey;
-    this.libp2pPublicKey = libp2pPublicKey;
+    this.payload = payload;
     this.prologue = prologue;
     this.staticKeypair = staticKeypair;
     this.connection = connection;

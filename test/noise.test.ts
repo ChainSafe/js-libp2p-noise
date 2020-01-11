@@ -57,9 +57,8 @@ describe("Noise", () => {
         const staticKeys = generateKeypair();
         const xx = new XX();
 
-        const handshake = new XXHandshake(false, libp2pPrivKey, libp2pPubKey, prologue, staticKeys, wrapped, localPeer, xx);
         const payload = await getPayload(remotePeer, staticKeys.publicKey);
-        const handshake = new Handshake(false, payload, prologue, staticKeys, wrapped, localPeer, xx);
+        const handshake = new XXHandshake(false, payload, prologue, staticKeys, wrapped, localPeer, xx);
 
         let receivedMessageBuffer = decode0((await wrapped.readLP()).slice());
         // The first handshake message contains the initiator's ephemeral public key
@@ -67,9 +66,9 @@ describe("Noise", () => {
         xx.recvMessage(handshake.session, receivedMessageBuffer);
 
         // Stage 1
-        const { privateKey: libp2pPrivKey, publicKey: libp2pPubKey } = getKeyPairFromPeerId(remotePeer);
+        const { publicKey: libp2pPubKey } = getKeyPairFromPeerId(remotePeer);
         const signedPayload = await signPayload(remotePeer, getHandshakePayload(staticKeys.publicKey));
-        const handshakePayload = await createHandshakePayload(libp2pPubKey, libp2pPrivKey, signedPayload);
+        const handshakePayload = await createHandshakePayload(libp2pPubKey, signedPayload);
 
         const messageBuffer = xx.sendMessage(handshake.session, handshakePayload);
         wrapped.writeLP(encode1(messageBuffer));

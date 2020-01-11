@@ -4,9 +4,8 @@ import {Buffer} from "buffer";
 import Wrap from "it-pb-rpc";
 
 import {XXHandshake} from "../src/handshake-xx";
-import {generateKeypair} from "../src/utils";
+import {generateKeypair, getPayload} from "../src/utils";
 import {createPeerIdsFromFixtures} from "./fixtures/peer";
-import {getKeyPairFromPeerId} from "./utils";
 
 
 describe("XX Handshake", () => {

@@ -21,8 +21,7 @@ export class XXFallbackHandshake extends XXHandshake {
 
   constructor(
     isInitiator: boolean,
-    libp2pPrivateKey: bytes,
-    libp2pPublicKey: bytes,
+    payload: bytes,
     prologue: bytes32,
     staticKeypair: KeyPair,
     connection: WrappedConnection,
@@ -31,7 +30,7 @@ export class XXFallbackHandshake extends XXHandshake {
     ephemeralKeys?: KeyPair,
     handshake?: XX,
   ) {
-    super(isInitiator, libp2pPrivateKey, libp2pPublicKey, prologue, staticKeypair, connection, remotePeer, handshake);
+    super(isInitiator, payload, prologue, staticKeypair, connection, remotePeer, handshake);
     if (ephemeralKeys) {
       this.ephemeralKeys = ephemeralKeys;
     }
@@ -60,7 +59,6 @@ export class XXFallbackHandshake extends XXHandshake {
     if (this.isInitiator) {
       logger('XX Fallback Stage 1 - Initiator waiting to receive first message from responder...');
       const receivedMessageBuffer = decode1(this.initialMsg);
-      logger("Initiator receivedMessageBuffer in stage 1", receivedMessageBuffer);
       const plaintext = this.xx.recvMessage(this.session, receivedMessageBuffer);
       logger('XX Fallback Stage 1 - Initiator received the message. Got remote\'s static key.');
 
@@ -73,16 +71,7 @@ export class XXFallbackHandshake extends XXHandshake {
       logger("All good with the signature!");
     } else {
       logger('XX Fallback Stage 1 - Responder sending out first message with signed payload and static key.');
-      const signedPayload = signPayload(this.libp2pPrivateKey, getHandshakePayload(this.staticKeypair.publicKey));
-      const signedEarlyDataPayload = signEarlyDataPayload(this.libp2pPrivateKey, Buffer.alloc(0));
-      const handshakePayload = await createHandshakePayload(
-        this.libp2pPublicKey,
-        this.libp2pPrivateKey,
-        signedPayload,
-        signedEarlyDataPayload,
-      );
-
-      const messageBuffer = this.xx.sendMessage(this.session, handshakePayload);
+      const messageBuffer = this.xx.sendMessage(this.session, this.payload);
       this.connection.writeLP(encode1(messageBuffer));
       logger('XX Fallback Stage 1 - Responder sent the second handshake message with signed payload.')
     }

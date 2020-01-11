@@ -22,7 +22,7 @@ export type WrappedConnection = ReturnType<typeof Wrap>;
 type HandshakeParams = {
   connection: WrappedConnection;
   isInitiator: boolean;
-  libp2pPublicKey: bytes;
+  localPeer: PeerId;
   remotePeer: PeerId;
 };
 
@@ -30,7 +30,6 @@ export class Noise implements NoiseConnection {
   public protocol = "/noise";
 
   private readonly prologue = Buffer.from(this.protocol);
-  private readonly privateKey: bytes;
   private readonly staticKeys: KeyPair;
   private readonly earlyData?: bytes;
 
@@ -127,9 +126,9 @@ export class Noise implements NoiseConnection {
     ephemeralKeys: KeyPair,
     initialMsg: bytes,
   ): Promise<XXFallbackHandshake> {
-    const { isInitiator, libp2pPublicKey, remotePeer, connection } = params;
+    const { isInitiator, remotePeer, connection } = params;
     const handshake =
-      new XXFallbackHandshake(isInitiator, payload, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer, initialMsg, ephemeralKeys);
+      new XXFallbackHandshake(isInitiator, payload, this.prologue, this.staticKeys, connection, remotePeer, initialMsg, ephemeralKeys);
 
     try {
       await handshake.propose();
@@ -146,8 +145,8 @@ export class Noise implements NoiseConnection {
     params: HandshakeParams,
     payload: bytes,
   ): Promise<XXHandshake> {
-    const { isInitiator, libp2pPublicKey, remotePeer, connection } = params;
-    const handshake = new XXHandshake(isInitiator, payload, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer);
+    const { isInitiator, remotePeer, connection } = params;
+    const handshake = new XXHandshake(isInitiator, payload, this.prologue, this.staticKeys, connection, remotePeer);
 
     try {
       await handshake.propose();
@@ -164,8 +163,8 @@ export class Noise implements NoiseConnection {
     params: HandshakeParams,
     payload: bytes,
   ): Promise<IKHandshake> {
-    const { isInitiator, libp2pPublicKey, remotePeer, connection } = params;
-    const handshake = new IKHandshake(isInitiator, payload, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer);
+    const { isInitiator, localPeer, remotePeer, connection } = params;
+    const handshake = new IKHandshake(isInitiator, payload, this.prologue, this.staticKeys, connection, remotePeer);
 
     // TODO
 
