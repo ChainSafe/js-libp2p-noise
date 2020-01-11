@@ -9,7 +9,7 @@ import lp from 'it-length-prefixed';
 import { XXHandshake } from "./handshake-xx";
 import { IKHandshake } from "./handshake-ik";
 import { XXFallbackHandshake } from "./handshake-xx-fallback";
-import { generateKeypair } from "./utils";
+import { generateKeypair, getPayload } from "./utils";
 import { uint16BEDecode, uint16BEEncode } from "./encoder";
 import { decryptStream, encryptStream } from "./crypto";
 import { bytes } from "./@types/basic";
@@ -34,8 +34,7 @@ export class Noise implements NoiseConnection {
   private readonly staticKeys: KeyPair;
   private readonly earlyData?: bytes;
 
-  constructor(privateKey: bytes, staticNoiseKey?: bytes, earlyData?: bytes) {
-    this.privateKey = privateKey;
+  constructor(staticNoiseKey?: bytes, earlyData?: bytes) {
     this.earlyData = earlyData || Buffer.alloc(0);
 
     if (staticNoiseKey) {
@@ -58,11 +57,10 @@ export class Noise implements NoiseConnection {
    */
   public async secureOutbound(localPeer: PeerId, connection: any, remotePeer: PeerId): Promise<SecureOutbound> {
     const wrappedConnection = Wrap(connection);
-    const libp2pPublicKey = localPeer.marshalPubKey();
     const handshake = await this.performHandshake({
       connection: wrappedConnection,
       isInitiator: true,
-      libp2pPublicKey,
+      localPeer,
       remotePeer,
     });
     const conn = await this.createSecureConnection(wrappedConnection, handshake);
@@ -82,11 +80,10 @@ export class Noise implements NoiseConnection {
    */
   public async secureInbound(localPeer: PeerId, connection: any, remotePeer: PeerId): Promise<SecureOutbound> {
     const wrappedConnection = Wrap(connection);
-    const libp2pPublicKey = localPeer.marshalPubKey();
     const handshake = await this.performHandshake({
       connection: wrappedConnection,
       isInitiator: false,
-      libp2pPublicKey,
+      localPeer,
       remotePeer
     });
     const conn = await this.createSecureConnection(wrappedConnection, handshake);
@@ -107,35 +104,37 @@ export class Noise implements NoiseConnection {
    */
   private async performHandshake(params: HandshakeParams): Promise<IHandshake> {
     // TODO: Implement noise pipes
+    const payload = await getPayload(params.localPeer, this.staticKeys.publicKey, this.earlyData);
 
     if (false) {
       let IKhandshake;
       try {
-        IKhandshake = await this.performIKHandshake(params);
+        IKhandshake = await this.performIKHandshake(params, payload);
         return IKhandshake;
       } catch (e) {
         // XX fallback
         const ephemeralKeys = IKhandshake.getRemoteEphemeralKeys();
-        return await this.performXXFallbackHandshake(params, ephemeralKeys, e.initialMsg);
+        return await this.performXXFallbackHandshake(params, payload, ephemeralKeys, e.initialMsg);
       }
     } else {
-      return await this.performXXHandshake(params);
+      return await this.performXXHandshake(params, payload);
     }
   }
 
   private async performXXFallbackHandshake(
     params: HandshakeParams,
+    payload: bytes,
     ephemeralKeys: KeyPair,
     initialMsg: bytes,
   ): Promise<XXFallbackHandshake> {
     const { isInitiator, libp2pPublicKey, remotePeer, connection } = params;
     const handshake =
-      new XXFallbackHandshake(isInitiator, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer, initialMsg, ephemeralKeys);
+      new XXFallbackHandshake(isInitiator, payload, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer, initialMsg, ephemeralKeys);
 
     try {
       await handshake.propose();
       await handshake.exchange();
-      await handshake.finish(this.earlyData);
+      await handshake.finish();
     } catch (e) {
       throw new Error(`Error occurred during XX Fallback handshake: ${e.message}`);
     }
@@ -145,14 +144,15 @@ export class Noise implements NoiseConnection {
 
   private async performXXHandshake(
     params: HandshakeParams,
+    payload: bytes,
   ): Promise<XXHandshake> {
     const { isInitiator, libp2pPublicKey, remotePeer, connection } = params;
-    const handshake = new XXHandshake(isInitiator, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer);
+    const handshake = new XXHandshake(isInitiator, payload, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer);
 
     try {
       await handshake.propose();
       await handshake.exchange();
-      await handshake.finish(this.earlyData);
+      await handshake.finish();
     } catch (e) {
       throw new Error(`Error occurred during XX handshake: ${e.message}`);
     }
@@ -162,9 +162,10 @@ export class Noise implements NoiseConnection {
 
   private async performIKHandshake(
     params: HandshakeParams,
+    payload: bytes,
   ): Promise<IKHandshake> {
     const { isInitiator, libp2pPublicKey, remotePeer, connection } = params;
-    const handshake = new IKHandshake(isInitiator, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer);
+    const handshake = new IKHandshake(isInitiator, payload, this.privateKey, libp2pPublicKey, this.prologue, this.staticKeys, connection, remotePeer);
 
     // TODO
 

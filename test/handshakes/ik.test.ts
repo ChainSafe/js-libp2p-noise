@@ -31,7 +31,7 @@ describe("Index", () => {
       const initSignedPayload = await libp2pInitKeys.sign(getHandshakePayload(kpInitiator.publicKey));
       const libp2pInitPrivKey = libp2pInitKeys.marshal().slice(0, 32);
       const libp2pInitPubKey = libp2pInitKeys.marshal().slice(32, 64);
-      const payloadInitEnc = await createHandshakePayload(libp2pInitPubKey, libp2pInitPrivKey, initSignedPayload);
+      const payloadInitEnc = await createHandshakePayload(libp2pInitPubKey, initSignedPayload);
 
       // initiator sends message
       const message = Buffer.concat([Buffer.alloc(0), payloadInitEnc]);
@@ -48,7 +48,7 @@ describe("Index", () => {
       const libp2pRespPrivKey = libp2pRespKeys.marshal().slice(0, 32);
       const libp2pRespPubKey = libp2pRespKeys.marshal().slice(32, 64);
       const respSignedPayload = await libp2pRespKeys.sign(getHandshakePayload(kpResponder.publicKey));
-      const payloadRespEnc = await createHandshakePayload(libp2pRespPubKey, libp2pRespPrivKey, respSignedPayload);
+      const payloadRespEnc = await createHandshakePayload(libp2pRespPubKey, respSignedPayload);
 
       const message1 = Buffer.concat([message, payloadRespEnc]);
       const messageBuffer2 = ikR.sendMessage(responderSession, message1);

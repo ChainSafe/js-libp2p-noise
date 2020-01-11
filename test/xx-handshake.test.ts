@@ -26,11 +26,11 @@ describe("XX Handshake", () => {
       const staticKeysInitiator = generateKeypair();
       const staticKeysResponder = generateKeypair();
 
-      const { privateKey: initiatorPrivKey, publicKey: initiatorPubKey } = getKeyPairFromPeerId(peerA);
-      const handshakeInitator = new XXHandshake(true, initiatorPrivKey, initiatorPubKey, prologue, staticKeysInitiator, connectionFrom, peerB);
+      const initPayload = await getPayload(peerA, staticKeysInitiator.publicKey);
+      const handshakeInitator = new XXHandshake(true, initPayload, prologue, staticKeysInitiator, connectionFrom, peerB);
 
-      const { privateKey: responderPrivKey, publicKey: responderPubKey } = getKeyPairFromPeerId(peerB);
-      const handshakeResponder = new XXHandshake(false, responderPrivKey, responderPubKey, prologue, staticKeysResponder, connectionTo, peerA);
+      const respPayload = await getPayload(peerB, staticKeysResponder.publicKey);
+      const handshakeResponder = new XXHandshake(false, respPayload, prologue, staticKeysResponder, connectionTo, peerA);
 
       await handshakeInitator.propose();
       await handshakeResponder.propose();
@@ -71,11 +71,11 @@ describe("XX Handshake", () => {
       const staticKeysInitiator = generateKeypair();
       const staticKeysResponder = generateKeypair();
 
-      const { privateKey: initiatorPrivKey, publicKey: initiatorPubKey } = getKeyPairFromPeerId(peerA);
-      const handshakeInitator = new XXHandshake(true, initiatorPrivKey, initiatorPubKey, prologue, staticKeysInitiator, connectionFrom, fakePeer);
+      const initPayload = await getPayload(peerA, staticKeysInitiator.publicKey);
+      const handshakeInitator = new XXHandshake(true, initPayload, prologue, staticKeysInitiator, connectionFrom, fakePeer);
 
-      const { privateKey: responderPrivKey, publicKey: responderPubKey } = getKeyPairFromPeerId(peerB);
-      const handshakeResponder = new XXHandshake(false, responderPrivKey, responderPubKey, prologue, staticKeysResponder, connectionTo, peerA);
+      const respPayload = await getPayload(peerB, staticKeysResponder.publicKey);
+      const handshakeResponder = new XXHandshake(false, respPayload, prologue, staticKeysResponder, connectionTo, peerA);
 
       await handshakeInitator.propose();
       await handshakeResponder.propose();
@@ -99,11 +99,11 @@ describe("XX Handshake", () => {
       const staticKeysInitiator = generateKeypair();
       const staticKeysResponder = generateKeypair();
 
-      const { privateKey: initiatorPrivKey, publicKey: initiatorPubKey } = getKeyPairFromPeerId(peerA);
-      const handshakeInitator = new XXHandshake(true, initiatorPrivKey, initiatorPubKey, prologue, staticKeysInitiator, connectionFrom, peerB);
+      const initPayload = await getPayload(peerA, staticKeysInitiator.publicKey);
+      const handshakeInitator = new XXHandshake(true, initPayload, prologue, staticKeysInitiator, connectionFrom, peerB);
 
-      const { privateKey: responderPrivKey, publicKey: responderPubKey } = getKeyPairFromPeerId(peerB);
-      const handshakeResponder = new XXHandshake(false, responderPrivKey, responderPubKey, prologue, staticKeysResponder, connectionTo, fakePeer);
+      const respPayload = await getPayload(peerB, staticKeysResponder.publicKey);
+      const handshakeResponder = new XXHandshake(false, respPayload, prologue, staticKeysResponder, connectionTo, fakePeer);
 
       await handshakeInitator.propose();
       await handshakeResponder.propose();
