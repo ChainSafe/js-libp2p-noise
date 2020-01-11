@@ -13,7 +13,7 @@ import { generateKeypair, getPayload } from "./utils";
 import { uint16BEDecode, uint16BEEncode } from "./encoder";
 import { decryptStream, encryptStream } from "./crypto";
 import { bytes } from "./@types/basic";
-import { NoiseConnection, PeerId, KeyPair, SecureOutbound } from "./@types/libp2p";
+import { INoiseConnection, PeerId, KeyPair, SecureOutbound } from "./@types/libp2p";
 import { Duplex } from "./@types/it-pair";
 import {IHandshake} from "./@types/handshake-interface";
 
@@ -26,7 +26,7 @@ type HandshakeParams = {
   remotePeer: PeerId;
 };
 
-export class Noise implements NoiseConnection {
+export class Noise implements INoiseConnection {
   public protocol = "/noise";
 
   private readonly prologue = Buffer.from(this.protocol);
@@ -163,7 +163,7 @@ export class Noise implements NoiseConnection {
     params: HandshakeParams,
     payload: bytes,
   ): Promise<IKHandshake> {
-    const { isInitiator, localPeer, remotePeer, connection } = params;
+    const { isInitiator, remotePeer, connection } = params;
     const handshake = new IKHandshake(isInitiator, payload, this.prologue, this.staticKeys, connection, remotePeer);
 
     // TODO

@@ -5,10 +5,6 @@ import { XX } from "./handshakes/xx";
 import { KeyPair, PeerId } from "./@types/libp2p";
 import { bytes, bytes32 } from "./@types/basic";
 import {
-  createHandshakePayload,
-  getHandshakePayload,
-  signEarlyDataPayload,
-  signPayload,
   verifySignedPayload,
 } from "./utils";
 import { logger } from "./logger";
