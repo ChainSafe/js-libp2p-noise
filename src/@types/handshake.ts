@@ -3,7 +3,7 @@ import {KeyPair} from "./libp2p";
 
 export type Hkdf = [bytes, bytes, bytes];
 
-export interface MessageBuffer {
+export type MessageBuffer = {
   ne: bytes32;
   ns: bytes;
   ciphertext: bytes;

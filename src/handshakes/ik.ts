@@ -8,7 +8,7 @@ import {AbstractHandshake} from "./abstract-handshake";
 import {KeyPair} from "../@types/libp2p";
 
 
-export class IKHandshake extends AbstractHandshake {
+export class IK extends AbstractHandshake {
   public initSession(initiator: boolean, prologue: bytes32, s: KeyPair, rs: bytes32): NoiseSession {
     const psk = this.createEmptyKey();
 

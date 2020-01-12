@@ -3,13 +3,12 @@ import Duplex from 'it-pair/duplex';
 import {Buffer} from "buffer";
 import Wrap from "it-pb-rpc";
 
-import {Handshake} from "../src/handshake";
+import {XXHandshake} from "../src/handshake-xx";
 import {generateKeypair, getPayload} from "../src/utils";
 import {createPeerIdsFromFixtures} from "./fixtures/peer";
-import {getKeyPairFromPeerId} from "./utils";
 
 
-describe("Handshake", () => {
+describe("XX Handshake", () => {
   let peerA, peerB, fakePeer;
 
   before(async () => {
@@ -27,10 +26,10 @@ describe("Handshake", () => {
       const staticKeysResponder = generateKeypair();
 
       const initPayload = await getPayload(peerA, staticKeysInitiator.publicKey);
-      const handshakeInitator = new Handshake(true, initPayload, prologue, staticKeysInitiator, connectionFrom, peerB);
+      const handshakeInitator = new XXHandshake(true, initPayload, prologue, staticKeysInitiator, connectionFrom, peerB);
 
       const respPayload = await getPayload(peerB, staticKeysResponder.publicKey);
-      const handshakeResponder = new Handshake(false, respPayload, prologue, staticKeysResponder, connectionTo, peerA);
+      const handshakeResponder = new XXHandshake(false, respPayload, prologue, staticKeysResponder, connectionTo, peerA);
 
       await handshakeInitator.propose();
       await handshakeResponder.propose();
@@ -72,10 +71,10 @@ describe("Handshake", () => {
       const staticKeysResponder = generateKeypair();
 
       const initPayload = await getPayload(peerA, staticKeysInitiator.publicKey);
-      const handshakeInitator = new Handshake(true, initPayload, prologue, staticKeysInitiator, connectionFrom, fakePeer);
+      const handshakeInitator = new XXHandshake(true, initPayload, prologue, staticKeysInitiator, connectionFrom, fakePeer);
 
       const respPayload = await getPayload(peerB, staticKeysResponder.publicKey);
-      const handshakeResponder = new Handshake(false, respPayload, prologue, staticKeysResponder, connectionTo, peerA);
+      const handshakeResponder = new XXHandshake(false, respPayload, prologue, staticKeysResponder, connectionTo, peerA);
 
       await handshakeInitator.propose();
       await handshakeResponder.propose();
@@ -100,10 +99,10 @@ describe("Handshake", () => {
       const staticKeysResponder = generateKeypair();
 
       const initPayload = await getPayload(peerA, staticKeysInitiator.publicKey);
-      const handshakeInitator = new Handshake(true, initPayload, prologue, staticKeysInitiator, connectionFrom, peerB);
+      const handshakeInitator = new XXHandshake(true, initPayload, prologue, staticKeysInitiator, connectionFrom, peerB);
 
       const respPayload = await getPayload(peerB, staticKeysResponder.publicKey);
-      const handshakeResponder = new Handshake(false, respPayload, prologue, staticKeysResponder, connectionTo, fakePeer);
+      const handshakeResponder = new XXHandshake(false, respPayload, prologue, staticKeysResponder, connectionTo, fakePeer);
 
       await handshakeInitator.propose();
       await handshakeResponder.propose();
