@@ -55,6 +55,7 @@
     "typescript": "^3.6.4"
   },
   "dependencies": {
+    "async-mutex": "^0.1.4",
     "bcrypto": "^4.2.3",
     "bn.js": "^5.0.0",
     "buffer": "^5.4.3",

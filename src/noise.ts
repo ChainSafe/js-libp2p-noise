@@ -32,9 +32,11 @@ export class Noise implements INoiseConnection {
   private readonly prologue = Buffer.from(this.protocol);
   private readonly staticKeys: KeyPair;
   private readonly earlyData?: bytes;
+  private useNoisePipes: boolean;
 
-  constructor(staticNoiseKey?: bytes, earlyData?: bytes) {
+  constructor(staticNoiseKey?: bytes, earlyData?: bytes, useNoisePipes = true) {
     this.earlyData = earlyData || Buffer.alloc(0);
+    this.useNoisePipes = useNoisePipes;
 
     if (staticNoiseKey) {
       const publicKey = x25519.publicKeyCreate(staticNoiseKey); // TODO: verify this
@@ -152,6 +154,10 @@ export class Noise implements INoiseConnection {
       await handshake.propose();
       await handshake.exchange();
       await handshake.finish();
+
+      if (this.useNoisePipes) {
+
+      }
     } catch (e) {
       throw new Error(`Error occurred during XX handshake: ${e.message}`);
     }
