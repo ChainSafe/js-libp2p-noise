@@ -99,7 +99,7 @@ export class Noise implements INoiseConnection {
 
   /**
    * If Noise pipes supported, tries IK handshake first with XX as fallback if it fails.
-   * If remote peer static key is unknown, use XX.
+   * If noise pipes disabled or remote peer static key is unknown, use XX.
    * @param connection
    * @param isInitiator
    * @param libp2pPublicKey
@@ -122,11 +122,12 @@ export class Noise implements INoiseConnection {
       try {
         return await this.performIKHandshake(IKhandshake, payload);
       } catch (e) {
-        // XX fallback
+        // IK failed, go to XX fallback
         const ephemeralKeys = IKhandshake.getRemoteEphemeralKeys();
         return await this.performXXFallbackHandshake(params, payload, ephemeralKeys, e.initialMsg);
       }
     } else {
+      // Noise pipes not supported, use XX
       return await this.performXXHandshake(params, payload);
     }
   }
