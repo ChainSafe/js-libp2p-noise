@@ -24,6 +24,7 @@ export class IKHandshake implements IHandshake {
     staticKeypair: KeyPair,
     connection: WrappedConnection,
     remotePeer: PeerId,
+    remoteStaticKey: bytes,
     handshake?: IK,
   ) {
     this.isInitiator = isInitiator;
@@ -34,11 +35,7 @@ export class IKHandshake implements IHandshake {
     this.remotePeer = remotePeer;
 
     this.ik = handshake || new IK();
-
-    // Dummy data
-    // TODO: Load remote static keys if found
-    const remoteStaticKeys = this.staticKeypair;
-    this.session = this.ik.initSession(this.isInitiator, this.prologue, this.staticKeypair, remoteStaticKeys.publicKey);
+    this.session = this.ik.initSession(this.isInitiator, this.prologue, this.staticKeypair, remoteStaticKey);
   }
 
   public decrypt(ciphertext: Buffer, session: NoiseSession): Buffer {

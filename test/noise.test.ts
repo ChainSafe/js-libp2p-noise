@@ -26,8 +26,8 @@ describe("Noise", () => {
 
   it("should communicate through encrypted streams", async() => {
     try {
-      const noiseInit = new Noise();
-      const noiseResp = new Noise();
+      const noiseInit = new Noise(undefined, undefined, false);
+      const noiseResp = new Noise(undefined, undefined, false);
 
       const [inboundConnection, outboundConnection] = DuplexPair();
       const [outbound, inbound] = await Promise.all([
@@ -46,7 +46,7 @@ describe("Noise", () => {
   });
 
   it("should test that secureOutbound is spec compliant", async() => {
-    const noiseInit = new Noise();
+    const noiseInit = new Noise(undefined, undefined, false);
     const [inboundConnection, outboundConnection] = DuplexPair();
 
     const [outbound, { wrapped, handshake }] = await Promise.all([
@@ -99,8 +99,8 @@ describe("Noise", () => {
 
   it("should test large payloads", async() => {
     try {
-      const noiseInit = new Noise();
-      const noiseResp = new Noise();
+      const noiseInit = new Noise(undefined, undefined, false);
+      const noiseResp = new Noise(undefined, undefined, false);
 
       const [inboundConnection, outboundConnection] = DuplexPair();
       const [outbound, inbound] = await Promise.all([

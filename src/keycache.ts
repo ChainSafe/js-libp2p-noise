@@ -20,11 +20,11 @@ class Keycache {
     }
   }
 
-  public async load(peerId: PeerId): Promise<bytes32> {
+  public async load(peerId: PeerId): Promise<bytes32|null> {
     const release = await this.mutex.acquire();
     let key;
     try {
-      key = this.storage.get(peerId.id);
+      key = this.storage.get(peerId.id) || null;
     } finally {
       release();
     }

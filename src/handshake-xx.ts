@@ -114,6 +114,10 @@ export class XXHandshake implements IHandshake {
     return this.xx.decryptWithAd(cs, Buffer.alloc(0), ciphertext);
   }
 
+  public getRemoteStaticKey(): bytes {
+    return this.session.hs.rs;
+  }
+
   private getCS(session: NoiseSession, encryption = true) {
     if (!session.cs1 || !session.cs2) {
       throw new Error("Handshake not completed properly, cipher state does not exist.");
