@@ -177,7 +177,6 @@ export class Noise implements INoiseConnection {
 
   private async performIKHandshake(
     handshake: IKHandshake,
-    payload: bytes,
   ): Promise<IKHandshake> {
 
     await handshake.stage0();
