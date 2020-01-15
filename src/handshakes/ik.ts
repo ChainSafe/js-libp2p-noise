@@ -68,7 +68,6 @@ export class IK extends AbstractHandshake {
       session.h = h;
       session.cs1 = cs1;
       session.cs2 = cs2;
-      delete session.hs;
     } else if (session.mc.gtn(1)) {
       if (session.i) {
         if (!session.cs2) {

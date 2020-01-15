@@ -7,6 +7,7 @@ import {IHandshake} from "./@types/handshake-interface";
 import {Buffer} from "buffer";
 import {decode0, decode1, encode0, encode1} from "./encoder";
 import {verifySignedPayload} from "./utils";
+import {FailedIKError} from "./errors";
 
 export class IKHandshake implements IHandshake {
   public isInitiator: boolean;
@@ -45,26 +46,28 @@ export class IKHandshake implements IHandshake {
       const messageBuffer = this.ik.sendMessage(this.session, this.payload);
       this.connection.writeLP(encode0(messageBuffer));
     } else {
-      const receivedMessageBuffer = decode0(await this.connection.readLP());
+      const receivedMsg = await this.connection.readLP();
+      const receivedMessageBuffer = decode0(receivedMsg);
       const plaintext = this.ik.recvMessage(this.session, receivedMessageBuffer);
 
       try {
         await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer.id);
       } catch (e) {
-        throw new Error(`Error occurred while verifying initiator's signed payload: ${e.message}`);
+        throw new FailedIKError(receivedMsg, `Error occurred while verifying initiator's signed payload: ${e.message}`);
       }
     }
   }
 
   public async stage1(): Promise<void> {
     if (this.isInitiator) {
-      const receivedMessageBuffer = decode1(await this.connection.readLP());
+      const receivedMsg = await this.connection.readLP();
+      const receivedMessageBuffer = decode1(receivedMsg);
       const plaintext = this.ik.recvMessage(this.session, receivedMessageBuffer);
 
       try {
         await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer.id);
       } catch (e) {
-        throw new Error(`Error occurred while verifying responder's signed payload: ${e.message}`);
+        throw new FailedIKError(receivedMsg, `Error occurred while verifying responder's signed payload: ${e.message}`);
       }
     } else {
       const messageBuffer = this.ik.sendMessage(this.session, this.payload);

@@ -108,23 +108,32 @@ export class Noise implements INoiseConnection {
   private async performHandshake(params: HandshakeParams): Promise<IHandshake> {
     const payload = await getPayload(params.localPeer, this.staticKeys.publicKey, this.earlyData);
 
-    let foundRemoteStaticKey: bytes|null = null;
-    if (this.useNoisePipes && params.isInitiator) {
-      logger("Initiator using noise pipes. Going to load cached static key...");
-      foundRemoteStaticKey = await KeyCache.load(params.remotePeer);
-      logger(`Static key has been found: ${!!foundRemoteStaticKey}`)
+    let tryIK = this.useNoisePipes;
+    const foundRemoteStaticKey = await KeyCache.load(params.remotePeer);
+    if (tryIK && params.isInitiator && !foundRemoteStaticKey) {
+      tryIK = false;
+      logger(`Static key not found.`)
     }
 
-    if (foundRemoteStaticKey) {
+    // Try IK if acting as responder or initiator that has remote's static key.
+    if (tryIK) {
       // Try IK first
       const { remotePeer, connection, isInitiator } = params;
+      if (!foundRemoteStaticKey) {
+        // TODO: Recheck. Possible that responder should not have it here.
+        throw new Error("Remote static key should be initialized.");
+      }
+
       const IKhandshake = new IKHandshake(isInitiator, payload, this.prologue, this.staticKeys, connection, remotePeer, foundRemoteStaticKey);
       try {
-        return await this.performIKHandshake(IKhandshake, payload);
+        return await this.performIKHandshake(IKhandshake);
       } catch (e) {
         // IK failed, go to XX fallback
-        const ephemeralKeys = IKhandshake.getRemoteEphemeralKeys();
-        return await this.performXXFallbackHandshake(params, payload, ephemeralKeys, e.initialMsg);
+        let ephemeralKeys;
+        if (params.isInitiator) {
+          ephemeralKeys = IKhandshake.getRemoteEphemeralKeys();
+        }
+        return await this.performXXFallbackHandshake(params, payload, e.initialMsg, ephemeralKeys);
       }
     } else {
       // Noise pipes not supported, use XX
@@ -135,8 +144,8 @@ export class Noise implements INoiseConnection {
   private async performXXFallbackHandshake(
     params: HandshakeParams,
     payload: bytes,
-    ephemeralKeys: KeyPair,
     initialMsg: bytes,
+    ephemeralKeys?: KeyPair,
   ): Promise<XXFallbackHandshake> {
     const { isInitiator, remotePeer, connection } = params;
     const handshake =
@@ -147,6 +156,7 @@ export class Noise implements INoiseConnection {
       await handshake.exchange();
       await handshake.finish();
     } catch (e) {
+      logger(e);
       throw new Error(`Error occurred during XX Fallback handshake: ${e.message}`);
     }
 
@@ -179,8 +189,13 @@ export class Noise implements INoiseConnection {
     handshake: IKHandshake,
   ): Promise<IKHandshake> {
 
-    await handshake.stage0();
-    await handshake.stage1();
+    try {
+      await handshake.stage0();
+      await handshake.stage1();
+    } catch (e) {
+      console.error("Error in IK handshake: ", e);
+      throw e;
+    }
 
     return handshake;
   }

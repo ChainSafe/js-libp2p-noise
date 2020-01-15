@@ -16,6 +16,7 @@ import {decode0, decode1, encode1} from "../src/encoder";
 import {XX} from "../src/handshakes/xx";
 import {Buffer} from "buffer";
 import {getKeyPairFromPeerId} from "./utils";
+import {KeyCache} from "../src/keycache";
 
 describe("Noise", () => {
   let remotePeer, localPeer;
@@ -24,7 +25,7 @@ describe("Noise", () => {
     [localPeer, remotePeer] = await createPeerIdsFromFixtures(2);
   });
 
-  it("should communicate through encrypted streams", async() => {
+  it("should communicate through encrypted streams without noise pipes", async() => {
     try {
       const noiseInit = new Noise(undefined, undefined, false);
       const noiseResp = new Noise(undefined, undefined, false);
@@ -118,6 +119,56 @@ describe("Noise", () => {
     } catch (e) {
       console.error(e);
       assert(false, e.message);
+    }
+  });
+
+  it("should communicate through encrypted streams with noise pipes", async() => {
+    try {
+      const staticKeysInitiator = generateKeypair();
+      const noiseInit = new Noise(staticKeysInitiator.privateKey);
+      const staticKeysResponder = generateKeypair();
+      const noiseResp = new Noise(staticKeysResponder.privateKey);
+
+      // Prepare key cache for noise pipes
+      await KeyCache.store(localPeer, staticKeysInitiator.publicKey);
+      await KeyCache.store(remotePeer, staticKeysResponder.publicKey);
+
+      const [inboundConnection, outboundConnection] = DuplexPair();
+      const [outbound, inbound] = await Promise.all([
+        noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
+        noiseResp.secureInbound(remotePeer, inboundConnection, localPeer),
+      ]);
+      const wrappedInbound = Wrap(inbound.conn);
+      const wrappedOutbound = Wrap(outbound.conn);
+
+      wrappedOutbound.writeLP(Buffer.from("test v2"));
+      const response = await wrappedInbound.readLP();
+      expect(response.toString()).equal("test v2");
+    } catch (e) {
+      console.error(e);
+      assert(false, e.message);
+    }
+  });
+
+  it("should switch to XX fallback because of invalid remote static key", async() => {
+    try {
+      const staticKeysInitiator = generateKeypair();
+      const noiseInit = new Noise(staticKeysInitiator.privateKey);
+      const noiseResp = new Noise();
+
+      // Prepare key cache for noise pipes
+      await KeyCache.store(localPeer, staticKeysInitiator.publicKey);
+      await KeyCache.store(remotePeer, generateKeypair().publicKey);
+
+      const [inboundConnection, outboundConnection] = DuplexPair();
+      const [outbound, inbound] = await Promise.all([
+        noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
+        noiseResp.secureInbound(remotePeer, inboundConnection, localPeer),
+      ]);
+      assert(false, "Should throw error");
+    } catch (e) {
+      console.error(e);
+      assert(true, e.message);
     }
   });
 });

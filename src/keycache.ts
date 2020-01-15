@@ -11,8 +11,8 @@ class Keycache {
     this.storage.set(peerId.id, key);
   }
 
-  public async load(peerId: PeerId): Promise<bytes32|null> {
-    return this.storage.get(peerId.id) || null;
+  public async load(peerId: PeerId): Promise<bytes32|undefined> {
+    return this.storage.get(peerId.id);
   }
 
   public resetStorage(): void {
