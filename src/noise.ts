@@ -179,7 +179,9 @@ export class Noise implements INoiseConnection {
     handshake: IKHandshake,
     payload: bytes,
   ): Promise<IKHandshake> {
-    // TODO
+
+    await handshake.stage0();
+    await handshake.stage1();
 
     return handshake;
   }
