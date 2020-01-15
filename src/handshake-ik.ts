@@ -51,7 +51,7 @@ export class IKHandshake implements IHandshake {
       try {
         await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer.id);
       } catch (e) {
-        throw new Error(`Error occurred while verifying signed payload: ${e.message}`);
+        throw new Error(`Error occurred while verifying initiator's signed payload: ${e.message}`);
       }
     }
   }
@@ -64,7 +64,7 @@ export class IKHandshake implements IHandshake {
       try {
         await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer.id);
       } catch (e) {
-        throw new Error(`Error occurred while verifying signed payload: ${e.message}`);
+        throw new Error(`Error occurred while verifying responder's signed payload: ${e.message}`);
       }
     } else {
       const messageBuffer = this.ik.sendMessage(this.session, this.payload);
