@@ -5,6 +5,7 @@ import { Noise } from "../src";
 import {createPeerIdsFromFixtures} from "./fixtures/peer";
 import Wrap from "it-pb-rpc";
 import { random } from "bcrypto";
+import sinon from "sinon";
 import {XXHandshake} from "../src/handshake-xx";
 import {
   createHandshakePayload,
@@ -17,12 +18,18 @@ import {XX} from "../src/handshakes/xx";
 import {Buffer} from "buffer";
 import {getKeyPairFromPeerId} from "./utils";
 import {KeyCache} from "../src/keycache";
+import {XXFallbackHandshake} from "../src/handshake-xx-fallback";
 
 describe("Noise", () => {
   let remotePeer, localPeer;
+  let sandbox = sinon.createSandbox();
 
   before(async () => {
     [localPeer, remotePeer] = await createPeerIdsFromFixtures(2);
+  });
+
+  afterEach(function() {
+    sandbox.restore();
   });
 
   it("should communicate through encrypted streams without noise pipes", async() => {
@@ -133,6 +140,9 @@ describe("Noise", () => {
       await KeyCache.store(localPeer, staticKeysInitiator.publicKey);
       await KeyCache.store(remotePeer, staticKeysResponder.publicKey);
 
+      const xxSpy = sandbox.spy(noiseInit, "performXXHandshake");
+      const xxFallbackSpy = sandbox.spy(noiseInit, "performXXFallbackHandshake");
+
       const [inboundConnection, outboundConnection] = DuplexPair();
       const [outbound, inbound] = await Promise.all([
         noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
@@ -144,6 +154,9 @@ describe("Noise", () => {
       wrappedOutbound.writeLP(Buffer.from("test v2"));
       const response = await wrappedInbound.readLP();
       expect(response.toString()).equal("test v2");
+
+      assert(xxSpy.notCalled);
+      assert(xxFallbackSpy.notCalled);
     } catch (e) {
       console.error(e);
       assert(false, e.message);
@@ -165,10 +178,16 @@ describe("Noise", () => {
         noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
         noiseResp.secureInbound(remotePeer, inboundConnection, localPeer),
       ]);
-      assert(false, "Should throw error");
+
+      const wrappedInbound = Wrap(inbound.conn);
+      const wrappedOutbound = Wrap(outbound.conn);
+
+      wrappedOutbound.writeLP(Buffer.from("test fallback"));
+      const response = await wrappedInbound.readLP();
+      expect(response.toString()).equal("test fallback");
     } catch (e) {
       console.error(e);
-      assert(true, e.message);
+      assert(false, e.message);
     }
   });
 });
