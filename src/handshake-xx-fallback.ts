@@ -39,6 +39,7 @@ export class XXFallbackHandshake extends XXHandshake {
       this.xx.sendMessage(this.session, Buffer.alloc(0), this.ephemeralKeys);
       logger("XX Fallback Stage 0 - Initialized state as the first message was sent by initiator.");
     } else {
+      logger("XX Fallback Stage 0 - Responder decoding initial msg from IK.")
       const receivedMessageBuffer = decode0(this.initialMsg);
       this.xx.recvMessage(this.session, {
         ne: receivedMessageBuffer.ne,

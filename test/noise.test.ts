@@ -199,8 +199,7 @@ describe("Noise", () => {
         const staticKeysInitiator = generateKeypair();
         const noiseInit = new Noise(staticKeysInitiator.privateKey);
         const staticKeysResponder = generateKeypair();
-        console.log("staticKeysInitiator: ", staticKeysInitiator)
-        console.log("staticKeysResponder: ", staticKeysResponder)
+
         const noiseResp = new Noise(staticKeysResponder.privateKey, undefined, false);
         const xxSpy = sandbox.spy(noiseInit, "performXXFallbackHandshake");
 
@@ -228,4 +227,39 @@ describe("Noise", () => {
         assert(false, e.message);
       }
     });
+
+  it("Initiator starts with XX (pipes disabled) responder has noise pipes", async() => {
+    try {
+      const staticKeysInitiator = generateKeypair();
+      const noiseInit = new Noise(staticKeysInitiator.privateKey, undefined, false);
+      const staticKeysResponder = generateKeypair();
+
+      const noiseResp = new Noise(staticKeysResponder.privateKey);
+      const xxInitSpy = sandbox.spy(noiseInit, "performXXHandshake");
+      const xxRespSpy = sandbox.spy(noiseResp, "performXXFallbackHandshake");
+
+      // Prepare key cache for noise pipes
+      await KeyCache.store(localPeer, staticKeysInitiator.publicKey);
+
+      const [inboundConnection, outboundConnection] = DuplexPair();
+
+      const [outbound, inbound] = await Promise.all([
+        noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
+        noiseResp.secureInbound(remotePeer, inboundConnection, localPeer),
+      ]);
+
+      const wrappedInbound = Wrap(inbound.conn);
+      const wrappedOutbound = Wrap(outbound.conn);
+
+      wrappedOutbound.writeLP(Buffer.from("test fallback"));
+      const response = await wrappedInbound.readLP();
+      expect(response.toString()).equal("test fallback");
+
+      assert(xxInitSpy.calledOnce, "XX method was never called.");
+      assert(xxRespSpy.calledOnce, "XX Fallback method was never called.");
+    } catch (e) {
+      console.error(e);
+      assert(false, e.message);
+    }
+  });
 });
