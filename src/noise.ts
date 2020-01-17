@@ -16,6 +16,8 @@ import { bytes } from "./@types/basic";
 import { INoiseConnection, PeerId, KeyPair, SecureOutbound } from "./@types/libp2p";
 import { Duplex } from "./@types/it-pair";
 import {IHandshake} from "./@types/handshake-interface";
+import {KeyCache} from "./keycache";
+import {logger} from "./logger";
 
 export type WrappedConnection = ReturnType<typeof Wrap>;
 
@@ -32,9 +34,11 @@ export class Noise implements INoiseConnection {
   private readonly prologue = Buffer.from(this.protocol);
   private readonly staticKeys: KeyPair;
   private readonly earlyData?: bytes;
+  private useNoisePipes: boolean;
 
-  constructor(staticNoiseKey?: bytes, earlyData?: bytes) {
+  constructor(staticNoiseKey?: bytes, earlyData?: bytes, useNoisePipes = true) {
     this.earlyData = earlyData || Buffer.alloc(0);
+    this.useNoisePipes = useNoisePipes;
 
     if (staticNoiseKey) {
       const publicKey = x25519.publicKeyCreate(staticNoiseKey); // TODO: verify this
@@ -95,27 +99,35 @@ export class Noise implements INoiseConnection {
 
   /**
    * If Noise pipes supported, tries IK handshake first with XX as fallback if it fails.
-   * If remote peer static key is unknown, use XX.
+   * If noise pipes disabled or remote peer static key is unknown, use XX.
    * @param connection
    * @param isInitiator
    * @param libp2pPublicKey
    * @param remotePeer
    */
   private async performHandshake(params: HandshakeParams): Promise<IHandshake> {
-    // TODO: Implement noise pipes
     const payload = await getPayload(params.localPeer, this.staticKeys.publicKey, this.earlyData);
 
-    if (false) {
-      let IKhandshake;
+    let foundRemoteStaticKey: bytes|null = null;
+    if (this.useNoisePipes && params.isInitiator) {
+      logger("Initiator using noise pipes. Going to load cached static key...");
+      foundRemoteStaticKey = await KeyCache.load(params.remotePeer);
+      logger(`Static key has been found: ${!!foundRemoteStaticKey}`)
+    }
+
+    if (foundRemoteStaticKey) {
+      // Try IK first
+      const { remotePeer, connection, isInitiator } = params;
+      const IKhandshake = new IKHandshake(isInitiator, payload, this.prologue, this.staticKeys, connection, remotePeer, foundRemoteStaticKey);
       try {
-        IKhandshake = await this.performIKHandshake(params, payload);
-        return IKhandshake;
+        return await this.performIKHandshake(IKhandshake, payload);
       } catch (e) {
-        // XX fallback
+        // IK failed, go to XX fallback
         const ephemeralKeys = IKhandshake.getRemoteEphemeralKeys();
         return await this.performXXFallbackHandshake(params, payload, ephemeralKeys, e.initialMsg);
       }
     } else {
+      // Noise pipes not supported, use XX
       return await this.performXXHandshake(params, payload);
     }
   }
@@ -152,6 +164,10 @@ export class Noise implements INoiseConnection {
       await handshake.propose();
       await handshake.exchange();
       await handshake.finish();
+
+      if (this.useNoisePipes) {
+        await KeyCache.store(remotePeer, handshake.getRemoteStaticKey());
+      }
     } catch (e) {
       throw new Error(`Error occurred during XX handshake: ${e.message}`);
     }
@@ -160,12 +176,9 @@ export class Noise implements INoiseConnection {
   }
 
   private async performIKHandshake(
-    params: HandshakeParams,
+    handshake: IKHandshake,
     payload: bytes,
   ): Promise<IKHandshake> {
-    const { isInitiator, remotePeer, connection } = params;
-    const handshake = new IKHandshake(isInitiator, payload, this.prologue, this.staticKeys, connection, remotePeer);
-
     // TODO
 
     return handshake;

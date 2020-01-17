@@ -145,7 +145,6 @@ export class XX extends AbstractHandshake {
       session.h = h;
       session.cs1 = cs1;
       session.cs2 = cs2;
-      delete session.hs;
     } else if (session.mc.gtn(2)) {
       if (session.i) {
         if (!session.cs1) {
