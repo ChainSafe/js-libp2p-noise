@@ -8,6 +8,7 @@ import {Buffer} from "buffer";
 import {decode0, decode1, encode0, encode1} from "./encoder";
 import {verifySignedPayload} from "./utils";
 import {FailedIKError} from "./errors";
+import {logger} from "./logger";
 
 export class IKHandshake implements IHandshake {
   public isInitiator: boolean;
@@ -44,15 +45,16 @@ export class IKHandshake implements IHandshake {
   public async stage0(): Promise<void> {
     if (this.isInitiator) {
       const messageBuffer = this.ik.sendMessage(this.session, this.payload);
-      this.connection.writeLP(encode0(messageBuffer));
+      this.connection.writeLP(encode1(messageBuffer));
     } else {
-      const receivedMsg = await this.connection.readLP();
-      const receivedMessageBuffer = decode0(receivedMsg);
+      const receivedMsg = (await this.connection.readLP()).slice();
+      const receivedMessageBuffer = decode1(Buffer.from(receivedMsg));
       const plaintext = this.ik.recvMessage(this.session, receivedMessageBuffer);
 
       try {
         await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer.id);
       } catch (e) {
+        logger("Responder breaking up with IK handshake in stage 0.");
         throw new FailedIKError(receivedMsg, `Error occurred while verifying initiator's signed payload: ${e.message}`);
       }
     }
@@ -60,18 +62,19 @@ export class IKHandshake implements IHandshake {
 
   public async stage1(): Promise<void> {
     if (this.isInitiator) {
-      const receivedMsg = await this.connection.readLP();
-      const receivedMessageBuffer = decode1(receivedMsg);
+      const receivedMsg = (await this.connection.readLP()).slice();
+      const receivedMessageBuffer = decode0(Buffer.from(receivedMsg));
       const plaintext = this.ik.recvMessage(this.session, receivedMessageBuffer);
 
       try {
         await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer.id);
       } catch (e) {
+        logger("Initiator breaking up with IK handshake in stage 1.");
         throw new FailedIKError(receivedMsg, `Error occurred while verifying responder's signed payload: ${e.message}`);
       }
     } else {
       const messageBuffer = this.ik.sendMessage(this.session, this.payload);
-      this.connection.writeLP(encode1(messageBuffer));
+      this.connection.writeLP(encode0(messageBuffer));
     }
   }
 

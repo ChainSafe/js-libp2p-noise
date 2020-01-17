@@ -168,6 +168,7 @@ describe("Noise", () => {
       const staticKeysInitiator = generateKeypair();
       const noiseInit = new Noise(staticKeysInitiator.privateKey);
       const noiseResp = new Noise();
+      const xxSpy = sandbox.spy(noiseInit, "performXXFallbackHandshake");
 
       // Prepare key cache for noise pipes
       await KeyCache.store(localPeer, staticKeysInitiator.publicKey);
@@ -185,9 +186,46 @@ describe("Noise", () => {
       wrappedOutbound.writeLP(Buffer.from("test fallback"));
       const response = await wrappedInbound.readLP();
       expect(response.toString()).equal("test fallback");
+
+      assert(xxSpy.calledOnce, "XX Fallback method was never called.");
     } catch (e) {
       console.error(e);
       assert(false, e.message);
     }
   });
+
+  it("XX fallback with XX as responder has noise pipes disabled", async() => {
+      try {
+        const staticKeysInitiator = generateKeypair();
+        const noiseInit = new Noise(staticKeysInitiator.privateKey);
+        const staticKeysResponder = generateKeypair();
+        console.log("staticKeysInitiator: ", staticKeysInitiator)
+        console.log("staticKeysResponder: ", staticKeysResponder)
+        const noiseResp = new Noise(staticKeysResponder.privateKey, undefined, false);
+        const xxSpy = sandbox.spy(noiseInit, "performXXFallbackHandshake");
+
+        // Prepare key cache for noise pipes
+        await KeyCache.store(localPeer, staticKeysInitiator.publicKey);
+        await KeyCache.store(remotePeer, staticKeysResponder.publicKey);
+
+        const [inboundConnection, outboundConnection] = DuplexPair();
+
+        const [outbound, inbound] = await Promise.all([
+          noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
+          noiseResp.secureInbound(remotePeer, inboundConnection, localPeer),
+        ]);
+
+        const wrappedInbound = Wrap(inbound.conn);
+        const wrappedOutbound = Wrap(outbound.conn);
+
+        wrappedOutbound.writeLP(Buffer.from("test fallback"));
+        const response = await wrappedInbound.readLP();
+        expect(response.toString()).equal("test fallback");
+
+        assert(xxSpy.calledOnce, "XX Fallback method was never called.");
+      } catch (e) {
+        console.error(e);
+        assert(false, e.message);
+      }
+    });
 });

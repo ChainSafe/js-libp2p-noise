@@ -39,37 +39,34 @@ export class XXFallbackHandshake extends XXHandshake {
       this.xx.sendMessage(this.session, Buffer.alloc(0), this.ephemeralKeys);
       logger("XX Fallback Stage 0 - Initialized state as the first message was sent by initiator.");
     } else {
-      logger("XX Fallback Stage 0 - Responder waiting to receive first message...");
       const receivedMessageBuffer = decode0(this.initialMsg);
       this.xx.recvMessage(this.session, {
         ne: receivedMessageBuffer.ne,
         ns: Buffer.alloc(0),
         ciphertext: Buffer.alloc(0),
       });
-      logger("XX Fallback Stage 0 - Responder received first message.");
+      logger("XX Fallback Stage 0 - Responder used received message from IK.");
     }
   }
 
   // stage 1
   public async exchange(): Promise<void> {
     if (this.isInitiator) {
-      logger('XX Fallback Stage 1 - Initiator waiting to receive first message from responder...');
       const receivedMessageBuffer = decode1(this.initialMsg);
       const plaintext = this.xx.recvMessage(this.session, receivedMessageBuffer);
-      logger('XX Fallback Stage 1 - Initiator received the message. Got remote\'s static key.');
+      logger('XX Fallback Stage 1 - Initiator used received message from IK.');
 
       logger("Initiator going to check remote's signature...");
       try {
         await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer.id);
       } catch (e) {
-        throw new Error(`Error occurred while verifying signed payload: ${e.message}`);
+        throw new Error(`Error occurred while verifying signed payload from responder: ${e.message}`);
       }
       logger("All good with the signature!");
     } else {
-      logger('XX Fallback Stage 1 - Responder sending out first message with signed payload and static key.');
-      const messageBuffer = this.xx.sendMessage(this.session, this.payload);
-      this.connection.writeLP(encode1(messageBuffer));
-      logger('XX Fallback Stage 1 - Responder sent the second handshake message with signed payload.')
+      logger("XX Fallback Stage 1 - Responder start");
+      super.exchange();
+      logger("XX Fallback Stage 1 - Responder end");
     }
   }
 }

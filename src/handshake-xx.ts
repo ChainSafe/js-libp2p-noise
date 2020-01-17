@@ -63,7 +63,7 @@ export class XXHandshake implements IHandshake {
   public async exchange(): Promise<void> {
     if (this.isInitiator) {
       logger('Stage 1 - Initiator waiting to receive first message from responder...');
-      const receivedMessageBuffer = decode1((await this.connection.readLP()).slice());
+      const receivedMessageBuffer = decode1(await this.connection.readLP());
       const plaintext = this.xx.recvMessage(this.session, receivedMessageBuffer);
       logger('Stage 1 - Initiator received the message. Got remote\'s static key.');
 

@@ -124,7 +124,7 @@ export class Noise implements INoiseConnection {
         throw new Error("Remote static key should be initialized.");
       }
 
-      const IKhandshake = new IKHandshake(isInitiator, payload, this.prologue, this.staticKeys, connection, remotePeer, foundRemoteStaticKey);
+      const IKhandshake = new IKHandshake(isInitiator, Buffer.from(payload), this.prologue, this.staticKeys, connection, remotePeer, foundRemoteStaticKey);
       try {
         return await this.performIKHandshake(IKhandshake);
       } catch (e) {
@@ -189,13 +189,8 @@ export class Noise implements INoiseConnection {
     handshake: IKHandshake,
   ): Promise<IKHandshake> {
 
-    try {
-      await handshake.stage0();
-      await handshake.stage1();
-    } catch (e) {
-      console.error("Error in IK handshake: ", e);
-      throw e;
-    }
+    await handshake.stage0();
+    await handshake.stage1();
 
     return handshake;
   }
