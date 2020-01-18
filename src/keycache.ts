@@ -7,11 +7,11 @@ import {bytes, bytes32} from "./@types/basic";
 class Keycache {
   private storage = new Map<bytes, bytes32>();
 
-  public async store(peerId: PeerId, key: bytes32): Promise<void> {
+  public store(peerId: PeerId, key: bytes32): void {
     this.storage.set(peerId.id, key);
   }
 
-  public async load(peerId: PeerId): Promise<bytes32|undefined> {
+  public load(peerId: PeerId): bytes32|undefined {
     return this.storage.get(peerId.id);
   }
 

@@ -32,7 +32,7 @@ export class IKHandshake implements IHandshake {
     handshake?: IK,
   ) {
     this.isInitiator = isInitiator;
-    this.payload = payload;
+    this.payload = Buffer.from(payload);
     this.prologue = prologue;
     this.staticKeypair = staticKeypair;
     this.connection = connection;

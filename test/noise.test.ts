@@ -137,8 +137,8 @@ describe("Noise", () => {
       const noiseResp = new Noise(staticKeysResponder.privateKey);
 
       // Prepare key cache for noise pipes
-      await KeyCache.store(localPeer, staticKeysInitiator.publicKey);
-      await KeyCache.store(remotePeer, staticKeysResponder.publicKey);
+      KeyCache.store(localPeer, staticKeysInitiator.publicKey);
+      KeyCache.store(remotePeer, staticKeysResponder.publicKey);
 
       const xxSpy = sandbox.spy(noiseInit, "performXXHandshake");
       const xxFallbackSpy = sandbox.spy(noiseInit, "performXXFallbackHandshake");
@@ -171,8 +171,8 @@ describe("Noise", () => {
       const xxSpy = sandbox.spy(noiseInit, "performXXFallbackHandshake");
 
       // Prepare key cache for noise pipes
-      await KeyCache.store(localPeer, staticKeysInitiator.publicKey);
-      await KeyCache.store(remotePeer, generateKeypair().publicKey);
+      KeyCache.store(localPeer, staticKeysInitiator.publicKey);
+      KeyCache.store(remotePeer, generateKeypair().publicKey);
 
       const [inboundConnection, outboundConnection] = DuplexPair();
       const [outbound, inbound] = await Promise.all([
@@ -204,8 +204,8 @@ describe("Noise", () => {
         const xxSpy = sandbox.spy(noiseInit, "performXXFallbackHandshake");
 
         // Prepare key cache for noise pipes
-        await KeyCache.store(localPeer, staticKeysInitiator.publicKey);
-        await KeyCache.store(remotePeer, staticKeysResponder.publicKey);
+        KeyCache.store(localPeer, staticKeysInitiator.publicKey);
+        KeyCache.store(remotePeer, staticKeysResponder.publicKey);
 
         const [inboundConnection, outboundConnection] = DuplexPair();
 
@@ -239,7 +239,7 @@ describe("Noise", () => {
       const xxRespSpy = sandbox.spy(noiseResp, "performXXFallbackHandshake");
 
       // Prepare key cache for noise pipes
-      await KeyCache.store(localPeer, staticKeysInitiator.publicKey);
+      KeyCache.store(localPeer, staticKeysInitiator.publicKey);
 
       const [inboundConnection, outboundConnection] = DuplexPair();
 
