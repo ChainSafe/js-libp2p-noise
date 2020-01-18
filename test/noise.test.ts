@@ -163,7 +163,7 @@ describe("Noise", () => {
     }
   });
 
-  it("should switch to XX fallback because of invalid remote static key", async() => {
+  it("IK -> XX fallback: initiator has invalid remote static key", async() => {
     try {
       const staticKeysInitiator = generateKeypair();
       const noiseInit = new Noise(staticKeysInitiator.privateKey);
@@ -171,6 +171,7 @@ describe("Noise", () => {
       const xxSpy = sandbox.spy(noiseInit, "performXXFallbackHandshake");
 
       // Prepare key cache for noise pipes
+      KeyCache.resetStorage();
       KeyCache.store(localPeer, staticKeysInitiator.publicKey);
       KeyCache.store(remotePeer, generateKeypair().publicKey);
 
@@ -194,12 +195,12 @@ describe("Noise", () => {
     }
   });
 
-  it("XX fallback with XX as responder has noise pipes disabled", async() => {
+  it("IK -> XX fallback: responder has disabled noise pipes", async() => {
       try {
         const staticKeysInitiator = generateKeypair();
         const noiseInit = new Noise(staticKeysInitiator.privateKey);
-        const staticKeysResponder = generateKeypair();
 
+        const staticKeysResponder = generateKeypair();
         const noiseResp = new Noise(staticKeysResponder.privateKey, undefined, false);
         const xxSpy = sandbox.spy(noiseInit, "performXXFallbackHandshake");
 
@@ -208,7 +209,6 @@ describe("Noise", () => {
         KeyCache.store(remotePeer, staticKeysResponder.publicKey);
 
         const [inboundConnection, outboundConnection] = DuplexPair();
-
         const [outbound, inbound] = await Promise.all([
           noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
           noiseResp.secureInbound(remotePeer, inboundConnection, localPeer),
@@ -228,7 +228,7 @@ describe("Noise", () => {
       }
     });
 
-  it("Initiator starts with XX (pipes disabled) responder has noise pipes", async() => {
+  it("Initiator starts with XX (pipes disabled), responder has enabled noise pipes", async() => {
     try {
       const staticKeysInitiator = generateKeypair();
       const noiseInit = new Noise(staticKeysInitiator.privateKey, undefined, false);
@@ -257,6 +257,42 @@ describe("Noise", () => {
 
       assert(xxInitSpy.calledOnce, "XX method was never called.");
       assert(xxRespSpy.calledOnce, "XX Fallback method was never called.");
+    } catch (e) {
+      console.error(e);
+      assert(false, e.message);
+    }
+  });
+
+  it("IK -> XX Fallback: responder has no remote static key", async() => {
+    try {
+      const staticKeysInitiator = generateKeypair();
+      const noiseInit = new Noise(staticKeysInitiator.privateKey);
+      const staticKeysResponder = generateKeypair();
+
+      const noiseResp = new Noise(staticKeysResponder.privateKey);
+      const xxFallbackInitSpy = sandbox.spy(noiseInit, "performXXFallbackHandshake");
+      const xxRespSpy = sandbox.spy(noiseResp, "performXXHandshake");
+
+      // Prepare key cache for noise pipes
+      KeyCache.resetStorage();
+      KeyCache.store(remotePeer, staticKeysResponder.publicKey);
+
+      const [inboundConnection, outboundConnection] = DuplexPair();
+
+      const [outbound, inbound] = await Promise.all([
+        noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
+        noiseResp.secureInbound(remotePeer, inboundConnection, localPeer),
+      ]);
+
+      const wrappedInbound = Wrap(inbound.conn);
+      const wrappedOutbound = Wrap(outbound.conn);
+
+      wrappedOutbound.writeLP(Buffer.from("test fallback"));
+      const response = await wrappedInbound.readLP();
+      expect(response.toString()).equal("test fallback");
+
+      assert(xxFallbackInitSpy.calledOnce, "XX Fallback method was not called.");
+      assert(xxRespSpy.calledOnce, "XX method was not called.");
     } catch (e) {
       console.error(e);
       assert(false, e.message);

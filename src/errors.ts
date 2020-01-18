@@ -6,6 +6,5 @@ export class FailedIKError extends Error {
 
     this.initialMsg = initialMsg;
     this.name = "FailedIKhandshake";
-    this.stack = new Error().stack;
   }
 };

@@ -108,23 +108,13 @@ export class Noise implements INoiseConnection {
   private async performHandshake(params: HandshakeParams): Promise<IHandshake> {
     const payload = await getPayload(params.localPeer, this.staticKeys.publicKey, this.earlyData);
 
-    let tryIK = this.useNoisePipes;
-    const foundRemoteStaticKey = KeyCache.load(params.remotePeer);
-    if (tryIK && params.isInitiator && !foundRemoteStaticKey) {
-      tryIK = false;
-      logger(`Static key not found.`)
-    }
-
+    const remoteStaticKey = KeyCache.load(params.remotePeer);
     // Try IK if acting as responder or initiator that has remote's static key.
-    if (tryIK) {
+    if (this.useNoisePipes && remoteStaticKey) {
       // Try IK first
       const { remotePeer, connection, isInitiator } = params;
-      if (!foundRemoteStaticKey) {
-        // TODO: Recheck. Possible that responder should not have it here.
-        throw new Error("Remote static key should be initialized.");
-      }
+      const IKhandshake = new IKHandshake(isInitiator, payload, this.prologue, this.staticKeys, connection, remotePeer, remoteStaticKey);
 
-      const IKhandshake = new IKHandshake(isInitiator, payload, this.prologue, this.staticKeys, connection, remotePeer, foundRemoteStaticKey);
       try {
         return await this.performIKHandshake(IKhandshake);
       } catch (e) {
