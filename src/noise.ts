@@ -113,15 +113,15 @@ export class Noise implements INoiseConnection {
     if (this.useNoisePipes && remoteStaticKey) {
       // Try IK first
       const { remotePeer, connection, isInitiator } = params;
-      const IKhandshake = new IKHandshake(isInitiator, payload, this.prologue, this.staticKeys, connection, remotePeer, remoteStaticKey);
+      const ikHandshake = new IKHandshake(isInitiator, payload, this.prologue, this.staticKeys, connection, remotePeer, remoteStaticKey);
 
       try {
-        return await this.performIKHandshake(IKhandshake);
+        return await this.performIKHandshake(ikHandshake);
       } catch (e) {
         // IK failed, go to XX fallback
         let ephemeralKeys;
         if (params.isInitiator) {
-          ephemeralKeys = IKhandshake.getRemoteEphemeralKeys();
+          ephemeralKeys = ikHandshake.getRemoteEphemeralKeys();
         }
         return await this.performXXFallbackHandshake(params, payload, e.initialMsg, ephemeralKeys);
       }
