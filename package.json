@@ -52,6 +52,7 @@
     "chai": "^4.2.0",
     "eslint": "^6.6.0",
     "mocha": "^6.2.2",
+    "sinon": "^8.1.0",
     "typescript": "^3.6.4"
   },
   "dependencies": {

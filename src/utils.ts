@@ -89,8 +89,13 @@ async function isValidPeerId(peerId: bytes, publicKeyProtobuf: bytes) {
 }
 
 export async function verifySignedPayload(noiseStaticKey: bytes, plaintext: bytes, peerId: bytes) {
-  const NoiseHandshakePayload = await loadPayloadProto();
-  const receivedPayload = NoiseHandshakePayload.toObject(NoiseHandshakePayload.decode(plaintext));
+  let receivedPayload;
+  try {
+    const NoiseHandshakePayload = await loadPayloadProto();
+    receivedPayload = NoiseHandshakePayload.toObject(NoiseHandshakePayload.decode(plaintext));
+  } catch (e) {
+    throw new Error("Failed to decode received payload.");
+  }
 
   if (!(await isValidPeerId(peerId, receivedPayload.libp2pKey)) ) {
     throw new Error("Peer ID doesn't match libp2p public key.");

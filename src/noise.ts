@@ -108,23 +108,22 @@ export class Noise implements INoiseConnection {
   private async performHandshake(params: HandshakeParams): Promise<IHandshake> {
     const payload = await getPayload(params.localPeer, this.staticKeys.publicKey, this.earlyData);
 
-    let foundRemoteStaticKey: bytes|null = null;
-    if (this.useNoisePipes && params.isInitiator) {
-      logger("Initiator using noise pipes. Going to load cached static key...");
-      foundRemoteStaticKey = await KeyCache.load(params.remotePeer);
-      logger(`Static key has been found: ${!!foundRemoteStaticKey}`)
-    }
-
-    if (foundRemoteStaticKey) {
+    const remoteStaticKey = KeyCache.load(params.remotePeer);
+    // Try IK if acting as responder or initiator that has remote's static key.
+    if (this.useNoisePipes && remoteStaticKey) {
       // Try IK first
       const { remotePeer, connection, isInitiator } = params;
-      const IKhandshake = new IKHandshake(isInitiator, payload, this.prologue, this.staticKeys, connection, remotePeer, foundRemoteStaticKey);
+      const ikHandshake = new IKHandshake(isInitiator, payload, this.prologue, this.staticKeys, connection, remotePeer, remoteStaticKey);
+
       try {
-        return await this.performIKHandshake(IKhandshake, payload);
+        return await this.performIKHandshake(ikHandshake);
       } catch (e) {
         // IK failed, go to XX fallback
-        const ephemeralKeys = IKhandshake.getRemoteEphemeralKeys();
-        return await this.performXXFallbackHandshake(params, payload, ephemeralKeys, e.initialMsg);
+        let ephemeralKeys;
+        if (params.isInitiator) {
+          ephemeralKeys = ikHandshake.getRemoteEphemeralKeys();
+        }
+        return await this.performXXFallbackHandshake(params, payload, e.initialMsg, ephemeralKeys);
       }
     } else {
       // Noise pipes not supported, use XX
@@ -135,8 +134,8 @@ export class Noise implements INoiseConnection {
   private async performXXFallbackHandshake(
     params: HandshakeParams,
     payload: bytes,
-    ephemeralKeys: KeyPair,
     initialMsg: bytes,
+    ephemeralKeys?: KeyPair,
   ): Promise<XXFallbackHandshake> {
     const { isInitiator, remotePeer, connection } = params;
     const handshake =
@@ -147,6 +146,7 @@ export class Noise implements INoiseConnection {
       await handshake.exchange();
       await handshake.finish();
     } catch (e) {
+      logger(e);
       throw new Error(`Error occurred during XX Fallback handshake: ${e.message}`);
     }
 
@@ -166,7 +166,7 @@ export class Noise implements INoiseConnection {
       await handshake.finish();
 
       if (this.useNoisePipes) {
-        await KeyCache.store(remotePeer, handshake.getRemoteStaticKey());
+        KeyCache.store(remotePeer, handshake.getRemoteStaticKey());
       }
     } catch (e) {
       throw new Error(`Error occurred during XX handshake: ${e.message}`);
@@ -177,9 +177,10 @@ export class Noise implements INoiseConnection {
 
   private async performIKHandshake(
     handshake: IKHandshake,
-    payload: bytes,
   ): Promise<IKHandshake> {
-    // TODO
+
+    await handshake.stage0();
+    await handshake.stage1();
 
     return handshake;
   }

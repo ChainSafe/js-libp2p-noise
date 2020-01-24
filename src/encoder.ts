@@ -14,6 +14,8 @@ export const uint16BEDecode = data => {
 };
 uint16BEDecode.bytes = 2;
 
+// Note: IK and XX encoder usage is opposite (XX uses in stages encode0 where IK uses encode1)
+
 export function encode0(message: MessageBuffer): bytes {
   return Buffer.concat([message.ne, message.ciphertext]);
 }
