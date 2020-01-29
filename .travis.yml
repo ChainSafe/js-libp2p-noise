@@ -8,5 +8,5 @@ install:
 script:
   set -e;
   yarn run lint;
-  yarn run check-types;
+  yarn run test
   yarn run build;
