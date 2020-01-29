@@ -6,7 +6,7 @@ import {assert, expect} from "chai";
 import {generateEd25519Keys} from "../utils";
 
 describe("Index", () => {
-  const prologue = Buffer.from("/noise", "utf-8");
+  const prologue = Buffer.alloc(0);
 
   it("Test complete IK handshake", async () => {
     try {

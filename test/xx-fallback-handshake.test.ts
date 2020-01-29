@@ -24,7 +24,7 @@ describe("XX Fallback Handshake", () => {
       const connectionFrom = Wrap(duplex[0]);
       const connectionTo = Wrap(duplex[1]);
 
-      const prologue = Buffer.from('/noise');
+      const prologue = Buffer.alloc(0);
       const staticKeysInitiator = generateKeypair();
       const staticKeysResponder = generateKeypair();
       const ephemeralKeys = generateKeypair();
