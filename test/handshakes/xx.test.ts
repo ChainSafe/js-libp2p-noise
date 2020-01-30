@@ -7,7 +7,7 @@ import { generateEd25519Keys } from "../utils";
 import {createHandshakePayload, generateKeypair, getHandshakePayload, getHkdf} from "../../src/utils";
 
 describe("Index", () => {
-  const prologue = Buffer.from("/noise", "utf-8");
+  const prologue = Buffer.alloc(0);
 
   it("Test creating new XX session", async () => {
     try {

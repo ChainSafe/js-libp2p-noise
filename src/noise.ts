@@ -31,7 +31,7 @@ type HandshakeParams = {
 export class Noise implements INoiseConnection {
   public protocol = "/noise";
 
-  private readonly prologue = Buffer.from(this.protocol);
+  private readonly prologue = Buffer.alloc(0);
   private readonly staticKeys: KeyPair;
   private readonly earlyData?: bytes;
   private useNoisePipes: boolean;

@@ -61,7 +61,7 @@ describe("Noise", () => {
       noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
       (async () => {
         const wrapped = Wrap(inboundConnection);
-        const prologue = Buffer.from('/noise');
+        const prologue = Buffer.alloc(0);
         const staticKeys = generateKeypair();
         const xx = new XX();
 
