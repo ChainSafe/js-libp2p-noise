@@ -16,7 +16,9 @@
     "check-types": "tsc --incremental --noEmit",
     "lint": "eslint --ext .ts src/",
     "pretest": "yarn check-types",
-    "test": "DEBUG=libp2p:noise mocha -r ./babel-register.js \"test/**/*.test.ts\""
+    "test": "yarn run test:node && yarn run test:web",
+    "test:node": "mocha -r ./babel-register.js \"test/**/*.test.ts\"",
+    "test:web": "karma start"
   },
   "babel": {
     "presets": [
@@ -51,9 +53,18 @@
     "bn.js-typings": "^1.0.1",
     "chai": "^4.2.0",
     "eslint": "^6.6.0",
+    "karma": "^4.4.1",
+    "karma-chai": "^0.1.0",
+    "karma-chrome-launcher": "^3.1.0",
+    "karma-cli": "^2.0.0",
+    "karma-mocha": "^1.3.0",
+    "karma-spec-reporter": "^0.0.32",
+    "karma-webpack": "^4.0.2",
     "mocha": "^6.2.2",
     "sinon": "^8.1.0",
-    "typescript": "^3.6.4"
+    "ts-loader": "^6.2.1",
+    "typescript": "^3.6.4",
+    "webpack": "^4.41.5"
   },
   "dependencies": {
     "bcrypto": "^4.2.3",
@@ -67,6 +78,6 @@
     "it-pipe": "^1.1.0",
     "libp2p-crypto": "^0.17.1",
     "peer-id": "^0.13.5",
-    "protobufjs": "~6.8.8"
+    "protobufjs": "6.8.8"
   }
 }
