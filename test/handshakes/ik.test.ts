@@ -5,7 +5,7 @@ import {createHandshakePayload, generateKeypair, getHandshakePayload} from "../.
 import {assert, expect} from "chai";
 import {generateEd25519Keys} from "../utils";
 
-describe("Index", () => {
+describe("IK handshake", () => {
   const prologue = Buffer.alloc(0);
 
   it("Test complete IK handshake", async () => {
@@ -60,8 +60,8 @@ describe("Index", () => {
       assert(initiatorSession.cs2.k.equals(responderSession.cs2.k));
 
     } catch (e) {
-      console.log(e);
-      assert(false, e.message);
+      console.error(e);
+      return assert(false, e.message);
     }
   });
 });

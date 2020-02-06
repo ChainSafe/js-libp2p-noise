@@ -6,7 +6,7 @@ import { KeyPair } from "../../src/@types/libp2p";
 import { generateEd25519Keys } from "../utils";
 import {createHandshakePayload, generateKeypair, getHandshakePayload, getHkdf} from "../../src/utils";
 
-describe("Index", () => {
+describe("XX Handshake", () => {
   const prologue = Buffer.alloc(0);
 
   it("Test creating new XX session", async () => {
@@ -23,7 +23,6 @@ describe("Index", () => {
   });
 
   it("Test get HKDF", async () => {
-    const xx = new XX();
     const ckBytes = Buffer.from('4e6f6973655f58585f32353531395f58436861436861506f6c795f53484132353600000000000000000000000000000000000000000000000000000000000000', 'hex');
     const ikm = Buffer.from('a3eae50ea37a47e8a7aa0c7cd8e16528670536dcd538cebfd724fb68ce44f1910ad898860666227d4e8dd50d22a9a64d1c0a6f47ace092510161e9e442953da3', 'hex');
     const ck = Buffer.alloc(32);
@@ -67,8 +66,7 @@ describe("Index", () => {
     expect(messageBuffer.ne.length).not.equal(0);
 
     // responder receives message
-    const plaintext = xx.recvMessage(nsResp, messageBuffer);
-    console.log("Stage 0 responder payload: ", plaintext);
+    xx.recvMessage(nsResp, messageBuffer);
 
     /* STAGE 1 */
 
@@ -84,8 +82,7 @@ describe("Index", () => {
     expect(messageBuffer2.ns.length).not.equal(0);
 
     // initiator receive payload
-    const plaintext2 = xx.recvMessage(nsInit, messageBuffer2);
-    console.log("Stage 1 responder payload: ", plaintext2);
+    xx.recvMessage(nsInit, messageBuffer2);
 
     /* STAGE 2 */
 
@@ -93,8 +90,7 @@ describe("Index", () => {
     const messageBuffer3 = xx.sendMessage(nsInit, Buffer.alloc(0));
 
     // responder receive message
-    const plaintext3 = xx.recvMessage(nsResp, messageBuffer3);
-    console.log("Stage 2 responder payload: ", plaintext3);
+    xx.recvMessage(nsResp, messageBuffer3);
 
     assert(nsInit.cs1.k.equals(nsResp.cs1.k));
     assert(nsInit.cs2.k.equals(nsResp.cs2.k));
