@@ -29,30 +29,29 @@ export async function getPayload(
   earlyData?: bytes,
 ): Promise<bytes> {
   const signedPayload = await signPayload(localPeer, getHandshakePayload(staticPublicKey));
-  const signedEarlyDataPayload = await signEarlyDataPayload(localPeer, earlyData || Buffer.alloc(0));
+  const earlyDataPayload = earlyData || Buffer.alloc(0);
 
   return await createHandshakePayload(
     localPeer.marshalPubKey(),
     signedPayload,
-    signedEarlyDataPayload
+    earlyDataPayload
   );
 }
 
 export async function createHandshakePayload(
   libp2pPublicKey: bytes,
   signedPayload: bytes,
-  signedEarlyData?: EarlyDataPayload,
+  earlyData?: bytes,
 ): Promise<bytes> {
   const NoiseHandshakePayload = await loadPayloadProto();
-  const earlyDataPayload = signedEarlyData ?
+  const earlyDataPayload = earlyData ?
     {
-      libp2pData: signedEarlyData.libp2pData,
-      libp2pDataSignature: signedEarlyData.libp2pDataSignature,
+      data: earlyData,
     } : {};
 
   const payloadInit = NoiseHandshakePayload.create({
-    libp2pKey: libp2pPublicKey,
-    noiseStaticKeySignature: signedPayload,
+    identityKey: libp2pPublicKey,
+    identitySig: signedPayload,
     ...earlyDataPayload,
   });
 
@@ -64,24 +63,7 @@ export async function signPayload(peerId: PeerId, payload: bytes): Promise<bytes
   return peerId.privKey.sign(payload);
 }
 
-type EarlyDataPayload = {
-  libp2pData: bytes;
-  libp2pDataSignature: bytes;
-}
-
-export async function signEarlyDataPayload(peerId: PeerId, earlyData: bytes): Promise<EarlyDataPayload> {
-  const payload = getEarlyDataPayload(earlyData);
-  const signedPayload = await signPayload(peerId, payload);
-
-  return {
-    libp2pData: payload,
-    libp2pDataSignature: signedPayload,
-  }
-}
-
 export const getHandshakePayload = (publicKey: bytes ) => Buffer.concat([Buffer.from("noise-libp2p-static-key:"), publicKey]);
-
-export const getEarlyDataPayload = (earlyData: bytes) => Buffer.concat([Buffer.from("noise-libp2p-early-data:"), earlyData]);
 
 async function isValidPeerId(peerId: bytes, publicKeyProtobuf: bytes) {
   const generatedPeerId = await PeerId.createFromPubKey(publicKeyProtobuf);
@@ -97,15 +79,15 @@ export async function verifySignedPayload(noiseStaticKey: bytes, plaintext: byte
     throw new Error("Failed to decode received payload.");
   }
 
-  if (!(await isValidPeerId(peerId, receivedPayload.libp2pKey)) ) {
+  if (!(await isValidPeerId(peerId, receivedPayload.identityKey)) ) {
     throw new Error("Peer ID doesn't match libp2p public key.");
   }
 
   const generatedPayload = getHandshakePayload(noiseStaticKey);
 
   // Unmarshaling from PublicKey protobuf
-  const publicKey = crypto.keys.unmarshalPublicKey(receivedPayload.libp2pKey);
-  if (!publicKey.verify(generatedPayload, receivedPayload.noiseStaticKeySignature)) {
+  const publicKey = crypto.keys.unmarshalPublicKey(receivedPayload.identityKey);
+  if (!publicKey.verify(generatedPayload, receivedPayload.identitySig)) {
     throw new Error("Static key doesn't match to peer that signed payload!");
   }
 }
