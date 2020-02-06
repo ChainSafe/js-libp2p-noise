@@ -3,14 +3,14 @@ import protobuf from "protobufjs";
 import { Buffer } from "buffer";
 import PeerId from "peer-id";
 import * as crypto from 'libp2p-crypto';
-
 import { KeyPair } from "./@types/libp2p";
 import {bytes, bytes32} from "./@types/basic";
 import {Hkdf} from "./@types/handshake";
+import payloadProto from "./proto/payload.json";
 
 export async function loadPayloadProto () {
-  const payloadProtoBuf = await protobuf.load("protos/payload.proto");
-  return payloadProtoBuf.lookupType("pb.NoiseHandshakePayload");
+  const payloadProtoBuf = await protobuf.Root.fromJSON(payloadProto);
+  return payloadProtoBuf.lookupType("NoiseHandshakePayload");
 }
 
 export function generateKeypair(): KeyPair {
@@ -92,9 +92,15 @@ export async function verifySignedPayload(noiseStaticKey: bytes, plaintext: byte
   let receivedPayload;
   try {
     const NoiseHandshakePayload = await loadPayloadProto();
-    receivedPayload = NoiseHandshakePayload.toObject(NoiseHandshakePayload.decode(plaintext));
+    receivedPayload = NoiseHandshakePayload.toObject(
+      NoiseHandshakePayload.decode(plaintext)
+    );
+    //temporary fix until protobufsjs conversion options starts working
+    //by default it ends up as Uint8Array
+    receivedPayload.libp2pKey = Buffer.from(receivedPayload.libp2pKey);
+    receivedPayload.noiseStaticKeySignature = Buffer.from(receivedPayload.noiseStaticKeySignature);
   } catch (e) {
-    throw new Error("Failed to decode received payload.");
+    throw new Error("Failed to decode received payload. Reason: " + e.message);
   }
 
   if (!(await isValidPeerId(peerId, receivedPayload.libp2pKey)) ) {

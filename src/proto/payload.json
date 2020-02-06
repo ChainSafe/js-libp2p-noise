@@ -1,0 +1,24 @@
+{
+  "nested": {
+    "NoiseHandshakePayload": {
+      "fields": {
+        "libp2pKey": {
+          "type": "bytes",
+          "id": 1
+        },
+        "noiseStaticKeySignature": {
+          "type": "bytes",
+          "id": 2
+        },
+        "libp2pData": {
+          "type": "bytes",
+          "id": 3
+        },
+        "libp2pDataSignature": {
+          "type": "bytes",
+          "id": 4
+        }
+      }
+    }
+  }
+}

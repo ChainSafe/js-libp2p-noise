@@ -1,9 +1,0 @@
-syntax = "proto3";
-package pb;
-
-message NoiseHandshakePayload {
-    bytes libp2p_key = 1;
-    bytes noise_static_key_signature = 2;
-    bytes libp2p_data = 3;
-    bytes libp2p_data_signature = 4;
-}
