@@ -2,11 +2,11 @@
   "nested": {
     "NoiseHandshakePayload": {
       "fields": {
-        "identity_key": {
+        "identityKey": {
           "type": "bytes",
           "id": 1
         },
-        "identity_sig": {
+        "identitySig": {
           "type": "bytes",
           "id": 2
         },

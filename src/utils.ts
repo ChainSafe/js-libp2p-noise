@@ -79,8 +79,8 @@ export async function verifySignedPayload(noiseStaticKey: bytes, plaintext: byte
     );
     //temporary fix until protobufsjs conversion options starts working
     //by default it ends up as Uint8Array
-    receivedPayload.libp2pKey = Buffer.from(receivedPayload.libp2pKey);
-    receivedPayload.noiseStaticKeySignature = Buffer.from(receivedPayload.noiseStaticKeySignature);
+    receivedPayload.identityKey = Buffer.from(receivedPayload.identityKey);
+    receivedPayload.identitySig = Buffer.from(receivedPayload.identitySig);
   } catch (e) {
     throw new Error("Failed to decode received payload. Reason: " + e.message);
   }
