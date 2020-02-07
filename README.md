@@ -5,7 +5,8 @@
 ![](https://img.shields.io/github/license/nodefactoryio/js-libp2p-noise)
 [![Build Status](https://travis-ci.com/NodeFactoryIo/js-libp2p-noise.svg?branch=master)](https://travis-ci.com/NodeFactoryIo/js-libp2p-noise)
 ![](https://img.shields.io/badge/yarn-%3E%3D1.17.0-orange.svg?style=flat-square)
-![](https://img.shields.io/badge/Node.js-%3E%3D12.4.0-orange.svg?style=flat-square)
+![](https://img.shields.io/badge/Node.js-%3E%3D10.19.0-orange.svg?style=flat-square)
+![](https://img.shields.io/badge/browsers-last%202%20versions%2C%20not%20ie%20%3C%3D11-orange)
 [![Discourse posts](https://img.shields.io/discourse/https/discuss.libp2p.io/posts.svg)](https://discuss.libp2p.io)
 
 > Noise libp2p handshake for js-libp2p
@@ -16,9 +17,12 @@ This repository contains TypeScript implementation of noise protocol, an encrypt
 
 When published, package should be imported as: `import { Noise } from 'libp2p-noise'`.
 
-Example of instantiating noise and passing it to the libp2p config:
+Example of using default noise configuration and passing it to the libp2p config:
 ```
-const NOISE = new Noise(privateKey);
+import {NOISE, Noise} from "@nodefactory/js-libp2p-noise"
+
+//custom noise configuration, pass it instead of NOISE object
+const noise = new Noise(privateKey, Buffer.alloc(), false);
 
 const libp2p = new Libp2p({
    modules: {

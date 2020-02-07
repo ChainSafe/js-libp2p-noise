@@ -1,5 +1,5 @@
-import {PeerId} from "./@types/libp2p";
 import {bytes, bytes32} from "./@types/basic";
+import PeerId from "peer-id";
 
 /**
  * Storage for static keys of previously connected peers.

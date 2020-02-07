@@ -1,22 +1,11 @@
 import { bytes, bytes32 } from "./basic";
 import { Duplex } from "it-pair";
+import PeerId from "peer-id";
 
 export type KeyPair = {
   publicKey: bytes32;
   privateKey: bytes32;
 }
-
-export type PeerId = {
-  id: bytes;
-  privKey: {
-    marshal(): bytes;
-  };
-  pubKey: {
-    marshal(): bytes;
-  };
-  marshalPubKey(): bytes;
-  marshalPrivKey(): bytes;
-};
 
 export interface INoiseConnection {
   remoteEarlyData?(): bytes;
