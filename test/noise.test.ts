@@ -275,7 +275,7 @@ describe("Noise", () => {
 
       // Prepare key cache for noise pipes
       KeyCache.resetStorage();
-      KeyCache.store(remotePeer, staticKeysResponder.publicKey);
+      KeyCache.store(localPeer, staticKeysResponder.publicKey);
 
       const [inboundConnection, outboundConnection] = DuplexPair();
 

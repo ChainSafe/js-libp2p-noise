@@ -1,20 +1,20 @@
-import { x25519 } from 'bcrypto';
-import { Buffer } from "buffer";
+import {x25519} from 'bcrypto';
+import {Buffer} from "buffer";
 import Wrap from 'it-pb-rpc';
 import DuplexPair from 'it-pair/duplex';
 import ensureBuffer from 'it-buffer';
 import pipe from 'it-pipe';
 import lp from 'it-length-prefixed';
 
-import { XXHandshake } from "./handshake-xx";
-import { IKHandshake } from "./handshake-ik";
-import { XXFallbackHandshake } from "./handshake-xx-fallback";
-import { generateKeypair, getPayload } from "./utils";
-import { uint16BEDecode, uint16BEEncode } from "./encoder";
-import { decryptStream, encryptStream } from "./crypto";
-import { bytes } from "./@types/basic";
-import { INoiseConnection, KeyPair, SecureOutbound } from "./@types/libp2p";
-import { Duplex } from "./@types/it-pair";
+import {XXHandshake} from "./handshake-xx";
+import {IKHandshake} from "./handshake-ik";
+import {XXFallbackHandshake} from "./handshake-xx-fallback";
+import {generateKeypair, getPayload} from "./utils";
+import {uint16BEDecode, uint16BEEncode} from "./encoder";
+import {decryptStream, encryptStream} from "./crypto";
+import {bytes, bytes32} from "./@types/basic";
+import {INoiseConnection, KeyPair, SecureOutbound} from "./@types/libp2p";
+import {Duplex} from "./@types/it-pair";
 import {IHandshake} from "./@types/handshake-interface";
 import {KeyCache} from "./keycache";
 import {logger} from "./logger";
@@ -26,7 +26,7 @@ type HandshakeParams = {
   connection: WrappedConnection;
   isInitiator: boolean;
   localPeer: PeerId;
-  remotePeer: PeerId;
+  remotePeer?: PeerId;
 };
 
 export class Noise implements INoiseConnection {
@@ -88,7 +88,7 @@ export class Noise implements INoiseConnection {
    * @param {PeerId} remotePeer - optional PeerId of the initiating peer, if known. This may only exist during transport upgrades.
    * @returns {Promise<SecureOutbound>}
    */
-  public async secureInbound(localPeer: PeerId, connection: any, remotePeer: PeerId): Promise<SecureOutbound> {
+  public async secureInbound(localPeer: PeerId, connection: any, remotePeer?: PeerId): Promise<SecureOutbound> {
     const wrappedConnection = Wrap(connection);
     const handshake = await this.performHandshake({
       connection: wrappedConnection,
@@ -100,7 +100,7 @@ export class Noise implements INoiseConnection {
 
     return {
       conn,
-      remotePeer,
+      remotePeer: handshake.remotePeer
     };
   }
 
@@ -111,26 +111,38 @@ export class Noise implements INoiseConnection {
    */
   private async performHandshake(params: HandshakeParams): Promise<IHandshake> {
     const payload = await getPayload(params.localPeer, this.staticKeys.publicKey, this.earlyData);
-
-    const remoteStaticKey = KeyCache.load(params.remotePeer);
+    let tryIK = this.useNoisePipes;
+    if(params.isInitiator && KeyCache.load(params.remotePeer) === null) {
+      //if we are initiator and remote static key is unknown, don't try IK
+      tryIK = false;
+    }
     // Try IK if acting as responder or initiator that has remote's static key.
-    if (this.useNoisePipes && remoteStaticKey) {
+    if (tryIK) {
       // Try IK first
       const { remotePeer, connection, isInitiator } = params;
-      const ikHandshake = new IKHandshake(isInitiator, payload, this.prologue, this.staticKeys, connection, remotePeer, remoteStaticKey);
+      const ikHandshake = new IKHandshake(
+        isInitiator,
+        payload,
+        this.prologue,
+        this.staticKeys,
+        connection,
+        //safe to cast as we did checks
+        KeyCache.load(params.remotePeer) || Buffer.alloc(32),
+        remotePeer as PeerId,
+      );
 
       try {
         return await this.performIKHandshake(ikHandshake);
       } catch (e) {
         // IK failed, go to XX fallback
         let ephemeralKeys;
-        if (params.isInitiator) {
+        if (!params.isInitiator) {
           ephemeralKeys = ikHandshake.getRemoteEphemeralKeys();
         }
         return await this.performXXFallbackHandshake(params, payload, e.initialMsg, ephemeralKeys);
       }
     } else {
-      // Noise pipes not supported, use XX
+      // run XX handshake
       return await this.performXXHandshake(params, payload);
     }
   }
@@ -143,7 +155,7 @@ export class Noise implements INoiseConnection {
   ): Promise<XXFallbackHandshake> {
     const { isInitiator, remotePeer, connection } = params;
     const handshake =
-      new XXFallbackHandshake(isInitiator, payload, this.prologue, this.staticKeys, connection, remotePeer, initialMsg, ephemeralKeys);
+      new XXFallbackHandshake(isInitiator, payload, this.prologue, this.staticKeys, connection, initialMsg, remotePeer, ephemeralKeys);
 
     try {
       await handshake.propose();

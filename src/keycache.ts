@@ -7,12 +7,16 @@ import PeerId from "peer-id";
 class Keycache {
   private storage = new Map<bytes, bytes32>();
 
-  public store(peerId: PeerId, key: bytes32): void {
+  public store(peerId?: PeerId, key: bytes32): void {
+    if(!peerId) return;
     this.storage.set(peerId.id, key);
   }
 
-  public load(peerId: PeerId): bytes32|undefined {
-    return this.storage.get(peerId.id);
+  public load(peerId?: PeerId): bytes32 | null {
+    if(!peerId) {
+      return null;
+    }
+    return this.storage.get(peerId.id) || null;
   }
 
   public resetStorage(): void {

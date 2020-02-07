@@ -6,6 +6,7 @@ import { bytes, bytes32 } from "./@types/basic";
 import { NoiseSession } from "./@types/handshake";
 import {IHandshake} from "./@types/handshake-interface";
 import {
+  getPeerIdFromPayload,
   verifySignedPayload,
 } from "./utils";
 import { logger } from "./logger";
@@ -16,12 +17,12 @@ import PeerId from "peer-id";
 export class XXHandshake implements IHandshake {
   public isInitiator: boolean;
   public session: NoiseSession;
+  public remotePeer!: PeerId;
 
   protected payload: bytes;
   protected connection: WrappedConnection;
   protected xx: XX;
   protected staticKeypair: KeyPair;
-  protected remotePeer: PeerId;
 
   private prologue: bytes32;
 
@@ -31,7 +32,7 @@ export class XXHandshake implements IHandshake {
     prologue: bytes32,
     staticKeypair: KeyPair,
     connection: WrappedConnection,
-    remotePeer: PeerId,
+    remotePeer?: PeerId,
     handshake?: XX,
   ) {
     this.isInitiator = isInitiator;
@@ -39,8 +40,9 @@ export class XXHandshake implements IHandshake {
     this.prologue = prologue;
     this.staticKeypair = staticKeypair;
     this.connection = connection;
-    this.remotePeer = remotePeer;
-
+    if(remotePeer) {
+      this.remotePeer = remotePeer;
+    }
     this.xx = handshake || new XX();
     this.session = this.xx.initSession(this.isInitiator, this.prologue, this.staticKeypair);
   }
@@ -70,6 +72,7 @@ export class XXHandshake implements IHandshake {
 
       logger("Initiator going to check remote's signature...");
       try {
+        this.remotePeer = await getPeerIdFromPayload(plaintext);
         await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer.id);
       } catch (e) {
         throw new Error(`Error occurred while verifying signed payload: ${e.message}`);
@@ -94,6 +97,7 @@ export class XXHandshake implements IHandshake {
       logger('Stage 2 - Responder waiting for third handshake message...');
       const receivedMessageBuffer = decode1(await this.connection.readLP());
       const plaintext = this.xx.recvMessage(this.session, receivedMessageBuffer);
+      this.remotePeer = await getPeerIdFromPayload(plaintext);
       logger('Stage 2 - Responder received the message, finished handshake. Got remote\'s static key.');
 
       try {

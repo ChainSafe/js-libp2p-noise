@@ -6,7 +6,7 @@ import {KeyPair} from "./@types/libp2p";
 import {IHandshake} from "./@types/handshake-interface";
 import {Buffer} from "buffer";
 import {decode0, decode1, encode0, encode1} from "./encoder";
-import {verifySignedPayload} from "./utils";
+import {getPeerIdFromPayload, verifySignedPayload} from "./utils";
 import {FailedIKError} from "./errors";
 import {logger} from "./logger";
 import PeerId from "peer-id";
@@ -14,12 +14,12 @@ import PeerId from "peer-id";
 export class IKHandshake implements IHandshake {
   public isInitiator: boolean;
   public session: NoiseSession;
+  public remotePeer!: PeerId;
 
   private payload: bytes;
   private prologue: bytes32;
   private staticKeypair: KeyPair;
   private connection: WrappedConnection;
-  private remotePeer: PeerId;
   private ik: IK;
 
   constructor(
@@ -28,8 +28,8 @@ export class IKHandshake implements IHandshake {
     prologue: bytes32,
     staticKeypair: KeyPair,
     connection: WrappedConnection,
-    remotePeer: PeerId,
     remoteStaticKey: bytes,
+    remotePeer?: PeerId,
     handshake?: IK,
   ) {
     this.isInitiator = isInitiator;
@@ -37,8 +37,9 @@ export class IKHandshake implements IHandshake {
     this.prologue = prologue;
     this.staticKeypair = staticKeypair;
     this.connection = connection;
-    this.remotePeer = remotePeer;
-
+    if(remotePeer) {
+      this.remotePeer = remotePeer;
+    }
     this.ik = handshake || new IK();
     this.session = this.ik.initSession(this.isInitiator, this.prologue, this.staticKeypair, remoteStaticKey);
   }
@@ -55,12 +56,13 @@ export class IKHandshake implements IHandshake {
       try {
         const receivedMessageBuffer = decode1(receivedMsg);
         const plaintext = this.ik.recvMessage(this.session, receivedMessageBuffer);
-
+        this.remotePeer = await getPeerIdFromPayload(plaintext);
         logger("IK Stage 0 - Responder got message, going to verify payload.");
         await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer.id);
         logger("IK Stage 0 - Responder successfully verified payload!");
       } catch (e) {
         logger("Responder breaking up with IK handshake in stage 0.");
+
         throw new FailedIKError(receivedMsg, `Error occurred while verifying initiator's signed payload: ${e.message}`);
       }
     }

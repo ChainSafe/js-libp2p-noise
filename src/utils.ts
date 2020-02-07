@@ -63,6 +63,18 @@ export async function signPayload(peerId: PeerId, payload: bytes): Promise<bytes
   return peerId.privKey.sign(payload);
 }
 
+export async function getPeerIdFromPayload(payload: bytes): Promise<PeerId> {
+  const decodedPayload = await decodePayload(payload);
+  return await PeerId.createFromPubKey(Buffer.from(decodedPayload.identityKey));
+}
+
+async function decodePayload(payload: bytes){
+  const NoiseHandshakePayload = await loadPayloadProto();
+  return NoiseHandshakePayload.toObject(
+    NoiseHandshakePayload.decode(payload)
+  );
+}
+
 export const getHandshakePayload = (publicKey: bytes ) => Buffer.concat([Buffer.from("noise-libp2p-static-key:"), publicKey]);
 
 async function isValidPeerId(peerId: bytes, publicKeyProtobuf: bytes) {
