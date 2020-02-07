@@ -1,9 +1,11 @@
 # js-libp2p-noise
 
+![npm](https://img.shields.io/npm/v/@nodefactory/js-libp2p-noise)
+[![Build Status](https://travis-ci.com/NodeFactoryIo/js-libp2p-noise.svg?branch=master)](https://travis-ci.com/NodeFactoryIo/js-libp2p-noise)
+
 [![](https://img.shields.io/badge/project-libp2p-yellow.svg?style=flat-square)](https://libp2p.io/)
 ![](https://img.shields.io/github/issues-raw/nodefactoryio/js-libp2p-noise)
 ![](https://img.shields.io/github/license/nodefactoryio/js-libp2p-noise)
-[![Build Status](https://travis-ci.com/NodeFactoryIo/js-libp2p-noise.svg?branch=master)](https://travis-ci.com/NodeFactoryIo/js-libp2p-noise)
 ![](https://img.shields.io/badge/yarn-%3E%3D1.17.0-orange.svg?style=flat-square)
 ![](https://img.shields.io/badge/Node.js-%3E%3D10.19.0-orange.svg?style=flat-square)
 ![](https://img.shields.io/badge/browsers-last%202%20versions%2C%20not%20ie%20%3C%3D11-orange)
