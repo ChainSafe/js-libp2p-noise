@@ -70,7 +70,12 @@ async function isValidPeerId(peerId: bytes, publicKeyProtobuf: bytes) {
   return generatedPeerId.id.equals(peerId);
 }
 
-export async function decodePayload(payload: bytes){
+export async function getPeerIdFromPayload(payload: bytes) {
+  const decodedPayload = await decodePayload(payload);
+  return await PeerId.createFromPubKey(decodedPayload.identityKey);
+}
+
+async function decodePayload(payload: bytes){
   const NoiseHandshakePayload = await loadPayloadProto();
   return NoiseHandshakePayload.toObject(
     NoiseHandshakePayload.decode(payload)

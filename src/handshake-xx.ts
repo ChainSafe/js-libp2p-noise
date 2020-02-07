@@ -6,7 +6,7 @@ import { bytes, bytes32 } from "./@types/basic";
 import { NoiseSession } from "./@types/handshake";
 import {IHandshake} from "./@types/handshake-interface";
 import {
-  decodePayload,
+  getPeerIdFromPayload,
   verifySignedPayload,
 } from "./utils";
 import { logger } from "./logger";
@@ -74,7 +74,7 @@ export class XXHandshake implements IHandshake {
         if (this.remotePeer) {
           await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer.id);
         } else {
-          this.remotePeer = (await decodePayload(plaintext)).identityKey;
+          this.remotePeer = await getPeerIdFromPayload(plaintext);
         }
       } catch (e) {
         throw new Error(`Error occurred while verifying signed payload: ${e.message}`);
@@ -105,7 +105,7 @@ export class XXHandshake implements IHandshake {
         if (this.remotePeer) {
           await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer.id);
         } else {
-          this.remotePeer = (await decodePayload(plaintext)).identityKey;
+          this.remotePeer = await getPeerIdFromPayload(plaintext);
         }
       } catch (e) {
         throw new Error(`Error occurred while verifying signed payload: ${e.message}`);

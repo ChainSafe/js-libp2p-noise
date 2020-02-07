@@ -6,7 +6,7 @@ import {KeyPair} from "./@types/libp2p";
 import {IHandshake} from "./@types/handshake-interface";
 import {Buffer} from "buffer";
 import {decode0, decode1, encode0, encode1} from "./encoder";
-import {decodePayload, verifySignedPayload} from "./utils";
+import {getPeerIdFromPayload, verifySignedPayload} from "./utils";
 import {FailedIKError} from "./errors";
 import {logger} from "./logger";
 import PeerId from "peer-id";
@@ -61,7 +61,7 @@ export class IKHandshake implements IHandshake {
           if (this.remotePeer) {
             await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer.id);
           } else {
-            this.remotePeer = (await decodePayload(plaintext)).identityKey;
+            this.remotePeer = await getPeerIdFromPayload(plaintext);
           }
           logger("IK Stage 0 - Responder successfully verified payload!");
         }
@@ -84,7 +84,7 @@ export class IKHandshake implements IHandshake {
         if (this.remotePeer) {
           await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer.id);
         } else {
-          this.remotePeer = (await decodePayload(plaintext)).identityKey;
+          this.remotePeer = await getPeerIdFromPayload(plaintext);
         }
         logger("IK Stage 1 - Initiator successfully verified payload!");
       } catch (e) {
