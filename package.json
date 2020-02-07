@@ -1,6 +1,6 @@
 {
   "name": "js-libp2p-noise",
-  "version": "1.0.0",
+  "version": "1.0.0-beta",
   "main": "dist/index.js",
   "module": "lib/index.js",
   "files": [

@@ -17,9 +17,12 @@ This repository contains TypeScript implementation of noise protocol, an encrypt
 
 When published, package should be imported as: `import { Noise } from 'libp2p-noise'`.
 
-Example of instantiating noise and passing it to the libp2p config:
+Example of using default noise configuration and passing it to the libp2p config:
 ```
-const NOISE = new Noise(privateKey);
+import {NOISE, Noise} from "@nodefactory/js-libp2p-noise"
+
+//custom noise configuration, pass it instead of NOISE object
+const noise = new Noise(privateKey, Buffer.alloc(), false);
 
 const libp2p = new Libp2p({
    modules: {

@@ -39,9 +39,9 @@ export class Noise implements INoiseConnection {
 
   /**
    *
-   * @param staticNoiseKey
+   * @param staticNoiseKey x25519 private key, reuse for faster handshakes
    * @param earlyData
-   * @param useNoisePipes
+   * @param useNoisePipes enable IK handshake if initiator static key is known
    */
   constructor(staticNoiseKey?: bytes, earlyData?: bytes, useNoisePipes = true) {
     this.earlyData = earlyData || Buffer.alloc(0);
