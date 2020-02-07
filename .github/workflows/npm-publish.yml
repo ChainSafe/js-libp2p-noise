@@ -14,6 +14,8 @@ jobs:
         uses: actions/setup-node@master
         with:
           node-version: 12.4.0
+      - name: Build library
+          run: yarn install --frozen-lockfile && yarn run build
       - name: Publish if version has been updated
         uses: pascalgn/npm-publish-action@51fdb4531e99aac1873764ef7271af448dc42ab4
         with: # All of theses inputs are optional

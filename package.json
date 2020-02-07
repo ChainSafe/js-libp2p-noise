@@ -1,7 +1,8 @@
 {
   "name": "libp2p-noise",
-  "version": "1.0.0-rc1",
+  "version": "1.0.0-rc2",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "module": "lib/index.js",
   "files": [
     "dist",
@@ -18,9 +19,10 @@
   ],
   "scripts": {
     "prebuild": "rm -rf lib && rm -rf dist",
-    "build": "yarn run build:node && yarn run build:web",
+    "build": "yarn run build:node && yarn run build:web && yarn run build:types",
     "build:node": "babel --config-file ./babel.config.json src -x .ts -d dist --source-maps",
     "build:web": "babel --config-file ./babel.web.config.json src -x .ts -d lib --source-maps",
+    "build:types": "tsc --declaration --outDir dist --emitDeclarationOnly",
     "check-types": "tsc --incremental --noEmit",
     "lint": "eslint --ext .ts src/",
     "pretest": "yarn check-types",
