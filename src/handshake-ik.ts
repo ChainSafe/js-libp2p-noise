@@ -2,13 +2,14 @@ import {WrappedConnection} from "./noise";
 import {IK} from "./handshakes/ik";
 import {NoiseSession} from "./@types/handshake";
 import {bytes, bytes32} from "./@types/basic";
-import {KeyPair, PeerId} from "./@types/libp2p";
+import {KeyPair} from "./@types/libp2p";
 import {IHandshake} from "./@types/handshake-interface";
 import {Buffer} from "buffer";
 import {decode0, decode1, encode0, encode1} from "./encoder";
 import {verifySignedPayload} from "./utils";
 import {FailedIKError} from "./errors";
 import {logger} from "./logger";
+import PeerId from "peer-id";
 
 export class IKHandshake implements IHandshake {
   public isInitiator: boolean;

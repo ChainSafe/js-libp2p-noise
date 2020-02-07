@@ -1,15 +1,13 @@
-import { Buffer } from "buffer";
-
-import { XXHandshake } from "./handshake-xx";
-import { XX } from "./handshakes/xx";
-import { KeyPair, PeerId } from "./@types/libp2p";
-import { bytes, bytes32 } from "./@types/basic";
-import {
-  verifySignedPayload,
-} from "./utils";
-import { logger } from "./logger";
-import { WrappedConnection } from "./noise";
-import {decode0, decode1, encode1} from "./encoder";
+import {Buffer} from "buffer";
+import {XXHandshake} from "./handshake-xx";
+import {XX} from "./handshakes/xx";
+import {KeyPair} from "./@types/libp2p";
+import {bytes, bytes32} from "./@types/basic";
+import {verifySignedPayload,} from "./utils";
+import {logger} from "./logger";
+import {WrappedConnection} from "./noise";
+import {decode0, decode1} from "./encoder";
+import PeerId from "peer-id";
 
 export class XXFallbackHandshake extends XXHandshake {
   private ephemeralKeys?: KeyPair;

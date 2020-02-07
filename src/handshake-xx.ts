@@ -1,7 +1,7 @@
 import { Buffer } from "buffer";
 
 import { XX } from "./handshakes/xx";
-import { KeyPair, PeerId } from "./@types/libp2p";
+import { KeyPair } from "./@types/libp2p";
 import { bytes, bytes32 } from "./@types/basic";
 import { NoiseSession } from "./@types/handshake";
 import {IHandshake} from "./@types/handshake-interface";
@@ -11,6 +11,7 @@ import {
 import { logger } from "./logger";
 import { decode0, decode1, encode0, encode1 } from "./encoder";
 import { WrappedConnection } from "./noise";
+import PeerId from "peer-id";
 
 export class XXHandshake implements IHandshake {
   public isInitiator: boolean;

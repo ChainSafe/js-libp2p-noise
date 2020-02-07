@@ -13,11 +13,12 @@ import { generateKeypair, getPayload } from "./utils";
 import { uint16BEDecode, uint16BEEncode } from "./encoder";
 import { decryptStream, encryptStream } from "./crypto";
 import { bytes } from "./@types/basic";
-import { INoiseConnection, PeerId, KeyPair, SecureOutbound } from "./@types/libp2p";
+import { INoiseConnection, KeyPair, SecureOutbound } from "./@types/libp2p";
 import { Duplex } from "./@types/it-pair";
 import {IHandshake} from "./@types/handshake-interface";
 import {KeyCache} from "./keycache";
 import {logger} from "./logger";
+import PeerId from "peer-id";
 
 export type WrappedConnection = ReturnType<typeof Wrap>;
 
@@ -36,12 +37,18 @@ export class Noise implements INoiseConnection {
   private readonly earlyData?: bytes;
   private useNoisePipes: boolean;
 
+  /**
+   *
+   * @param staticNoiseKey
+   * @param earlyData
+   * @param useNoisePipes
+   */
   constructor(staticNoiseKey?: bytes, earlyData?: bytes, useNoisePipes = true) {
     this.earlyData = earlyData || Buffer.alloc(0);
     this.useNoisePipes = useNoisePipes;
 
     if (staticNoiseKey) {
-      const publicKey = x25519.publicKeyCreate(staticNoiseKey); // TODO: verify this
+      const publicKey = x25519.publicKeyCreate(staticNoiseKey);
       this.staticKeys = {
         privateKey: staticNoiseKey,
         publicKey,
@@ -100,10 +107,7 @@ export class Noise implements INoiseConnection {
   /**
    * If Noise pipes supported, tries IK handshake first with XX as fallback if it fails.
    * If noise pipes disabled or remote peer static key is unknown, use XX.
-   * @param connection
-   * @param isInitiator
-   * @param libp2pPublicKey
-   * @param remotePeer
+   * @param params
    */
   private async performHandshake(params: HandshakeParams): Promise<IHandshake> {
     const payload = await getPayload(params.localPeer, this.staticKeys.publicKey, this.earlyData);
