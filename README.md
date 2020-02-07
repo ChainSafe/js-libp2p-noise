@@ -1,6 +1,6 @@
 # js-libp2p-noise
 
-![npm](https://img.shields.io/npm/v/@nodefactory/js-libp2p-noise)
+![npm](https://img.shields.io/npm/v/libp2p-noise)
 [![Build Status](https://travis-ci.com/NodeFactoryIo/js-libp2p-noise.svg?branch=master)](https://travis-ci.com/NodeFactoryIo/js-libp2p-noise)
 
 [![](https://img.shields.io/badge/project-libp2p-yellow.svg?style=flat-square)](https://libp2p.io/)
@@ -21,7 +21,7 @@ When published, package should be imported as: `import { Noise } from 'libp2p-no
 
 Example of using default noise configuration and passing it to the libp2p config:
 ```
-import {NOISE, Noise} from "@nodefactory/js-libp2p-noise"
+import {NOISE, Noise} from "libp2p-noise"
 
 //custom noise configuration, pass it instead of NOISE object
 const noise = new Noise(privateKey, Buffer.alloc(), false);
