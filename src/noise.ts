@@ -26,7 +26,7 @@ type HandshakeParams = {
   connection: WrappedConnection;
   isInitiator: boolean;
   localPeer: PeerId;
-  remotePeer: PeerId;
+  remotePeer?: PeerId;
 };
 
 export class Noise implements INoiseConnection {
@@ -65,7 +65,7 @@ export class Noise implements INoiseConnection {
    * @param {PeerId} remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer.
    * @returns {Promise<SecureOutbound>}
    */
-  public async secureOutbound(localPeer: PeerId, connection: any, remotePeer: PeerId): Promise<SecureOutbound> {
+  public async secureOutbound(localPeer: PeerId, connection: any, remotePeer?: PeerId): Promise<SecureOutbound> {
     const wrappedConnection = Wrap(connection);
     const handshake = await this.performHandshake({
       connection: wrappedConnection,
@@ -77,7 +77,7 @@ export class Noise implements INoiseConnection {
 
     return {
       conn,
-      remotePeer: remotePeer || handshake.remotePeer,
+      remotePeer: handshake.remotePeer,
     }
   }
 
@@ -100,7 +100,7 @@ export class Noise implements INoiseConnection {
 
     return {
       conn,
-      remotePeer: remotePeer || handshake.remotePeer,
+      remotePeer: handshake.remotePeer,
     };
   }
 
@@ -170,8 +170,9 @@ export class Noise implements INoiseConnection {
       await handshake.finish();
 
       if (this.useNoisePipes) {
-        const peerId = remotePeer || handshake.remotePeer;
-        KeyCache.store(peerId, handshake.getRemoteStaticKey());
+        if (handshake.remotePeer) {
+          KeyCache.store(handshake.remotePeer, handshake.getRemoteStaticKey());
+        }
       }
     } catch (e) {
       throw new Error(`Error occurred during XX handshake: ${e.message}`);

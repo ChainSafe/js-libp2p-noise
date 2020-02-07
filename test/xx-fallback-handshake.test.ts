@@ -39,7 +39,7 @@ describe("XX Fallback Handshake", () => {
 
       const respPayload = await getPayload(peerB, staticKeysResponder.publicKey);
       const handshakeResp =
-        new XXFallbackHandshake(false, respPayload, prologue, staticKeysResponder, connectionTo, peerA, initialMsgR);
+        new XXFallbackHandshake(false, respPayload, prologue, staticKeysResponder, connectionTo, initialMsgR, peerA);
 
       await handshakeResp.propose();
       await handshakeResp.exchange();
@@ -48,7 +48,7 @@ describe("XX Fallback Handshake", () => {
       // This is the point where initiator falls back from IK
       const initialMsgI = await connectionFrom.readLP();
       const handshakeInit =
-        new XXFallbackHandshake(true, handshakePayload, prologue, staticKeysInitiator, connectionFrom, peerB, initialMsgI, ephemeralKeys);
+        new XXFallbackHandshake(true, handshakePayload, prologue, staticKeysInitiator, connectionFrom, initialMsgI, peerB, ephemeralKeys);
 
       await handshakeInit.propose();
       await handshakeInit.exchange();

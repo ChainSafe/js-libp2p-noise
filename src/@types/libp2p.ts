@@ -9,12 +9,12 @@ export type KeyPair = {
 
 export interface INoiseConnection {
   remoteEarlyData?(): bytes;
-  secureOutbound(localPeer: PeerId, insecure: any, remotePeer: PeerId): Promise<SecureOutbound>;
-  secureInbound(localPeer: PeerId, insecure: any, remotePeer: PeerId): Promise<SecureOutbound>;
+  secureOutbound(localPeer: PeerId, insecure: any, remotePeer?: PeerId): Promise<SecureOutbound>;
+  secureInbound(localPeer: PeerId, insecure: any, remotePeer?: PeerId): Promise<SecureOutbound>;
 }
 
 export type SecureOutbound = {
   conn: Duplex;
-  remotePeer: PeerId;
+  remotePeer?: PeerId;
 }
 
