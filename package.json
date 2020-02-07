@@ -2,6 +2,12 @@
   "name": "js-libp2p-noise",
   "version": "1.0.0",
   "main": "dist/index.js",
+  "module": "lib/index.js",
+  "files": [
+    "dist",
+    "lib",
+    "src"
+  ],
   "repository": "git@github.com:NodeFactoryIo/js-libp2p-noise.git",
   "author": "NodeFactory <info@nodefactory.io>",
   "license": "MIT",
@@ -11,8 +17,10 @@
     "crypto"
   ],
   "scripts": {
-    "prebuild": "rm -rf lib",
-    "build": "babel src -x .ts -d lib --source-maps",
+    "prebuild": "rm -rf lib && rm -rf dist",
+    "build": "yarn run build:node && yarn run build:web",
+    "build:node": "babel --config-file ./babel.config.json src -x .ts -d dist --source-maps",
+    "build:web": "babel --config-file ./babel.web.config.json src -x .ts -d lib --source-maps",
     "check-types": "tsc --incremental --noEmit",
     "lint": "eslint --ext .ts src/",
     "pretest": "yarn check-types",
@@ -20,27 +28,12 @@
     "test:node": "mocha -r ./babel-register.js \"test/**/*.test.ts\"",
     "test:web": "karma start"
   },
-  "babel": {
-    "presets": [
-      [
-        "@babel/preset-env",
-        {
-          "targets": {
-            "node": "12"
-          }
-        }
-      ],
-      "@babel/preset-typescript"
-    ],
-    "plugins": [
-      "@babel/plugin-proposal-object-rest-spread",
-      "@babel/plugin-proposal-async-generator-functions"
-    ]
-  },
   "devDependencies": {
     "@babel/cli": "^7.6.4",
     "@babel/core": "^7.6.4",
     "@babel/plugin-proposal-async-generator-functions": "^7.7.0",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/plugin-proposal-export-default-from": "^7.8.3",
     "@babel/plugin-proposal-object-rest-spread": "^7.6.2",
     "@babel/preset-env": "^7.6.3",
     "@babel/preset-typescript": "^7.6.0",
