@@ -70,13 +70,17 @@ async function isValidPeerId(peerId: bytes, publicKeyProtobuf: bytes) {
   return generatedPeerId.id.equals(peerId);
 }
 
+export async function decodePayload(payload: bytes){
+  const NoiseHandshakePayload = await loadPayloadProto();
+  return NoiseHandshakePayload.toObject(
+    NoiseHandshakePayload.decode(payload)
+  );
+}
+
 export async function verifySignedPayload(noiseStaticKey: bytes, plaintext: bytes, peerId: bytes) {
   let receivedPayload;
   try {
-    const NoiseHandshakePayload = await loadPayloadProto();
-    receivedPayload = NoiseHandshakePayload.toObject(
-      NoiseHandshakePayload.decode(plaintext)
-    );
+    receivedPayload = await decodePayload(plaintext);
     //temporary fix until protobufsjs conversion options starts working
     //by default it ends up as Uint8Array
     receivedPayload.identityKey = Buffer.from(receivedPayload.identityKey);
