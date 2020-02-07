@@ -72,7 +72,7 @@ async function isValidPeerId(peerId: bytes, publicKeyProtobuf: bytes) {
 
 export async function getPeerIdFromPayload(payload: bytes) {
   const decodedPayload = await decodePayload(payload);
-  return await PeerId.createFromPubKey(decodedPayload.identityKey);
+  return await PeerId.createFromPubKey(Buffer.from(decodedPayload.identityKey));
 }
 
 async function decodePayload(payload: bytes){
