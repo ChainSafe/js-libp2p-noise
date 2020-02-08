@@ -270,12 +270,13 @@ describe("Noise", () => {
       const staticKeysResponder = generateKeypair();
 
       const noiseResp = new Noise(staticKeysResponder.privateKey);
+      const ikInitSpy = sandbox.spy(noiseInit, "performIKHandshake");
       const xxFallbackInitSpy = sandbox.spy(noiseInit, "performXXFallbackHandshake");
       const xxRespSpy = sandbox.spy(noiseResp, "performXXHandshake");
 
       // Prepare key cache for noise pipes
       KeyCache.resetStorage();
-      KeyCache.store(localPeer, staticKeysResponder.publicKey);
+      KeyCache.store(remotePeer, staticKeysResponder.publicKey);
 
       const [inboundConnection, outboundConnection] = DuplexPair();
 
@@ -291,6 +292,7 @@ describe("Noise", () => {
       const response = await wrappedInbound.readLP();
       expect(response.toString()).equal("test fallback");
 
+      assert(ikInitSpy.calledOnce, "IK handshake was not called.");
       assert(xxFallbackInitSpy.calledOnce, "XX Fallback method was not called.");
       assert(xxRespSpy.calledOnce, "XX method was not called.");
     } catch (e) {

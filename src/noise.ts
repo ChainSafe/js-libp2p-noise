@@ -181,8 +181,8 @@ export class Noise implements INoiseConnection {
       await handshake.exchange();
       await handshake.finish();
 
-      if (this.useNoisePipes && remotePeer) {
-        KeyCache.store(remotePeer, handshake.getRemoteStaticKey());
+      if (this.useNoisePipes && handshake.remotePeer) {
+        KeyCache.store(handshake.remotePeer, handshake.getRemoteStaticKey());
       }
     } catch (e) {
       throw new Error(`Error occurred during XX handshake: ${e.message}`);
