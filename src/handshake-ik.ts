@@ -101,7 +101,7 @@ export class IKHandshake implements IHandshake {
     return this.ik.encryptWithAd(cs, Buffer.alloc(0), plaintext);
   }
 
-  public getRemoteEphemeralKeys(): KeyPair {
+  public getLocalEphemeralKeys(): KeyPair {
     if (!this.session.hs.e) {
       throw new Error("Ephemeral keys do not exist.");
     }

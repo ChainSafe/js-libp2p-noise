@@ -136,8 +136,8 @@ export class Noise implements INoiseConnection {
       } catch (e) {
         // IK failed, go to XX fallback
         let ephemeralKeys;
-        if (!params.isInitiator) {
-          ephemeralKeys = ikHandshake.getRemoteEphemeralKeys();
+        if (params.isInitiator) {
+          ephemeralKeys = ikHandshake.getLocalEphemeralKeys();
         }
         return await this.performXXFallbackHandshake(params, payload, e.initialMsg, ephemeralKeys);
       }
