@@ -263,7 +263,7 @@ describe("Noise", () => {
     }
   });
 
-  it("IK -> XX Fallback: responder has no remote static key", async() => {
+  it("IK: responder has no remote static key", async() => {
     try {
       const staticKeysInitiator = generateKeypair();
       const noiseInit = new Noise(staticKeysInitiator.privateKey);
@@ -272,7 +272,7 @@ describe("Noise", () => {
       const noiseResp = new Noise(staticKeysResponder.privateKey);
       const ikInitSpy = sandbox.spy(noiseInit, "performIKHandshake");
       const xxFallbackInitSpy = sandbox.spy(noiseInit, "performXXFallbackHandshake");
-      const xxRespSpy = sandbox.spy(noiseResp, "performXXHandshake");
+      const ikRespSpy = sandbox.spy(noiseResp, "performIKHandshake");
 
       // Prepare key cache for noise pipes
       KeyCache.resetStorage();
@@ -293,8 +293,8 @@ describe("Noise", () => {
       expect(response.toString()).equal("test fallback");
 
       assert(ikInitSpy.calledOnce, "IK handshake was not called.");
-      assert(xxFallbackInitSpy.calledOnce, "XX Fallback method was not called.");
-      assert(xxRespSpy.calledOnce, "XX method was not called.");
+      assert(ikRespSpy.calledOnce, "IK handshake was not called.");
+      assert(xxFallbackInitSpy.notCalled, "XX Fallback method was called.");
     } catch (e) {
       console.error(e);
       assert(false, e.message);
