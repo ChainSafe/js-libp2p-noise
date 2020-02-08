@@ -72,8 +72,7 @@ export class XXHandshake implements IHandshake {
 
       logger("Initiator going to check remote's signature...");
       try {
-        this.remotePeer = await getPeerIdFromPayload(plaintext);
-        await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer.id);
+        this.remotePeer = await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer);
       } catch (e) {
         throw new Error(`Error occurred while verifying signed payload: ${e.message}`);
       }
@@ -97,11 +96,10 @@ export class XXHandshake implements IHandshake {
       logger('Stage 2 - Responder waiting for third handshake message...');
       const receivedMessageBuffer = decode1(await this.connection.readLP());
       const plaintext = this.xx.recvMessage(this.session, receivedMessageBuffer);
-      this.remotePeer = await getPeerIdFromPayload(plaintext);
       logger('Stage 2 - Responder received the message, finished handshake. Got remote\'s static key.');
 
       try {
-        await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer.id);
+        this.remotePeer = await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer);
       } catch (e) {
         throw new Error(`Error occurred while verifying signed payload: ${e.message}`);
       }

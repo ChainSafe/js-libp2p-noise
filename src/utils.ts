@@ -82,7 +82,18 @@ async function isValidPeerId(peerId: bytes, publicKeyProtobuf: bytes) {
   return generatedPeerId.id.equals(peerId);
 }
 
-export async function verifySignedPayload(noiseStaticKey: bytes, plaintext: bytes, peerId: bytes) {
+/**
+ * Verifies signed payload and returns peer id that has sent the payload.
+ * @param {bytes} noiseStaticKey - owner's noise static key
+ * @param {bytes} plaintext - encoded payload
+ * @param {PeerId} remotePeer - (optional) owner's libp2p peer ID
+ * @returns {Promise<PeerId>} - peer ID of payload owner
+ */
+export async function verifySignedPayload(
+  noiseStaticKey: bytes,
+  plaintext: bytes,
+  remotePeer?: PeerId
+): Promise<PeerId> {
   let receivedPayload;
   try {
     const NoiseHandshakePayload = await loadPayloadProto();
@@ -97,7 +108,9 @@ export async function verifySignedPayload(noiseStaticKey: bytes, plaintext: byte
     throw new Error("Failed to decode received payload. Reason: " + e.message);
   }
 
-  if (!(await isValidPeerId(peerId, receivedPayload.identityKey)) ) {
+  remotePeer = remotePeer || await getPeerIdFromPayload(plaintext);
+
+  if (!(await isValidPeerId(remotePeer.id, receivedPayload.identityKey)) ) {
     throw new Error("Peer ID doesn't match libp2p public key.");
   }
 
@@ -108,6 +121,8 @@ export async function verifySignedPayload(noiseStaticKey: bytes, plaintext: byte
   if (!publicKey.verify(generatedPayload, receivedPayload.identitySig)) {
     throw new Error("Static key doesn't match to peer that signed payload!");
   }
+
+  return remotePeer;
 }
 
 export function getHkdf(ck: bytes32, ikm: bytes): Hkdf {

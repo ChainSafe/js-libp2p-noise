@@ -57,8 +57,7 @@ export class XXFallbackHandshake extends XXHandshake {
 
       logger("Initiator going to check remote's signature...");
       try {
-        this.remotePeer = await getPeerIdFromPayload(plaintext);
-        await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer.id);
+        this.remotePeer = await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer);
       } catch (e) {
         throw new Error(`Error occurred while verifying signed payload from responder: ${e.message}`);
       }

@@ -56,9 +56,8 @@ export class IKHandshake implements IHandshake {
       try {
         const receivedMessageBuffer = decode1(receivedMsg);
         const plaintext = this.ik.recvMessage(this.session, receivedMessageBuffer);
-        this.remotePeer = await getPeerIdFromPayload(plaintext);
         logger("IK Stage 0 - Responder got message, going to verify payload.");
-        await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer.id);
+        this.remotePeer = await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer);
         logger("IK Stage 0 - Responder successfully verified payload!");
       } catch (e) {
         logger("Responder breaking up with IK handshake in stage 0.");
@@ -77,7 +76,7 @@ export class IKHandshake implements IHandshake {
       logger("IK Stage 1 - Initiator got message, going to verify payload.");
 
       try {
-        await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer.id);
+        await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer);
         logger("IK Stage 1 - Initiator successfully verified payload!");
       } catch (e) {
         logger("Initiator breaking up with IK handshake in stage 1.");
