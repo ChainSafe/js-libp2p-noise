@@ -5,7 +5,7 @@ import PeerId from "peer-id";
 import * as crypto from 'libp2p-crypto';
 import { KeyPair } from "./@types/libp2p";
 import {bytes, bytes32} from "./@types/basic";
-import {Hkdf} from "./@types/handshake";
+import {Hkdf, INoisePayload} from "./@types/handshake";
 import payloadProto from "./proto/payload.json";
 
 export async function loadPayloadProto () {
@@ -68,11 +68,11 @@ export async function getPeerIdFromPayload(payload: bytes): Promise<PeerId> {
   return await PeerId.createFromPubKey(Buffer.from(decodedPayload.identityKey));
 }
 
-async function decodePayload(payload: bytes){
+async function decodePayload(payload: bytes): Promise<INoisePayload> {
   const NoiseHandshakePayload = await loadPayloadProto();
   return NoiseHandshakePayload.toObject(
     NoiseHandshakePayload.decode(payload)
-  );
+  ) as INoisePayload;
 }
 
 export const getHandshakePayload = (publicKey: bytes ) => Buffer.concat([Buffer.from("noise-libp2p-static-key:"), publicKey]);
