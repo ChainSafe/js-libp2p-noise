@@ -6,7 +6,7 @@ import {KeyPair} from "./@types/libp2p";
 import {IHandshake} from "./@types/handshake-interface";
 import {Buffer} from "buffer";
 import {decode0, decode1, encode0, encode1} from "./encoder";
-import {getPeerIdFromPayload, verifySignedPayload} from "./utils";
+import {decodePayload, getPeerIdFromPayload, verifySignedPayload} from "./utils";
 import {FailedIKError} from "./errors";
 import {logger} from "./logger";
 import PeerId from "peer-id";
@@ -57,7 +57,9 @@ export class IKHandshake implements IHandshake {
         const receivedMessageBuffer = decode1(receivedMsg);
         const plaintext = this.ik.recvMessage(this.session, receivedMessageBuffer);
         logger("IK Stage 0 - Responder got message, going to verify payload.");
-        this.remotePeer = await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer);
+        const decodedPayload = await decodePayload(plaintext);
+        this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload);
+        await verifySignedPayload(receivedMessageBuffer.ns, decodedPayload, this.remotePeer);
         logger("IK Stage 0 - Responder successfully verified payload!");
       } catch (e) {
         logger("Responder breaking up with IK handshake in stage 0.");
@@ -76,7 +78,9 @@ export class IKHandshake implements IHandshake {
       logger("IK Stage 1 - Initiator got message, going to verify payload.");
 
       try {
-        await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer);
+        const decodedPayload = await decodePayload(plaintext);
+        this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload);
+        await verifySignedPayload(receivedMessageBuffer.ns, decodedPayload, this.remotePeer);
         logger("IK Stage 1 - Initiator successfully verified payload!");
       } catch (e) {
         logger("Initiator breaking up with IK handshake in stage 1.");

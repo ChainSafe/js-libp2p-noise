@@ -3,7 +3,7 @@ import {XXHandshake} from "./handshake-xx";
 import {XX} from "./handshakes/xx";
 import {KeyPair} from "./@types/libp2p";
 import {bytes, bytes32} from "./@types/basic";
-import {getPeerIdFromPayload, verifySignedPayload,} from "./utils";
+import {decodePayload, getPeerIdFromPayload, verifySignedPayload,} from "./utils";
 import {logger} from "./logger";
 import {WrappedConnection} from "./noise";
 import {decode0, decode1} from "./encoder";
@@ -57,14 +57,16 @@ export class XXFallbackHandshake extends XXHandshake {
 
       logger("Initiator going to check remote's signature...");
       try {
-        this.remotePeer = await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer);
+        const decodedPayload = await decodePayload(plaintext);
+        this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload);
+        await verifySignedPayload(receivedMessageBuffer.ns, decodedPayload, this.remotePeer);
       } catch (e) {
         throw new Error(`Error occurred while verifying signed payload from responder: ${e.message}`);
       }
       logger("All good with the signature!");
     } else {
       logger("XX Fallback Stage 1 - Responder start");
-      super.exchange();
+      await super.exchange();
       logger("XX Fallback Stage 1 - Responder end");
     }
   }

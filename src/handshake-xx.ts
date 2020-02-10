@@ -6,6 +6,7 @@ import { bytes, bytes32 } from "./@types/basic";
 import { NoiseSession } from "./@types/handshake";
 import {IHandshake} from "./@types/handshake-interface";
 import {
+  decodePayload,
   getPeerIdFromPayload,
   verifySignedPayload,
 } from "./utils";
@@ -72,7 +73,9 @@ export class XXHandshake implements IHandshake {
 
       logger("Initiator going to check remote's signature...");
       try {
-        this.remotePeer = await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer);
+        const decodedPayload = await decodePayload(plaintext);
+        this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload);
+        this.remotePeer = await verifySignedPayload(receivedMessageBuffer.ns, decodedPayload, this.remotePeer);
       } catch (e) {
         throw new Error(`Error occurred while verifying signed payload: ${e.message}`);
       }
@@ -99,7 +102,9 @@ export class XXHandshake implements IHandshake {
       logger('Stage 2 - Responder received the message, finished handshake. Got remote\'s static key.');
 
       try {
-        this.remotePeer = await verifySignedPayload(receivedMessageBuffer.ns, plaintext, this.remotePeer);
+        const decodedPayload = await decodePayload(plaintext);
+        this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload);
+        await verifySignedPayload(receivedMessageBuffer.ns, decodedPayload, this.remotePeer);
       } catch (e) {
         throw new Error(`Error occurred while verifying signed payload: ${e.message}`);
       }
