@@ -11,8 +11,11 @@ class Keycache {
     this.storage.set(peerId.id, key);
   }
 
-  public load(peerId: PeerId): bytes32|undefined {
-    return this.storage.get(peerId.id);
+  public load(peerId?: PeerId): bytes32 | null {
+    if(!peerId) {
+      return null;
+    }
+    return this.storage.get(peerId.id) || null;
   }
 
   public resetStorage(): void {

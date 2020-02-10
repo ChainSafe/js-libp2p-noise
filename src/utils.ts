@@ -5,10 +5,10 @@ import PeerId from "peer-id";
 import * as crypto from 'libp2p-crypto';
 import { KeyPair } from "./@types/libp2p";
 import {bytes, bytes32} from "./@types/basic";
-import {Hkdf} from "./@types/handshake";
+import {Hkdf, INoisePayload} from "./@types/handshake";
 import payloadProto from "./proto/payload.json";
 
-export async function loadPayloadProto () {
+async function loadPayloadProto () {
   const payloadProtoBuf = await protobuf.Root.fromJSON(payloadProto);
   return payloadProtoBuf.lookupType("NoiseHandshakePayload");
 }
@@ -63,6 +63,17 @@ export async function signPayload(peerId: PeerId, payload: bytes): Promise<bytes
   return peerId.privKey.sign(payload);
 }
 
+export async function getPeerIdFromPayload(payload: INoisePayload): Promise<PeerId> {
+  return await PeerId.createFromPubKey(Buffer.from(payload.identityKey));
+}
+
+export async function decodePayload(payload: bytes): Promise<INoisePayload> {
+  const NoiseHandshakePayload = await loadPayloadProto();
+  return NoiseHandshakePayload.toObject(
+    NoiseHandshakePayload.decode(payload)
+  ) as INoisePayload;
+}
+
 export const getHandshakePayload = (publicKey: bytes ) => Buffer.concat([Buffer.from("noise-libp2p-static-key:"), publicKey]);
 
 async function isValidPeerId(peerId: bytes, publicKeyProtobuf: bytes) {
@@ -70,32 +81,40 @@ async function isValidPeerId(peerId: bytes, publicKeyProtobuf: bytes) {
   return generatedPeerId.id.equals(peerId);
 }
 
-export async function verifySignedPayload(noiseStaticKey: bytes, plaintext: bytes, peerId: bytes) {
-  let receivedPayload;
+/**
+ * Verifies signed payload, throws on any irregularities.
+ * @param {bytes} noiseStaticKey - owner's noise static key
+ * @param {bytes} payload - decoded payload
+ * @param {PeerId} remotePeer - owner's libp2p peer ID
+ * @returns {Promise<PeerId>} - peer ID of payload owner
+ */
+export async function verifySignedPayload(
+  noiseStaticKey: bytes,
+  payload: INoisePayload,
+  remotePeer: PeerId
+): Promise<PeerId> {
   try {
-    const NoiseHandshakePayload = await loadPayloadProto();
-    receivedPayload = NoiseHandshakePayload.toObject(
-      NoiseHandshakePayload.decode(plaintext)
-    );
     //temporary fix until protobufsjs conversion options starts working
     //by default it ends up as Uint8Array
-    receivedPayload.identityKey = Buffer.from(receivedPayload.identityKey);
-    receivedPayload.identitySig = Buffer.from(receivedPayload.identitySig);
+    payload.identityKey = Buffer.from(payload.identityKey);
+    payload.identitySig = Buffer.from(payload.identitySig);
   } catch (e) {
     throw new Error("Failed to decode received payload. Reason: " + e.message);
   }
 
-  if (!(await isValidPeerId(peerId, receivedPayload.identityKey)) ) {
+  if (!(await isValidPeerId(remotePeer.id, payload.identityKey)) ) {
     throw new Error("Peer ID doesn't match libp2p public key.");
   }
 
   const generatedPayload = getHandshakePayload(noiseStaticKey);
 
   // Unmarshaling from PublicKey protobuf
-  const publicKey = crypto.keys.unmarshalPublicKey(receivedPayload.identityKey);
-  if (!publicKey.verify(generatedPayload, receivedPayload.identitySig)) {
+  const publicKey = crypto.keys.unmarshalPublicKey(payload.identityKey);
+  if (!publicKey.verify(generatedPayload, payload.identitySig)) {
     throw new Error("Static key doesn't match to peer that signed payload!");
   }
+
+  return remotePeer;
 }
 
 export function getHkdf(ck: bytes32, ikm: bytes): Hkdf {

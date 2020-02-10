@@ -263,15 +263,16 @@ describe("Noise", () => {
     }
   });
 
-  it("IK -> XX Fallback: responder has no remote static key", async() => {
+  it("IK: responder has no remote static key", async() => {
     try {
       const staticKeysInitiator = generateKeypair();
       const noiseInit = new Noise(staticKeysInitiator.privateKey);
       const staticKeysResponder = generateKeypair();
 
       const noiseResp = new Noise(staticKeysResponder.privateKey);
+      const ikInitSpy = sandbox.spy(noiseInit, "performIKHandshake");
       const xxFallbackInitSpy = sandbox.spy(noiseInit, "performXXFallbackHandshake");
-      const xxRespSpy = sandbox.spy(noiseResp, "performXXHandshake");
+      const ikRespSpy = sandbox.spy(noiseResp, "performIKHandshake");
 
       // Prepare key cache for noise pipes
       KeyCache.resetStorage();
@@ -291,8 +292,40 @@ describe("Noise", () => {
       const response = await wrappedInbound.readLP();
       expect(response.toString()).equal("test fallback");
 
-      assert(xxFallbackInitSpy.calledOnce, "XX Fallback method was not called.");
-      assert(xxRespSpy.calledOnce, "XX method was not called.");
+      assert(ikInitSpy.calledOnce, "IK handshake was not called.");
+      assert(ikRespSpy.calledOnce, "IK handshake was not called.");
+      assert(xxFallbackInitSpy.notCalled, "XX Fallback method was called.");
+    } catch (e) {
+      console.error(e);
+      assert(false, e.message);
+    }
+  });
+
+  it("should working without remote peer provided in incoming connection", async() => {
+    try {
+      const staticKeysInitiator = generateKeypair();
+      const noiseInit = new Noise(staticKeysInitiator.privateKey);
+      const staticKeysResponder = generateKeypair();
+      const noiseResp = new Noise(staticKeysResponder.privateKey);
+
+      // Prepare key cache for noise pipes
+      KeyCache.store(localPeer, staticKeysInitiator.publicKey);
+      KeyCache.store(remotePeer, staticKeysResponder.publicKey);
+
+      const [inboundConnection, outboundConnection] = DuplexPair();
+      const [outbound, inbound] = await Promise.all([
+        noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
+        noiseResp.secureInbound(remotePeer, inboundConnection),
+      ]);
+      const wrappedInbound = Wrap(inbound.conn);
+      const wrappedOutbound = Wrap(outbound.conn);
+
+      wrappedOutbound.writeLP(Buffer.from("test v2"));
+      const response = await wrappedInbound.readLP();
+      expect(response.toString()).equal("test v2");
+
+      assert(inbound.remotePeer.marshalPubKey().equals(localPeer.marshalPubKey()));
+      assert(outbound.remotePeer.marshalPubKey().equals(remotePeer.marshalPubKey()));
     } catch (e) {
       console.error(e);
       assert(false, e.message);

@@ -37,3 +37,9 @@ export type NoiseSession = {
   mc: uint64;
   i: boolean;
 }
+
+export interface INoisePayload {
+  identityKey: bytes;
+  identitySig: bytes;
+  data: bytes;
+}

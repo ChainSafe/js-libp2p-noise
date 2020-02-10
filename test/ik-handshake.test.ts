@@ -25,10 +25,10 @@ describe("IK Handshake", () => {
       const staticKeysResponder = generateKeypair();
 
       const initPayload = await getPayload(peerA, staticKeysInitiator.publicKey);
-      const handshakeInit = new IKHandshake(true, initPayload, prologue, staticKeysInitiator, connectionFrom, peerB, staticKeysResponder.publicKey);
+      const handshakeInit = new IKHandshake(true, initPayload, prologue, staticKeysInitiator, connectionFrom, staticKeysResponder.publicKey, peerB);
 
       const respPayload = await getPayload(peerB, staticKeysResponder.publicKey);
-      const handshakeResp = new IKHandshake(false, respPayload, prologue, staticKeysResponder, connectionTo, peerA, staticKeysInitiator.publicKey);
+      const handshakeResp = new IKHandshake(false, respPayload, prologue, staticKeysResponder, connectionTo, staticKeysInitiator.publicKey);
 
       await handshakeInit.stage0();
       await handshakeResp.stage0();
@@ -66,10 +66,10 @@ describe("IK Handshake", () => {
       const oldScammyKeys = generateKeypair();
 
       const initPayload = await getPayload(peerA, staticKeysInitiator.publicKey);
-      const handshakeInit = new IKHandshake(true, initPayload, prologue, staticKeysInitiator, connectionFrom, peerB, oldScammyKeys.publicKey);
+      const handshakeInit = new IKHandshake(true, initPayload, prologue, staticKeysInitiator, connectionFrom, oldScammyKeys.publicKey, peerB);
 
       const respPayload = await getPayload(peerB, staticKeysResponder.publicKey);
-      const handshakeResp = new IKHandshake(false, respPayload, prologue, staticKeysResponder, connectionTo, peerA, staticKeysInitiator.publicKey);
+      const handshakeResp = new IKHandshake(false, respPayload, prologue, staticKeysResponder, connectionTo, staticKeysInitiator.publicKey);
 
       await handshakeInit.stage0();
       await handshakeResp.stage0();
