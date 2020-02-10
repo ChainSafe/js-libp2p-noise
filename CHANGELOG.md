@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] -
 
+### Bugfixes
+- fix module compiling in node 10 (class properties)
+
 ## [1.0.0-rc4] - 2019-02-10
 
 ### Bugfixes
