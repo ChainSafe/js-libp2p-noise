@@ -8,7 +8,7 @@ import {bytes, bytes32} from "./@types/basic";
 import {Hkdf, INoisePayload} from "./@types/handshake";
 import payloadProto from "./proto/payload.json";
 
-export async function loadPayloadProto () {
+async function loadPayloadProto () {
   const payloadProtoBuf = await protobuf.Root.fromJSON(payloadProto);
   return payloadProtoBuf.lookupType("NoiseHandshakePayload");
 }
