@@ -4,7 +4,7 @@ import Wrap from 'it-pb-rpc';
 import DuplexPair from 'it-pair/duplex';
 import ensureBuffer from 'it-buffer';
 import pipe from 'it-pipe';
-import lp from 'it-length-prefixed';
+import {encode, decode} from 'it-length-prefixed';
 
 import {XXHandshake} from "./handshake-xx";
 import {IKHandshake} from "./handshake-ik";
@@ -19,6 +19,7 @@ import {IHandshake} from "./@types/handshake-interface";
 import {KeyCache} from "./keycache";
 import {logger} from "./logger";
 import PeerId from "peer-id";
+import {NOISE_MSG_MAX_LENGTH_BYTES} from "./constants";
 
 export type WrappedConnection = ReturnType<typeof Wrap>;
 
@@ -66,7 +67,14 @@ export class Noise implements INoiseConnection {
    * @returns {Promise<SecureOutbound>}
    */
   public async secureOutbound(localPeer: PeerId, connection: any, remotePeer: PeerId): Promise<SecureOutbound> {
-    const wrappedConnection = Wrap(connection);
+    const wrappedConnection = Wrap(
+      connection,
+      {
+        lengthEncoder: uint16BEEncode,
+        lengthDecoder: uint16BEDecode,
+        maxDataLength: NOISE_MSG_MAX_LENGTH_BYTES
+      }
+    );
     const handshake = await this.performHandshake({
       connection: wrappedConnection,
       isInitiator: true,
@@ -89,7 +97,14 @@ export class Noise implements INoiseConnection {
    * @returns {Promise<SecureOutbound>}
    */
   public async secureInbound(localPeer: PeerId, connection: any, remotePeer?: PeerId): Promise<SecureOutbound> {
-    const wrappedConnection = Wrap(connection);
+    const wrappedConnection = Wrap(
+      connection,
+      {
+        lengthEncoder: uint16BEEncode,
+        lengthDecoder: uint16BEDecode,
+        maxDataLength: NOISE_MSG_MAX_LENGTH_BYTES
+      }
+    );
     const handshake = await this.performHandshake({
       connection: wrappedConnection,
       isInitiator: false,
@@ -213,9 +228,9 @@ export class Noise implements INoiseConnection {
       secure, // write to wrapper
       ensureBuffer, // ensure any type of data is converted to buffer
       encryptStream(handshake), // data is encrypted
-      lp.encode({ lengthEncoder: uint16BEEncode }), // prefix with message length
+      encode({ lengthEncoder: uint16BEEncode }), // prefix with message length
       network, // send to the remote peer
-      lp.decode({ lengthDecoder: uint16BEDecode }), // read message length prefix
+      decode({ lengthDecoder: uint16BEDecode, maxDataLength: NOISE_MSG_MAX_LENGTH_BYTES }), // read message length prefix
       ensureBuffer, // ensure any type of data is converted to buffer
       decryptStream(handshake), // decrypt the incoming data
       secure // pipe to the wrapper
