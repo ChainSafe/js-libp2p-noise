@@ -1,0 +1,2 @@
+export const NOISE_MSG_MAX_LENGTH_BYTES = 65535;
+

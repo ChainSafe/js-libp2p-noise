@@ -13,12 +13,13 @@ import {
   getHandshakePayload, getPayload,
   signPayload
 } from "../src/utils";
-import {decode0, decode1, encode1} from "../src/encoder";
+import {decode0, decode1, encode1, uint16BEDecode, uint16BEEncode} from "../src/encoder";
 import {XX} from "../src/handshakes/xx";
 import {Buffer} from "buffer";
 import {getKeyPairFromPeerId} from "./utils";
 import {KeyCache} from "../src/keycache";
-import {XXFallbackHandshake} from "../src/handshake-xx-fallback";
+import {NOISE_MSG_MAX_LENGTH_BYTES} from "../src/constants";
+import BufferList from "bl";
 
 describe("Noise", () => {
   let remotePeer, localPeer;
@@ -60,7 +61,14 @@ describe("Noise", () => {
     const [outbound, { wrapped, handshake }] = await Promise.all([
       noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
       (async () => {
-        const wrapped = Wrap(inboundConnection);
+        const wrapped = Wrap(
+          inboundConnection,
+          {
+            lengthEncoder: uint16BEEncode,
+            lengthDecoder: uint16BEDecode,
+            maxDataLength: NOISE_MSG_MAX_LENGTH_BYTES
+          }
+          );
         const prologue = Buffer.alloc(0);
         const staticKeys = generateKeypair();
         const xx = new XX();
@@ -90,7 +98,7 @@ describe("Noise", () => {
 
     try {
       const wrappedOutbound = Wrap(outbound.conn);
-      wrappedOutbound.write(Buffer.from("test"));
+      wrappedOutbound.write(new BufferList([Buffer.from("test")]));
 
       // Check that noise message is prefixed with 16-bit big-endian unsigned integer
       const receivedEncryptedPayload = (await wrapped.read()).slice();

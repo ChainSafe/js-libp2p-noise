@@ -4,7 +4,8 @@ import {MessageBuffer} from "./@types/handshake";
 
 export const uint16BEEncode = (value, target, offset) => {
   target = target || Buffer.allocUnsafe(2);
-  return target.writeUInt16BE(value, offset);
+  target.writeUInt16BE(value, offset);
+  return target;
 };
 uint16BEEncode.bytes = 2;
 

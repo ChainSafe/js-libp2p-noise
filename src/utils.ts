@@ -74,7 +74,9 @@ export async function decodePayload(payload: bytes): Promise<INoisePayload> {
   ) as INoisePayload;
 }
 
-export const getHandshakePayload = (publicKey: bytes ) => Buffer.concat([Buffer.from("noise-libp2p-static-key:"), publicKey]);
+export function getHandshakePayload(publicKey: bytes): bytes {
+  return Buffer.concat([Buffer.from("noise-libp2p-static-key:"), publicKey]);
+}
 
 async function isValidPeerId(peerId: bytes, publicKeyProtobuf: bytes) {
   const generatedPeerId = await PeerId.createFromPubKey(publicKeyProtobuf);
