@@ -57,7 +57,7 @@ export class XXHandshake implements IHandshake {
       logger("Stage 0 - Initiator finished sending first message.");
     } else {
       logger("Stage 0 - Responder waiting to receive first message...");
-      const receivedMessageBuffer = decode0(await this.connection.readLP());
+      const receivedMessageBuffer = decode0((await this.connection.readLP()).slice());
       this.xx.recvMessage(this.session, receivedMessageBuffer);
       logger("Stage 0 - Responder received first message.");
     }
@@ -67,7 +67,7 @@ export class XXHandshake implements IHandshake {
   public async exchange(): Promise<void> {
     if (this.isInitiator) {
       logger('Stage 1 - Initiator waiting to receive first message from responder...');
-      const receivedMessageBuffer = decode1(await this.connection.readLP());
+      const receivedMessageBuffer = decode1((await this.connection.readLP()).slice());
       const plaintext = this.xx.recvMessage(this.session, receivedMessageBuffer);
       logger('Stage 1 - Initiator received the message. Got remote\'s static key.');
 
@@ -97,7 +97,7 @@ export class XXHandshake implements IHandshake {
       logger('Stage 2 - Initiator sent message with signed payload.');
     } else {
       logger('Stage 2 - Responder waiting for third handshake message...');
-      const receivedMessageBuffer = decode1(await this.connection.readLP());
+      const receivedMessageBuffer = decode1((await this.connection.readLP()).slice());
       const plaintext = this.xx.recvMessage(this.session, receivedMessageBuffer);
       logger('Stage 2 - Responder received the message, finished handshake. Got remote\'s static key.');
 

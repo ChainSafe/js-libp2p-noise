@@ -54,7 +54,7 @@ export class IKHandshake implements IHandshake {
       logger("IK Stage 0 - Responder receiving message...");
       const receivedMsg = await this.connection.readLP();
       try {
-        const receivedMessageBuffer = decode1(receivedMsg);
+        const receivedMessageBuffer = decode1(receivedMsg.slice());
         const plaintext = this.ik.recvMessage(this.session, receivedMessageBuffer);
         logger("IK Stage 0 - Responder got message, going to verify payload.");
         const decodedPayload = await decodePayload(plaintext);
