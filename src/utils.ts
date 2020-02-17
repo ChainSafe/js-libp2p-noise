@@ -114,5 +114,5 @@ export function getHkdf(ck: bytes32, ikm: bytes): Hkdf {
 }
 
 export function isValidPublicKey(pk: bytes): boolean {
-  return x25519.publicKeyVerify(pk);
+  return x25519.publicKeyVerify(pk.slice(0, 32));
 }

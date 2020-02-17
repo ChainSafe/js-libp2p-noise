@@ -38,13 +38,13 @@ export function decode0(input: bytes): MessageBuffer {
 }
 
 export function decode1(input: bytes): MessageBuffer {
-  if (input.length < 96) {
+  if (input.length < 80) {
     throw new Error("Cannot decode stage 0 MessageBuffer: length less than 96 bytes.");
   }
 
   return {
     ne: input.slice(0, 32),
-    ns: input.slice(32, 64),
-    ciphertext: input.slice(64, input.length),
+    ns: input.slice(32, 80),
+    ciphertext: input.slice(80, input.length),
   }
 }

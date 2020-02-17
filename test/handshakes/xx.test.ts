@@ -114,9 +114,9 @@ describe("XX Handshake", () => {
       const ad = Buffer.from("authenticated");
       const message = Buffer.from("HelloCrypto");
 
-      xx.encryptWithAd(nsInit.cs1, ad, message);
-      assert(!Buffer.from("HelloCrypto").equals(message), "Encrypted message should not be same as plaintext.");
-      const decrypted = xx.decryptWithAd(nsResp.cs1, ad, message);
+      const ciphertext = xx.encryptWithAd(nsInit.cs1, ad, message);
+      assert(!Buffer.from("HelloCrypto").equals(ciphertext), "Encrypted message should not be same as plaintext.");
+      const decrypted = xx.decryptWithAd(nsResp.cs1, ad, ciphertext);
 
       assert(Buffer.from("HelloCrypto").equals(decrypted), "Decrypted text not equal to original message.");
     } catch (e) {
@@ -125,22 +125,18 @@ describe("XX Handshake", () => {
   });
 
   it("Test multiple messages encryption and decryption", async () => {
-    try {
-      const xx = new XX();
-      const { nsInit, nsResp } = await doHandshake(xx);
-      const ad = Buffer.from("authenticated");
-      const message = Buffer.from("ethereum1");
+    const xx = new XX();
+    const { nsInit, nsResp } = await doHandshake(xx);
+    const ad = Buffer.from("authenticated");
+    const message = Buffer.from("ethereum1");
 
-      xx.encryptWithAd(nsInit.cs1, ad, message);
-      const decrypted = xx.decryptWithAd(nsResp.cs1, ad, message);
-      assert(Buffer.from("ethereum1").equals(decrypted), "Decrypted text not equal to original message.");
+    const encrypted = xx.encryptWithAd(nsInit.cs1, ad, message);
+    const decrypted = xx.decryptWithAd(nsResp.cs1, ad, encrypted);
+    assert.equal("ethereum1", decrypted.toString("utf8"), "Decrypted text not equal to original message.");
 
-      const message2 = Buffer.from("ethereum2");
-      xx.encryptWithAd(nsInit.cs1, ad, message2);
-      const decrypted2 = xx.decryptWithAd(nsResp.cs1, ad, message2);
-      assert(Buffer.from("ethereum2").equals(decrypted2), "Decrypted text not equal to original message.");
-    } catch (e) {
-      assert(false, e.message);
-    }
+    const message2 = Buffer.from("ethereum2");
+    const encrypted2 = xx.encryptWithAd(nsInit.cs1, ad, message2);
+    const decrypted2 = xx.decryptWithAd(nsResp.cs1, ad, encrypted2);
+    assert.equal("ethereum2", decrypted2.toString("utf-8"), "Decrypted text not equal to original message.");
   });
 });

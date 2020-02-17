@@ -230,7 +230,7 @@ export class Noise implements INoiseConnection {
       encryptStream(handshake), // data is encrypted
       encode({ lengthEncoder: uint16BEEncode }), // prefix with message length
       network, // send to the remote peer
-      decode({ lengthDecoder: uint16BEDecode, maxDataLength: NOISE_MSG_MAX_LENGTH_BYTES }), // read message length prefix
+      decode({ lengthDecoder: uint16BEDecode}), // read message length prefix
       ensureBuffer, // ensure any type of data is converted to buffer
       decryptStream(handshake), // decrypt the incoming data
       secure // pipe to the wrapper

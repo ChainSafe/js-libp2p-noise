@@ -91,7 +91,7 @@ export class XX extends AbstractHandshake {
     }
     this.mixKey(hs.ss, this.dh(hs.e.privateKey, hs.re));
     const ns = this.decryptAndHash(hs.ss, message.ns);
-    if (ns.length === 32 && isValidPublicKey(message.ns)) {
+    if (ns.length === 32 && isValidPublicKey(ns)) {
       hs.rs = ns;
     }
     this.mixKey(hs.ss, this.dh(hs.e.privateKey, hs.rs));
@@ -100,7 +100,7 @@ export class XX extends AbstractHandshake {
 
   private readMessageC(hs: HandshakeState, message: MessageBuffer) {
     const ns = this.decryptAndHash(hs.ss, message.ns);
-    if (ns.length === 32 && isValidPublicKey(message.ns)) {
+    if (ns.length === 32 && isValidPublicKey(ns)) {
       hs.rs = ns;
     }
 
