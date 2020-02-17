@@ -1,17 +1,13 @@
-import { x25519, HKDF, SHA256 } from 'bcrypto';
-import protobuf from "protobufjs";
-import { Buffer } from "buffer";
+import {HKDF, SHA256, x25519} from 'bcrypto';
+import {Buffer} from "buffer";
 import PeerId from "peer-id";
 import * as crypto from 'libp2p-crypto';
-import { KeyPair } from "./@types/libp2p";
+import {KeyPair} from "./@types/libp2p";
 import {bytes, bytes32} from "./@types/basic";
 import {Hkdf, INoisePayload} from "./@types/handshake";
-import payloadProto from "./proto/payload.json";
+import {pb} from "./proto/payload";
 
-async function loadPayloadProto () {
-  const payloadProtoBuf = await protobuf.Root.fromJSON(payloadProto);
-  return payloadProtoBuf.lookupType("NoiseHandshakePayload");
-}
+const NoiseHandshakePayloadProto = pb.NoiseHandshakePayload;
 
 export function generateKeypair(): KeyPair {
   const privateKey = x25519.privateKeyGenerate();
@@ -43,19 +39,14 @@ export async function createHandshakePayload(
   signedPayload: bytes,
   earlyData?: bytes,
 ): Promise<bytes> {
-  const NoiseHandshakePayload = await loadPayloadProto();
-  const earlyDataPayload = earlyData ?
-    {
-      data: earlyData,
-    } : {};
 
-  const payloadInit = NoiseHandshakePayload.create({
+  const payloadInit = NoiseHandshakePayloadProto.create({
     identityKey: libp2pPublicKey,
     identitySig: signedPayload,
-    ...earlyDataPayload,
+    data: earlyData || null,
   });
 
-  return Buffer.from(NoiseHandshakePayload.encode(payloadInit).finish());
+  return Buffer.from(NoiseHandshakePayloadProto.encode(payloadInit).finish());
 }
 
 
@@ -63,14 +54,13 @@ export async function signPayload(peerId: PeerId, payload: bytes): Promise<bytes
   return peerId.privKey.sign(payload);
 }
 
-export async function getPeerIdFromPayload(payload: INoisePayload): Promise<PeerId> {
-  return await PeerId.createFromPubKey(Buffer.from(payload.identityKey));
+export async function getPeerIdFromPayload(payload: pb.INoiseHandshakePayload): Promise<PeerId> {
+  return await PeerId.createFromPubKey(Buffer.from(payload.identityKey as Uint8Array));
 }
 
-export async function decodePayload(payload: bytes): Promise<INoisePayload> {
-  const NoiseHandshakePayload = await loadPayloadProto();
-  return NoiseHandshakePayload.toObject(
-    NoiseHandshakePayload.decode(payload)
+export async function decodePayload(payload: bytes): Promise<pb.INoiseHandshakePayload> {
+  return NoiseHandshakePayloadProto.toObject(
+    NoiseHandshakePayloadProto.decode(payload)
   ) as INoisePayload;
 }
 
@@ -92,19 +82,11 @@ async function isValidPeerId(peerId: bytes, publicKeyProtobuf: bytes) {
  */
 export async function verifySignedPayload(
   noiseStaticKey: bytes,
-  payload: INoisePayload,
+  payload: pb.INoiseHandshakePayload,
   remotePeer: PeerId
 ): Promise<PeerId> {
-  try {
-    //temporary fix until protobufsjs conversion options starts working
-    //by default it ends up as Uint8Array
-    payload.identityKey = Buffer.from(payload.identityKey);
-    payload.identitySig = Buffer.from(payload.identitySig);
-  } catch (e) {
-    throw new Error("Failed to decode received payload. Reason: " + e.message);
-  }
 
-  if (!(await isValidPeerId(remotePeer.id, payload.identityKey)) ) {
+  if (!(await isValidPeerId(remotePeer.id, Buffer.from(payload.identityKey as Uint8Array)))) {
     throw new Error("Peer ID doesn't match libp2p public key.");
   }
 
@@ -128,7 +110,7 @@ export function getHkdf(ck: bytes32, ikm: bytes): Hkdf {
   const k2 = okm.slice(32, 64);
   const k3 = okm.slice(64, 96);
 
-  return [ k1, k2, k3 ];
+  return [k1, k2, k3];
 }
 
 export function isValidPublicKey(pk: bytes): boolean {

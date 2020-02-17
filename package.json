@@ -20,9 +20,10 @@
   "scripts": {
     "prebuild": "rm -rf lib && rm -rf dist",
     "build": "yarn run build:node && yarn run build:web && yarn run build:types",
-    "build:node": "babel --config-file ./babel.config.json src --copy-files -x .ts -d dist --source-maps",
-    "build:web": "babel --config-file ./babel.web.config.json src --copy-files -x .ts -d lib --source-maps",
+    "build:node": "babel --no-babelrc --config-file ./babel.config.json src --copy-files -x .ts -d dist --source-maps",
+    "build:web": "babel --no-babelrc --config-file ./babel.web.config.json src --copy-files -x .ts -d lib --source-maps",
     "build:types": "tsc --declaration --outDir dist --emitDeclarationOnly",
+    "proto:gen": "pbjs -t static-module -o ./src/proto/payload.js ./src/proto/payload.proto && pbts -o ./src/proto/payload.d.ts ./src/proto/payload.js && yarn run lint --fix",
     "check-types": "tsc --incremental --noEmit",
     "lint": "eslint --ext .ts src/",
     "pretest": "yarn check-types",
