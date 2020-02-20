@@ -55,13 +55,13 @@ export abstract class AbstractHandshake {
   protected encrypt(k: bytes32, n: uint32, ad: bytes, plaintext: bytes): bytes {
     const nonce = this.nonceToBytes(n);
     const ctx = new AEAD();
-
+    plaintext = Buffer.from(plaintext);
     ctx.init(k, nonce);
     ctx.aad(ad);
     ctx.encrypt(plaintext);
 
     // Encryption is done on the sent reference
-    return plaintext;
+    return Buffer.concat([plaintext, ctx.final()]);
   }
 
   protected encryptAndHash(ss: SymmetricState, plaintext: bytes): bytes {
@@ -79,7 +79,8 @@ export abstract class AbstractHandshake {
   protected decrypt(k: bytes32, n: uint32, ad: bytes, ciphertext: bytes): bytes {
     const nonce = this.nonceToBytes(n);
     const ctx = new AEAD();
-
+    ciphertext = Buffer.from(ciphertext);
+    ciphertext = ciphertext.slice(0, ciphertext.length - 16);
     ctx.init(k, nonce);
     ctx.aad(ad);
     ctx.decrypt(ciphertext);

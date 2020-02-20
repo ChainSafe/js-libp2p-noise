@@ -113,7 +113,8 @@ describe("Noise", () => {
   })
 
 
-  it("should test large payloads", async() => {
+  it("should test large payloads", async function() {
+    this.timeout(10000);
     try {
       const noiseInit = new Noise(undefined, undefined, false);
       const noiseResp = new Noise(undefined, undefined, false);
@@ -128,11 +129,11 @@ describe("Noise", () => {
 
       const largePlaintext = random.randomBytes(100000);
       wrappedOutbound.writeLP(largePlaintext);
-      const response = await wrappedInbound.readLP();
+      const response = await wrappedInbound.read(100000);
 
       expect(response.length).equals(largePlaintext.length);
     } catch (e) {
-      console.error(e);
+      console.log(e);
       assert(false, e.message);
     }
   });

@@ -104,7 +104,7 @@ export class XXHandshake implements IHandshake {
       try {
         const decodedPayload = await decodePayload(plaintext);
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload);
-        await verifySignedPayload(receivedMessageBuffer.ns, decodedPayload, this.remotePeer);
+        await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer);
       } catch (e) {
         throw new Error(`Error occurred while verifying signed payload: ${e.message}`);
       }

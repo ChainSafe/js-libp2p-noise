@@ -1,11 +1,10 @@
 import { Buffer } from "buffer";
 import {IHandshake} from "./@types/handshake-interface";
+import {NOISE_MSG_MAX_LENGTH_BYTES, NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG} from "./constants";
 
 interface IReturnEncryptionWrapper {
   (source: Iterable<Uint8Array>): AsyncIterableIterator<Uint8Array>;
 }
-
-const maxPlaintextLength = 65519;
 
 // Returns generator that encrypts payload from the user
 export function encryptStream(handshake: IHandshake): IReturnEncryptionWrapper {
@@ -13,8 +12,8 @@ export function encryptStream(handshake: IHandshake): IReturnEncryptionWrapper {
     for await (const chunk of source) {
       const chunkBuffer = Buffer.from(chunk.buffer, chunk.byteOffset, chunk.length);
 
-      for (let i = 0; i < chunkBuffer.length; i += maxPlaintextLength) {
-        let end = i + maxPlaintextLength;
+      for (let i = 0; i < chunkBuffer.length; i += NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG) {
+        let end = i + NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG;
         if (end > chunkBuffer.length) {
           end = chunkBuffer.length;
         }
@@ -33,8 +32,8 @@ export function decryptStream(handshake: IHandshake): IReturnEncryptionWrapper {
     for await (const chunk of source) {
       const chunkBuffer = Buffer.from(chunk.buffer, chunk.byteOffset, chunk.length);
 
-      for (let i = 0; i < chunkBuffer.length; i += maxPlaintextLength) {
-        let end = i + maxPlaintextLength;
+      for (let i = 0; i < chunkBuffer.length; i += NOISE_MSG_MAX_LENGTH_BYTES) {
+        let end = i + NOISE_MSG_MAX_LENGTH_BYTES;
         if (end > chunkBuffer.length) {
           end = chunkBuffer.length;
         }
