@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] -
 
+## [1.0.0-rc.6] - 2019-02-20
+
+### Bugfixes
+- attach/remove aead auth tag on cyphertext
+- better protobuf handling (static module generation)
+
 ## [1.0.0-rc.5] - 2019-02-10
 
 ### Bugfixes
