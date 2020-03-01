@@ -99,7 +99,7 @@ export class IKHandshake implements IHandshake {
     }
   }
 
-  public decrypt(ciphertext: bytes, session: NoiseSession): {plaintext: bytes, valid: boolean} {
+  public decrypt(ciphertext: bytes, session: NoiseSession): {plaintext: bytes; valid: boolean} {
     const cs = this.getCS(session, false);
     return this.ik.decryptWithAd(cs, Buffer.alloc(0), ciphertext);
   }
