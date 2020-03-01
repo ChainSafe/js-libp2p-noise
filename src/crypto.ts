@@ -39,7 +39,10 @@ export function decryptStream(handshake: IHandshake): IReturnEncryptionWrapper {
         }
 
         const chunk = chunkBuffer.slice(i, end);
-        const decrypted = await handshake.decrypt(chunk, handshake.session);
+        const {plaintext: decrypted, valid} = await handshake.decrypt(chunk, handshake.session);
+        if(!valid) {
+          throw new Error("Failed to validate decrypted chunk");
+        }
         yield decrypted;
       }
     }

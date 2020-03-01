@@ -46,7 +46,7 @@ describe("IK Handshake", () => {
 
       // Test encryption and decryption
       const encrypted = handshakeInit.encrypt(Buffer.from("encryptthis"), handshakeInit.session);
-      const decrypted = handshakeResp.decrypt(encrypted, handshakeResp.session);
+      const {plaintext: decrypted} = handshakeResp.decrypt(encrypted, handshakeResp.session);
       assert(decrypted.equals(Buffer.from("encryptthis")));
     } catch (e) {
       console.error(e);

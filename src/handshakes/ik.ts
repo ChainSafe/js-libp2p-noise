@@ -1,7 +1,7 @@
 import {Buffer} from "buffer";
 import {BN} from "bn.js";
 
-import {HandshakeState, MessageBuffer, NoiseSession} from "../@types/handshake";
+import {CipherState, HandshakeState, MessageBuffer, NoiseSession} from "../@types/handshake";
 import {bytes, bytes32} from "../@types/basic";
 import {generateKeypair, isValidPublicKey} from "../utils";
 import {AbstractHandshake} from "./abstract-handshake";
@@ -58,34 +58,21 @@ export class IK extends AbstractHandshake {
     return messageBuffer;
   }
 
-  public recvMessage(session: NoiseSession, message: MessageBuffer): bytes {
-    let plaintext: bytes;
+  public recvMessage(session: NoiseSession, message: MessageBuffer): {plaintext: bytes; valid: boolean} {
+    let plaintext = Buffer.alloc(0), valid = false;
     if (session.mc.eqn(0)) {
-      plaintext = this.readMessageA(session.hs, message);
-    } else if (session.mc.eqn(1)) {
-      const { plaintext: pt, h, cs1, cs2 } = this.readMessageB(session.hs, message);
+      ({plaintext, valid} = this.readMessageA(session.hs, message));
+    }
+    if (session.mc.eqn(1)) {
+      const { plaintext: pt, valid: v, h, cs1, cs2 } = this.readMessageB(session.hs, message);
       plaintext = pt;
+      valid = v;
       session.h = h;
       session.cs1 = cs1;
       session.cs2 = cs2;
-    } else if (session.mc.gtn(1)) {
-      if (session.i) {
-        if (!session.cs2) {
-          throw new Error("CS1 (cipher state) is not defined")
-        }
-        plaintext = this.readMessageRegular(session.cs2, message);
-      } else {
-        if (!session.cs1) {
-          throw new Error("CS1 (cipher state) is not defined")
-        }
-        plaintext = this.readMessageRegular(session.cs1, message);
-      }
-    } else {
-      throw new Error("Session invalid.");
     }
-
     session.mc = session.mc.add(new BN(1));
-    return plaintext;
+    return {plaintext, valid};
   }
 
   private writeMessageA(hs: HandshakeState, payload: bytes): MessageBuffer {
@@ -117,22 +104,23 @@ export class IK extends AbstractHandshake {
     return { messageBuffer, cs1, cs2, h: hs.ss.h }
   }
 
-  private readMessageA(hs: HandshakeState, message: MessageBuffer): bytes {
+  private readMessageA(hs: HandshakeState, message: MessageBuffer): {plaintext: bytes; valid: boolean} {
     if (isValidPublicKey(message.ne)) {
       hs.re = message.ne;
     }
 
     this.mixHash(hs.ss, hs.re);
     this.mixKey(hs.ss, this.dh(hs.s.privateKey, hs.re));
-    const ns = this.decryptAndHash(hs.ss, message.ns);
-    if (ns.length === 32 && isValidPublicKey(ns)) {
+    const {plaintext: ns, valid: valid1} = this.decryptAndHash(hs.ss, message.ns);
+    if (valid1 && ns.length === 32 && isValidPublicKey(ns)) {
       hs.rs = ns;
     }
     this.mixKey(hs.ss, this.dh(hs.s.privateKey, hs.rs));
-    return this.decryptAndHash(hs.ss, message.ciphertext);
+    const {plaintext, valid: valid2} = this.decryptAndHash(hs.ss, message.ciphertext);
+    return {plaintext, valid: (valid1 && valid2)};
   }
 
-  private readMessageB(hs: HandshakeState, message: MessageBuffer) {
+  private readMessageB(hs: HandshakeState, message: MessageBuffer): {h: bytes; plaintext: bytes; valid: boolean; cs1: CipherState; cs2: CipherState} {
     if (isValidPublicKey(message.ne)) {
       hs.re = message.ne;
     }
@@ -143,10 +131,10 @@ export class IK extends AbstractHandshake {
     }
     this.mixKey(hs.ss, this.dh(hs.e.privateKey, hs.re));
     this.mixKey(hs.ss, this.dh(hs.s.privateKey, hs.re));
-    const plaintext = this.decryptAndHash(hs.ss, message.ciphertext);
+    const {plaintext, valid} = this.decryptAndHash(hs.ss, message.ciphertext);
     const { cs1, cs2 } = this.split(hs.ss);
 
-    return { h: hs.ss.h, plaintext, cs1, cs2 };
+    return { h: hs.ss.h, valid, plaintext, cs1, cs2 };
   }
 
   private initializeInitiator(prologue: bytes32, s: KeyPair, rs: bytes32, psk: bytes32): HandshakeState {

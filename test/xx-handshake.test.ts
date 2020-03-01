@@ -2,7 +2,6 @@ import {assert, expect} from "chai";
 import Duplex from 'it-pair/duplex';
 import {Buffer} from "buffer";
 import Wrap from "it-pb-rpc";
-
 import {XXHandshake} from "../src/handshake-xx";
 import {generateKeypair, getPayload} from "../src/utils";
 import {createPeerIdsFromFixtures} from "./fixtures/peer";
@@ -53,8 +52,9 @@ describe("XX Handshake", () => {
 
       // Test encryption and decryption
       const encrypted = handshakeInitator.encrypt(Buffer.from("encryptthis"), handshakeInitator.session);
-      const decrypted = handshakeResponder.decrypt(encrypted, handshakeResponder.session);
+      const {plaintext: decrypted, valid} = handshakeResponder.decrypt(encrypted, handshakeResponder.session);
       assert(decrypted.equals(Buffer.from("encryptthis")));
+      assert(valid);
     } catch (e) {
       assert(false, e.message);
     }

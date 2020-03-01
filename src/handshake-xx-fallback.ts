@@ -37,13 +37,16 @@ export class XXFallbackHandshake extends XXHandshake {
       this.xx.sendMessage(this.session, Buffer.alloc(0), this.ephemeralKeys);
       logger("XX Fallback Stage 0 - Initialized state as the first message was sent by initiator.");
     } else {
-      logger("XX Fallback Stage 0 - Responder decoding initial msg from IK.")
+      logger("XX Fallback Stage 0 - Responder decoding initial msg from IK.");
       const receivedMessageBuffer = decode0(this.initialMsg);
-      this.xx.recvMessage(this.session, {
+      const {valid} = this.xx.recvMessage(this.session, {
         ne: receivedMessageBuffer.ne,
         ns: Buffer.alloc(0),
         ciphertext: Buffer.alloc(0),
       });
+      if(!valid) {
+        throw new Error("xx fallback stage 0 decryption validation fail");
+      }
       logger("XX Fallback Stage 0 - Responder used received message from IK.");
     }
   }
@@ -52,7 +55,10 @@ export class XXFallbackHandshake extends XXHandshake {
   public async exchange(): Promise<void> {
     if (this.isInitiator) {
       const receivedMessageBuffer = decode1(this.initialMsg);
-      const plaintext = this.xx.recvMessage(this.session, receivedMessageBuffer);
+      const {plaintext, valid} = this.xx.recvMessage(this.session, receivedMessageBuffer);
+      if(!valid) {
+        throw new Error("xx fallback stage 1 decryption validation fail");
+      }
       logger('XX Fallback Stage 1 - Initiator used received message from IK.');
 
       logger("Initiator going to check remote's signature...");
