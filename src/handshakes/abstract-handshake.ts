@@ -4,6 +4,7 @@ import { AEAD, x25519, SHA256 } from 'bcrypto';
 import {bytes, bytes32, uint32} from "../@types/basic";
 import {CipherState, MessageBuffer, SymmetricState} from "../@types/handshake";
 import {getHkdf} from "../utils";
+import {logger} from "../logger";
 
 export const MIN_NONCE = 0;
 
@@ -15,11 +16,11 @@ export abstract class AbstractHandshake {
     return e;
   }
 
-  public decryptWithAd(cs: CipherState, ad: bytes, ciphertext: bytes): bytes {
-    const plaintext = this.decrypt(cs.k, cs.n, ad, ciphertext);
+  public decryptWithAd(cs: CipherState, ad: bytes, ciphertext: bytes): {plaintext: bytes; valid: boolean} {
+    const {plaintext, valid} = this.decrypt(cs.k, cs.n, ad, ciphertext);
     this.setNonce(cs, this.incrementNonce(cs.n));
 
-    return plaintext;
+    return {plaintext, valid};
   }
 
 
@@ -76,36 +77,41 @@ export abstract class AbstractHandshake {
     return ciphertext;
   }
 
-  protected decrypt(k: bytes32, n: uint32, ad: bytes, ciphertext: bytes): bytes {
+  protected decrypt(k: bytes32, n: uint32, ad: bytes, ciphertext: bytes): {plaintext: bytes; valid: boolean} {
     const nonce = this.nonceToBytes(n);
     const ctx = new AEAD();
     ciphertext = Buffer.from(ciphertext);
+    const tag = ciphertext.slice(ciphertext.length - 16);
     ciphertext = ciphertext.slice(0, ciphertext.length - 16);
     ctx.init(k, nonce);
     ctx.aad(ad);
     ctx.decrypt(ciphertext);
-
     // Decryption is done on the sent reference
-    return ciphertext;
+    return {plaintext: ciphertext, valid: ctx.verify(tag)};
   }
 
-  protected decryptAndHash(ss: SymmetricState, ciphertext: bytes): bytes {
-    let plaintext;
+  protected decryptAndHash(ss: SymmetricState, ciphertext: bytes): {plaintext: bytes; valid: boolean} {
+    let plaintext: bytes, valid = true;
     if (this.hasKey(ss.cs)) {
-      plaintext = this.decryptWithAd(ss.cs, ss.h, ciphertext);
+      ({plaintext, valid} = this.decryptWithAd(ss.cs, ss.h, ciphertext));
     } else {
       plaintext = ciphertext;
     }
 
     this.mixHash(ss, ciphertext);
-    return plaintext;
+    return {plaintext, valid};
   }
 
   protected dh(privateKey: bytes32, publicKey: bytes32): bytes32 {
-    const derived = x25519.derive(publicKey, privateKey);
-    const result = Buffer.alloc(32);
-    derived.copy(result);
-    return result;
+    try {
+      const derived = x25519.derive(publicKey, privateKey);
+      const result = Buffer.alloc(32);
+      derived.copy(result);
+      return result;
+    } catch (e) {
+      logger(e.message);
+      return Buffer.alloc(32);
+    }
   }
 
   protected mixHash(ss: SymmetricState, data: bytes): void {
@@ -166,7 +172,7 @@ export abstract class AbstractHandshake {
     return { ne, ns, ciphertext };
   }
 
-  protected readMessageRegular(cs: CipherState, message: MessageBuffer): bytes {
+  protected readMessageRegular(cs: CipherState, message: MessageBuffer): {plaintext: bytes; valid: boolean} {
     return this.decryptWithAd(cs, Buffer.alloc(0), message.ciphertext);
   }
 }

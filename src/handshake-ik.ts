@@ -55,7 +55,10 @@ export class IKHandshake implements IHandshake {
       const receivedMsg = await this.connection.readLP();
       try {
         const receivedMessageBuffer = decode1(receivedMsg.slice());
-        const plaintext = this.ik.recvMessage(this.session, receivedMessageBuffer);
+        const {plaintext, valid} = this.ik.recvMessage(this.session, receivedMessageBuffer);
+        if(!valid) {
+          throw new Error("ik handshake stage 0 decryption validation fail");
+        }
         logger("IK Stage 0 - Responder got message, going to verify payload.");
         const decodedPayload = await decodePayload(plaintext);
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload);
@@ -74,10 +77,12 @@ export class IKHandshake implements IHandshake {
       logger("IK Stage 1 - Initiator receiving message...");
       const receivedMsg = (await this.connection.readLP()).slice();
       const receivedMessageBuffer = decode0(Buffer.from(receivedMsg));
-      const plaintext = this.ik.recvMessage(this.session, receivedMessageBuffer);
+      const {plaintext, valid} = this.ik.recvMessage(this.session, receivedMessageBuffer);
       logger("IK Stage 1 - Initiator got message, going to verify payload.");
-
       try {
+        if(!valid) {
+          throw new Error("ik stage 1 decryption validation fail");
+        }
         const decodedPayload = await decodePayload(plaintext);
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload);
         await verifySignedPayload(receivedMessageBuffer.ns.slice(0, 32), decodedPayload, this.remotePeer);
@@ -94,7 +99,7 @@ export class IKHandshake implements IHandshake {
     }
   }
 
-  public decrypt(ciphertext: Buffer, session: NoiseSession): Buffer {
+  public decrypt(ciphertext: bytes, session: NoiseSession): {plaintext: bytes; valid: boolean} {
     const cs = this.getCS(session, false);
     return this.ik.decryptWithAd(cs, Buffer.alloc(0), ciphertext);
   }

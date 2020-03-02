@@ -6,5 +6,5 @@ export interface IHandshake {
   session: NoiseSession;
   remotePeer: PeerId;
   encrypt(plaintext: bytes, session: NoiseSession): bytes;
-  decrypt(ciphertext: bytes, session: NoiseSession): bytes;
+  decrypt(ciphertext: bytes, session: NoiseSession): {plaintext: bytes; valid: boolean};
 }

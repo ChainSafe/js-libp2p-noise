@@ -58,7 +58,10 @@ export class XXHandshake implements IHandshake {
     } else {
       logger("Stage 0 - Responder waiting to receive first message...");
       const receivedMessageBuffer = decode0((await this.connection.readLP()).slice());
-      this.xx.recvMessage(this.session, receivedMessageBuffer);
+      const {valid} = this.xx.recvMessage(this.session, receivedMessageBuffer);
+      if(!valid) {
+        throw new Error("xx handshake stage 0 validation fail");
+      }
       logger("Stage 0 - Responder received first message.");
     }
   }
@@ -68,8 +71,11 @@ export class XXHandshake implements IHandshake {
     if (this.isInitiator) {
       logger('Stage 1 - Initiator waiting to receive first message from responder...');
       const receivedMessageBuffer = decode1((await this.connection.readLP()).slice());
-      const plaintext = this.xx.recvMessage(this.session, receivedMessageBuffer);
-      logger('Stage 1 - Initiator received the message. Got remote\'s static key.');
+      const {plaintext, valid} = this.xx.recvMessage(this.session, receivedMessageBuffer);
+      if(!valid) {
+        throw new Error("xx handshake stage 1 validation fail");
+      }
+      logger('Stage 1 - Initiator received the message.');
 
       logger("Initiator going to check remote's signature...");
       try {
@@ -98,8 +104,11 @@ export class XXHandshake implements IHandshake {
     } else {
       logger('Stage 2 - Responder waiting for third handshake message...');
       const receivedMessageBuffer = decode1((await this.connection.readLP()).slice());
-      const plaintext = this.xx.recvMessage(this.session, receivedMessageBuffer);
-      logger('Stage 2 - Responder received the message, finished handshake. Got remote\'s static key.');
+      const {plaintext, valid} = this.xx.recvMessage(this.session, receivedMessageBuffer);
+      if(!valid) {
+        throw new Error("xx handshake stage 2 validation fail");
+      }
+      logger('Stage 2 - Responder received the message, finished handshake.');
 
       try {
         const decodedPayload = await decodePayload(plaintext);
@@ -117,7 +126,7 @@ export class XXHandshake implements IHandshake {
     return this.xx.encryptWithAd(cs, Buffer.alloc(0), plaintext);
   }
 
-  public decrypt(ciphertext: bytes, session: NoiseSession): bytes {
+  public decrypt(ciphertext: bytes, session: NoiseSession): {plaintext: bytes; valid: boolean} {
     const cs = this.getCS(session, false);
     return this.xx.decryptWithAd(cs, Buffer.alloc(0), ciphertext);
   }

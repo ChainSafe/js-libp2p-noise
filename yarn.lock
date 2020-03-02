@@ -1583,15 +1583,14 @@ base@^0.11.1:
     mixin-deep "^1.2.0"
     pascalcase "^0.1.1"
 
-bcrypto@^4.2.3:
-  version "4.2.3"
-  resolved "https://registry.yarnpkg.com/bcrypto/-/bcrypto-4.2.3.tgz#cb2cf5647168e39b2f57de1c0c2ae49bcaf6ae00"
-  integrity sha512-58Dh2LNHaNHJo/IKEEhYbqE59dl5C0p5xwR8qOI4ixmAO3rp35u0NTYyLUPuEf/CFqMLK/eusMWQeC4vY7l7uA==
+bcrypto@5.0.3:
+  version "5.0.3"
+  resolved "https://registry.yarnpkg.com/bcrypto/-/bcrypto-5.0.3.tgz#086b62d660e545c34ddf980fd4a5fc0001d4708b"
+  integrity sha512-wqATA9cenjBLDjih4Pey6H47G4RIpDzX4V3gvPTxsQkvVovYoERKyHR/BuUuxYllw5Xpi7novrogb/F/wN7xjA==
   dependencies:
-    bsert "~0.0.10"
     bufio "~1.0.6"
     loady "~0.0.1"
-    nan "^2.13.2"
+    nan "^2.14.0"
 
 better-assert@~1.0.0:
   version "1.0.2"
@@ -1799,11 +1798,6 @@ bs58@^4.0.1:
   integrity sha1-vhYedsNU9veIrkBx9j806MTwpCo=
   dependencies:
     base-x "^3.0.2"
-
-bsert@~0.0.10:
-  version "0.0.10"
-  resolved "https://registry.yarnpkg.com/bsert/-/bsert-0.0.10.tgz#231ac82873a1418c6ade301ab5cd9ae385895597"
-  integrity sha512-NHNwlac+WPy4t2LoNh8pXk8uaIGH3NSaIUbTTRXGpE2WEbq0te/tDykYHkFK57YKLPjv/aGHmbqvnGeVWDz57Q==
 
 buffer-alloc-unsafe@^1.1.0:
   version "1.1.0"
@@ -4278,7 +4272,7 @@ mute-stream@0.0.8:
   resolved "https://registry.yarnpkg.com/mute-stream/-/mute-stream-0.0.8.tgz#1630c42b2251ff81e2a283de96a5497ea92e5e0d"
   integrity sha512-nnbWWOkoWyUsTjKrhgD0dcz22mdkSnpYqbEjIm2nhwhuxlSkpywJmBo8h0ZqJdkp73mb90SssHkN4rsRaBAfAA==
 
-nan@^2.12.1, nan@^2.13.2, nan@^2.14.0:
+nan@^2.12.1, nan@^2.14.0:
   version "2.14.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.14.0.tgz#7818f722027b2459a86f0295d434d1fc2336c52c"
   integrity sha512-INOFj37C7k3AfaNTtX8RhsTw7qRy7eLET14cROi9+5HAVbbHuIWUHEauBv5qT4Av2tWasiTY1Jw6puUNqRJXQg==

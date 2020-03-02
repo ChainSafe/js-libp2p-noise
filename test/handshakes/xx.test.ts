@@ -116,9 +116,10 @@ describe("XX Handshake", () => {
 
       const ciphertext = xx.encryptWithAd(nsInit.cs1, ad, message);
       assert(!Buffer.from("HelloCrypto").equals(ciphertext), "Encrypted message should not be same as plaintext.");
-      const decrypted = xx.decryptWithAd(nsResp.cs1, ad, ciphertext);
+      const {plaintext: decrypted, valid} = xx.decryptWithAd(nsResp.cs1, ad, ciphertext);
 
       assert(Buffer.from("HelloCrypto").equals(decrypted), "Decrypted text not equal to original message.");
+      assert(valid);
     } catch (e) {
       assert(false, e.message);
     }
@@ -131,12 +132,12 @@ describe("XX Handshake", () => {
     const message = Buffer.from("ethereum1");
 
     const encrypted = xx.encryptWithAd(nsInit.cs1, ad, message);
-    const decrypted = xx.decryptWithAd(nsResp.cs1, ad, encrypted);
+    const {plaintext: decrypted} = xx.decryptWithAd(nsResp.cs1, ad, encrypted);
     assert.equal("ethereum1", decrypted.toString("utf8"), "Decrypted text not equal to original message.");
 
     const message2 = Buffer.from("ethereum2");
     const encrypted2 = xx.encryptWithAd(nsInit.cs1, ad, message2);
-    const decrypted2 = xx.decryptWithAd(nsResp.cs1, ad, encrypted2);
+    const {plaintext: decrypted2} = xx.decryptWithAd(nsResp.cs1, ad, encrypted2);
     assert.equal("ethereum2", decrypted2.toString("utf-8"), "Decrypted text not equal to original message.");
   });
 });
