@@ -11,7 +11,7 @@ import {
   verifySignedPayload,
 } from "./utils";
 import { logger } from "./logger";
-import { decode0, decode1, encode0, encode1 } from "./encoder";
+import {decode0, decode1, decode2, encode0, encode1, encode2} from "./encoder";
 import { WrappedConnection } from "./noise";
 import PeerId from "peer-id";
 
@@ -99,11 +99,11 @@ export class XXHandshake implements IHandshake {
     if (this.isInitiator) {
       logger('Stage 2 - Initiator sending third handshake message.');
       const messageBuffer = this.xx.sendMessage(this.session, this.payload);
-      this.connection.writeLP(encode1(messageBuffer));
+      this.connection.writeLP(encode2(messageBuffer));
       logger('Stage 2 - Initiator sent message with signed payload.');
     } else {
       logger('Stage 2 - Responder waiting for third handshake message...');
-      const receivedMessageBuffer = decode1((await this.connection.readLP()).slice());
+      const receivedMessageBuffer = decode2((await this.connection.readLP()).slice());
       const {plaintext, valid} = this.xx.recvMessage(this.session, receivedMessageBuffer);
       if(!valid) {
         throw new Error("xx handshake stage 2 validation fail");
