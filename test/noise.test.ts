@@ -138,7 +138,7 @@ describe("Noise", () => {
     }
   });
 
-  it("should communicate through encrypted streams with noise pipes", async() => {
+  it.skip("should communicate through encrypted streams with noise pipes", async() => {
     try {
       const staticKeysInitiator = generateKeypair();
       const noiseInit = new Noise(staticKeysInitiator.privateKey);
@@ -172,7 +172,7 @@ describe("Noise", () => {
     }
   });
 
-  it("IK -> XX fallback: initiator has invalid remote static key", async() => {
+  it.skip("IK -> XX fallback: initiator has invalid remote static key", async() => {
     try {
       const staticKeysInitiator = generateKeypair();
       const noiseInit = new Noise(staticKeysInitiator.privateKey);
@@ -238,7 +238,7 @@ describe("Noise", () => {
       }
     });
 
-  it("Initiator starts with XX (pipes disabled), responder has enabled noise pipes", async() => {
+  it.skip("Initiator starts with XX (pipes disabled), responder has enabled noise pipes", async() => {
     try {
       const staticKeysInitiator = generateKeypair();
       const noiseInit = new Noise(staticKeysInitiator.privateKey, undefined, false);
@@ -273,7 +273,7 @@ describe("Noise", () => {
     }
   });
 
-  it("IK: responder has no remote static key", async() => {
+  it.skip("IK: responder has no remote static key", async() => {
     try {
       const staticKeysInitiator = generateKeypair();
       const noiseInit = new Noise(staticKeysInitiator.privateKey);
