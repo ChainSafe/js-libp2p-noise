@@ -25,6 +25,10 @@ export function encode1(message: MessageBuffer): bytes {
   return Buffer.concat([message.ne, message.ns, message.ciphertext]);
 }
 
+export function encode2(message: MessageBuffer): bytes {
+  return Buffer.concat([message.ns, message.ciphertext]);
+}
+
 export function decode0(input: bytes): MessageBuffer {
   if (input.length < 32) {
     throw new Error("Cannot decode stage 0 MessageBuffer: length less than 32 bytes.");
@@ -39,12 +43,24 @@ export function decode0(input: bytes): MessageBuffer {
 
 export function decode1(input: bytes): MessageBuffer {
   if (input.length < 80) {
-    throw new Error("Cannot decode stage 0 MessageBuffer: length less than 96 bytes.");
+    throw new Error("Cannot decode stage 1 MessageBuffer: length less than 80 bytes.");
   }
 
   return {
     ne: input.slice(0, 32),
     ns: input.slice(32, 80),
     ciphertext: input.slice(80, input.length),
+  }
+}
+
+export function decode2(input: bytes): MessageBuffer {
+  if (input.length < 48) {
+    throw new Error("Cannot decode stage 2 MessageBuffer: length less than 48 bytes.");
+  }
+
+  return {
+    ne: Buffer.alloc(0),
+    ns: input.slice(0, 48),
+    ciphertext: input.slice(48, input.length),
   }
 }
