@@ -85,7 +85,7 @@ export class Noise implements INoiseConnection {
 
     return {
       conn,
-      remotePeer,
+      remotePeer: handshake.remotePeer,
     }
   }
 
