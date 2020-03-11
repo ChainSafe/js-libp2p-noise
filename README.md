@@ -25,7 +25,7 @@ import {NOISE, Noise} from "libp2p-noise"
 
 
 //custom noise configuration, pass it instead of NOISE instance
-const noise = new Noise(privateKey, Buffer.alloc(), false);
+const noise = new Noise(privateKey, Buffer.alloc(x));
 
 const libp2p = new Libp2p({
    modules: {
@@ -35,7 +35,6 @@ const libp2p = new Libp2p({
 ```
 
 Where parameters for Noise constructor are:
- - *private key* - required parameter (32 bytes libp2p peer private key)
  - *static Noise key* - (optional) existing private Noise static key
  - *early data* - (optional) an early data payload to be sent in handshake messages
  

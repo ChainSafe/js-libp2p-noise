@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Bugfixes
 - return handshake remote peer from secureOutbound
 
+## [1.0.0-rc.8] - 2019-03-05
+
+### Breaking changes
+- Disabled noise pipes
+
+### Bugfixes
+- fixed empty ephemeral bug in XX
+- verification of AEAD decryption
+
+
 ## [1.0.0-rc.7] - 2019-02-20
 
 ### Bugfixes
