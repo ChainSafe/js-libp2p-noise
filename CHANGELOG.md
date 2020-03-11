@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Bugfixes
 - return handshake remote peer from secureOutbound
+- fix browser usage of buffer
 
 ## [1.0.0-rc.8] - 2019-03-05
 
