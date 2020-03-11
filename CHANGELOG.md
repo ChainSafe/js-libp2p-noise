@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] -
 
+### Bugfixes
+- return handshake remote peer from secureOutbound
+
 ## [1.0.0-rc.7] - 2019-02-20
 
 ### Bugfixes
