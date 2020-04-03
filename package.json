@@ -19,6 +19,7 @@
   ],
   "scripts": {
     "prebuild": "rm -rf lib && rm -rf dist",
+    "bundle": "webpack --config webpack.bundle.config.js",
     "build": "yarn run build:node && yarn run build:web && yarn run build:types",
     "build:node": "babel --no-babelrc --config-file ./babel.config.json src --copy-files -x .ts -d dist --source-maps",
     "build:web": "babel --no-babelrc --config-file ./babel.web.config.json src --copy-files -x .ts -d lib --source-maps",
@@ -63,6 +64,7 @@
     "ts-loader": "^6.2.1",
     "typescript": "^3.6.4",
     "webpack": "^4.41.5",
+    "webpack-bundle-analyzer": "^3.6.1",
     "webpack-cli": "^3.3.11"
   },
   "dependencies": {
