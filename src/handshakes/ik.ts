@@ -1,5 +1,5 @@
 import {Buffer} from "buffer";
-import {BN} from "bn.js";
+import BN from "bn.js";
 
 import {CipherState, HandshakeState, MessageBuffer, NoiseSession} from "../@types/handshake";
 import {bytes, bytes32} from "../@types/basic";
