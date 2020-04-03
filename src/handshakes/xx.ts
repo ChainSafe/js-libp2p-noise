@@ -1,5 +1,5 @@
 import { Buffer } from 'buffer';
-import { BN } from 'bn.js';
+import BN from 'bn.js';
 
 import { bytes32, bytes } from '../@types/basic'
 import { KeyPair } from '../@types/libp2p'

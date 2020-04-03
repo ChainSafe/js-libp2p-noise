@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Bugfixes
+- fix types to be compatible with rest of libp2p typescript projects
+
 ## [1.0.0-rc.9] - 2019-03-11
 
 ### Bugfixes

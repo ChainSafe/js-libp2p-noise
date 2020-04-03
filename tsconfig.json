@@ -8,7 +8,6 @@
     "noImplicitAny": false,
     "typeRoots": [
       "./node_modules/@types",
-      "./node_modules/bn.js-typings/index.d.ts",
       "./src/@types"
     ]
   },
@@ -16,7 +15,6 @@
     "**/src/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
-    "./src/@types"
+    "node_modules"
   ]
 }

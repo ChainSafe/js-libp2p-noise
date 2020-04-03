@@ -1,4 +1,4 @@
-import { BN } from 'bn.js';
+import BN from 'bn.js';
 import { Buffer } from 'buffer';
 
 export type bytes = Buffer;
