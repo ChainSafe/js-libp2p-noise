@@ -1,5 +1,4 @@
 import { bytes, bytes32 } from "./basic";
-import { Duplex } from "it-pair";
 import PeerId from "peer-id";
 
 export type KeyPair = {
@@ -14,7 +13,7 @@ export interface INoiseConnection {
 }
 
 export type SecureOutbound = {
-  conn: Duplex;
+  conn: any;
   remotePeer: PeerId;
 }
 

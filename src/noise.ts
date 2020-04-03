@@ -14,7 +14,7 @@ import {uint16BEDecode, uint16BEEncode} from "./encoder";
 import {decryptStream, encryptStream} from "./crypto";
 import {bytes} from "./@types/basic";
 import {INoiseConnection, KeyPair, SecureOutbound} from "./@types/libp2p";
-import {Duplex} from "./@types/it-pair";
+import {Duplex} from "it-pair";
 import {IHandshake} from "./@types/handshake-interface";
 import {KeyCache} from "./keycache";
 import {logger} from "./logger";
