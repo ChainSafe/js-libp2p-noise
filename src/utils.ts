@@ -1,7 +1,9 @@
-import {HKDF, SHA256, x25519} from 'bcrypto';
+import HKDF from 'bcrypto/lib/hkdf';
+import x25519 from 'bcrypto/lib/js/x25519';
+import SHA256 from 'bcrypto/lib/js/sha256';
 import {Buffer} from "buffer";
 import PeerId from "peer-id";
-import * as crypto from 'libp2p-crypto';
+import {keys} from 'libp2p-crypto';
 import {KeyPair} from "./@types/libp2p";
 import {bytes, bytes32} from "./@types/basic";
 import {Hkdf, INoisePayload} from "./@types/handshake";
@@ -91,7 +93,7 @@ export async function verifySignedPayload(
   }
   const generatedPayload = getHandshakePayload(noiseStaticKey);
   // Unmarshaling from PublicKey protobuf
-  const publicKey = crypto.keys.unmarshalPublicKey(identityKey);
+  const publicKey = keys.unmarshalPublicKey(identityKey);
   if (!publicKey.verify(generatedPayload, payload.identitySig)) {
     throw new Error("Static key doesn't match to peer that signed payload!");
   }
