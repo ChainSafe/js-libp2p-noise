@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Bugfixes
+- changed bcrypto imports to use pure js versions (web bundle size reduction)
+
 ## [1.0.0-rc.9] - 2019-03-11
 
 ### Bugfixes
