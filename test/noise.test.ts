@@ -3,7 +3,7 @@ import DuplexPair from 'it-pair/duplex';
 import {Noise} from "../src";
 import {createPeerIdsFromFixtures} from "./fixtures/peer";
 import Wrap from "it-pb-rpc";
-import random from "bcrypto/lib/js/random";
+import {random} from "bcrypto";
 import sinon from "sinon";
 import {XXHandshake} from "../src/handshake-xx";
 import {createHandshakePayload, generateKeypair, getHandshakePayload, getPayload, signPayload} from "../src/utils";
