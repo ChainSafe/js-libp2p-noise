@@ -1,6 +1,6 @@
 {
   "name": "libp2p-noise",
-  "version": "1.0.0-rc.9",
+  "version": "1.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "module": "lib/index.js",
@@ -73,7 +73,7 @@
     "it-buffer": "^0.1.1",
     "it-length-prefixed": "^3.0.0",
     "it-pair": "^1.0.0",
-    "it-pb-rpc": "^0.1.6",
+    "it-pb-rpc": "^0.1.8",
     "it-pipe": "^1.1.0",
     "libp2p-crypto": "^0.17.1",
     "peer-id": "^0.13.5",

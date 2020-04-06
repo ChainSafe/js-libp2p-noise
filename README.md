@@ -15,6 +15,8 @@
 
 This repository contains TypeScript implementation of noise protocol, an encryption protocol used in libp2p.
 
+##### Warning: Even though this package works in browser, it will bundle around 1.5Mb of code 
+
 ## Usage
 
 Install with `yarn add libp2p-noise` or `npm i libp2p-noise`.

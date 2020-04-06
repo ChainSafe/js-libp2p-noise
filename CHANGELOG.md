@@ -5,10 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0]
+
+Stable version, interobable with go-libp2p-noise!
 
 ### Bugfixes
 - fix types to be compatible with rest of libp2p typescript projects
+- update it-pb-rpc to 0.1.8 (contains proper typescript types)
 
 ## [1.0.0-rc.9] - 2019-03-11
 
