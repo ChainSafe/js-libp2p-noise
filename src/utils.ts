@@ -111,7 +111,7 @@ export function getHkdf(ck: bytes32, ikm: bytes): Hkdf {
 }
 
 export function isValidPublicKey(pk: bytes): boolean {
-  if(pk.length !== 32 || pk.compare(Buffer.alloc(32))){
+  if(pk.length !== 32 || pk.equals(Buffer.alloc(32))){
     return false;
   }
 
