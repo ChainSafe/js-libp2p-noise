@@ -11,9 +11,9 @@ import {pb} from "./proto/payload";
 const NoiseHandshakePayloadProto = pb.NoiseHandshakePayload;
 
 export function generateKeypair(): KeyPair {
-  const keyPair = box.keyPair()
-  const publicKey = Buffer.from(keyPair['publicKey'])
-  const privateKey = Buffer.from(keyPair['secretKey'])
+  const keyPair = box.keyPair();
+  const publicKey = Buffer.from(keyPair['publicKey']);
+  const privateKey = Buffer.from(keyPair['secretKey']);
 
   return {
     publicKey,
@@ -101,7 +101,7 @@ export async function verifySignedPayload(
 }
 
 export function getHkdf(ck: bytes32, ikm: bytes): Hkdf {
-  const okm = hkdf(ikm, 96, {salt: ck, hash: 'SHA-256'})
+  const okm = hkdf(ikm, 96, {salt: ck, hash: 'SHA-256'});
 
   const k1 = okm.slice(0, 32);
   const k2 = okm.slice(32, 64);
