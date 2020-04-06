@@ -1,4 +1,5 @@
-import {HKDF, SHA256, x25519} from 'bcrypto';
+import hkdf from 'futoin-hkdf';
+import {box} from 'tweetnacl';
 import {Buffer} from "buffer";
 import PeerId from "peer-id";
 import * as crypto from 'libp2p-crypto';
@@ -10,8 +11,9 @@ import {pb} from "./proto/payload";
 const NoiseHandshakePayloadProto = pb.NoiseHandshakePayload;
 
 export function generateKeypair(): KeyPair {
-  const privateKey = x25519.privateKeyGenerate();
-  const publicKey = x25519.publicKeyCreate(privateKey);
+  const keyPair = box.keyPair()
+  const publicKey = Buffer.from(keyPair['publicKey'])
+  const privateKey = Buffer.from(keyPair['secretKey'])
 
   return {
     publicKey,
@@ -99,9 +101,7 @@ export async function verifySignedPayload(
 }
 
 export function getHkdf(ck: bytes32, ikm: bytes): Hkdf {
-  const info = Buffer.alloc(0);
-  const prk = HKDF.extract(SHA256, ikm, ck);
-  const okm = HKDF.expand(SHA256, prk, info, 96);
+  const okm = hkdf(ikm, 96, {salt: ck, hash: 'SHA-256'})
 
   const k1 = okm.slice(0, 32);
   const k2 = okm.slice(32, 64);
@@ -111,5 +111,9 @@ export function getHkdf(ck: bytes32, ikm: bytes): Hkdf {
 }
 
 export function isValidPublicKey(pk: bytes): boolean {
-  return x25519.publicKeyVerify(pk.slice(0, 32));
+  if(pk.length !== 32 || pk.compare(Buffer.alloc(32))){
+    return false;
+  }
+
+  return true;
 }
