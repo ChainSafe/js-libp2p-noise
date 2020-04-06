@@ -106,7 +106,7 @@ export abstract class AbstractHandshake {
 
   protected dh(privateKey: bytes32, publicKey: bytes32): bytes32 {
     try {
-      return Buffer.from(box.before(publicKey, privateKey));
+      return Buffer.from(box.before(publicKey, privateKey), 0, 32);
     } catch (e) {
       logger(e.message);
       return Buffer.alloc(32);
