@@ -4,7 +4,7 @@ import {Noise} from "../src";
 import {createPeerIdsFromFixtures} from "./fixtures/peer";
 import Wrap from "it-pb-rpc";
 import sinon from "sinon";
-import crypto from 'crypto';
+import crypto from 'libp2p-crypto';
 import {XXHandshake} from "../src/handshake-xx";
 import {createHandshakePayload, generateKeypair, getHandshakePayload, getPayload, signPayload} from "../src/utils";
 import {decode0, decode2, encode1, uint16BEDecode, uint16BEEncode} from "../src/encoder";
