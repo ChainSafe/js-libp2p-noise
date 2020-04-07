@@ -107,7 +107,7 @@ export abstract class AbstractHandshake {
   protected dh(privateKey: bytes32, publicKey: bytes32): bytes32 {
     try {
       const sharedKey = box.before(publicKey, privateKey)
-      return Buffer.from(sharedKey);
+      return Buffer.from(sharedKey.buffer, sharedKey.byteOffset, sharedKey.length);
     } catch (e) {
       logger(e.message);
       return Buffer.alloc(32);
