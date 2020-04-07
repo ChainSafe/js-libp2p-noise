@@ -106,7 +106,8 @@ export abstract class AbstractHandshake {
 
   protected dh(privateKey: bytes32, publicKey: bytes32): bytes32 {
     try {
-      return Buffer.from(box.before(publicKey, privateKey), 0, 32);
+      const sharedKey = box.before(publicKey, privateKey)
+      return Buffer.from(sharedKey);
     } catch (e) {
       logger(e.message);
       return Buffer.alloc(32);
@@ -118,9 +119,8 @@ export abstract class AbstractHandshake {
   }
 
   protected getHash(a: bytes, b: bytes): bytes32 {
-    return Buffer.from(
-      hash.sha256().update(Buffer.from([...a, ...b])).digest('hex')
-    );
+    const hashValue = hash.sha256().update(Buffer.from([...a, ...b])).digest();
+    return Buffer.from(hashValue);
   }
 
   protected mixKey(ss: SymmetricState, ikm: bytes32): void {
