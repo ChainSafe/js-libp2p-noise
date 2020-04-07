@@ -12,8 +12,8 @@ const NoiseHandshakePayloadProto = pb.NoiseHandshakePayload;
 
 export function generateKeypair(): KeyPair {
   const keyPair = box.keyPair();
-  const publicKey = Buffer.from(keyPair['publicKey']);
-  const privateKey = Buffer.from(keyPair['secretKey']);
+  const publicKey = Buffer.from(keyPair.publicKey);
+  const privateKey = Buffer.from(keyPair.secretKey);
 
   return {
     publicKey,

@@ -49,7 +49,7 @@ export class Noise implements INoiseConnection {
     this.useNoisePipes = false;
 
     if (staticNoiseKey) {
-      const publicKey = Buffer.from(box.keyPair.fromSecretKey(staticNoiseKey)['publicKey']);
+      const publicKey = Buffer.from(box.keyPair.fromSecretKey(staticNoiseKey).publicKey);
       this.staticKeys = {
         privateKey: staticNoiseKey,
         publicKey,
