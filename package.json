@@ -80,6 +80,9 @@
     "libp2p-crypto": "^0.17.6",
     "peer-id": "^0.13.5",
     "protobufjs": "6.8.8",
-    "tweetnacl": "^1.0.3"
+    "tweetnacl": "^1.0.1"
+  },
+  "resolutions": {
+    "bn.js": "4.4.0"
   }
 }

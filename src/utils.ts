@@ -94,7 +94,7 @@ export async function verifySignedPayload(
   const generatedPayload = getHandshakePayload(noiseStaticKey);
   // Unmarshaling from PublicKey protobuf
   const publicKey = keys.unmarshalPublicKey(identityKey);
-  if (!publicKey.verify(generatedPayload, payload.identitySig)) {
+  if (!publicKey.verify(generatedPayload, payload.identitySig as Buffer)) {
     throw new Error("Static key doesn't match to peer that signed payload!");
   }
   return remotePeer;
