@@ -1,6 +1,4 @@
 import { Buffer } from 'buffer';
-import BN from 'bn.js';
-
 import { bytes32, bytes } from '../@types/basic'
 import { KeyPair } from '../@types/libp2p'
 import {generateKeypair, isValidPublicKey} from '../utils';
@@ -129,23 +127,23 @@ export class XX extends AbstractHandshake {
     return {
       hs,
       i: initiator,
-      mc: new BN(0),
+      mc: 0,
     };
   }
 
   public sendMessage(session: NoiseSession, message: bytes, ephemeral?: KeyPair): MessageBuffer {
     let messageBuffer: MessageBuffer;
-    if (session.mc.eqn(0)) {
+    if (session.mc === 0) {
       messageBuffer = this.writeMessageA(session.hs, message, ephemeral);
-    } else if (session.mc.eqn(1)) {
+    } else if (session.mc === 1) {
       messageBuffer = this.writeMessageB(session.hs, message);
-    } else if (session.mc.eqn(2)) {
+    } else if (session.mc === 2) {
       const { h, messageBuffer: resultingBuffer, cs1, cs2 } = this.writeMessageC(session.hs, message);
       messageBuffer = resultingBuffer;
       session.h = h;
       session.cs1 = cs1;
       session.cs2 = cs2;
-    } else if (session.mc.gtn(2)) {
+    } else if (session.mc > 2) {
       if (session.i) {
         if (!session.cs1) {
           throw new Error("CS1 (cipher state) is not defined")
@@ -163,18 +161,18 @@ export class XX extends AbstractHandshake {
       throw new Error("Session invalid.")
     }
 
-    session.mc = session.mc.add(new BN(1));
+    session.mc++;
     return messageBuffer;
   }
 
   public recvMessage(session: NoiseSession, message: MessageBuffer): {plaintext: bytes; valid: boolean} {
     let plaintext: bytes = Buffer.alloc(0);
     let valid = false;
-    if (session.mc.eqn(0)) {
+    if (session.mc === 0) {
       ({plaintext, valid} = this.readMessageA(session.hs, message));
-    } else if (session.mc.eqn(1)) {
+    } else if (session.mc === 1) {
       ({plaintext, valid} = this.readMessageB(session.hs, message));
-    } else if (session.mc.eqn(2)) {
+    } else if (session.mc === 2) {
       const { h, plaintext: resultingPlaintext, valid: resultingValid, cs1, cs2 } = this.readMessageC(session.hs, message);
       plaintext = resultingPlaintext;
       valid = resultingValid;
@@ -182,7 +180,7 @@ export class XX extends AbstractHandshake {
       session.cs1 = cs1;
       session.cs2 = cs2;
     }
-    session.mc = session.mc.add(new BN(1));
+    session.mc++;
     return {plaintext, valid};
   }
 }
