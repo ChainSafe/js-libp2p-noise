@@ -4,7 +4,7 @@ import {Noise} from "../src";
 import {createPeerIdsFromFixtures} from "./fixtures/peer";
 import Wrap from "it-pb-rpc";
 import sinon from "sinon";
-import crypto from 'libp2p-crypto';
+import {randomBytes} from 'libp2p-crypto';
 import {XXHandshake} from "../src/handshake-xx";
 import {createHandshakePayload, generateKeypair, getHandshakePayload, getPayload, signPayload} from "../src/utils";
 import {decode0, decode2, encode1, uint16BEDecode, uint16BEEncode} from "../src/encoder";
@@ -122,7 +122,7 @@ describe("Noise", () => {
       const wrappedInbound = Wrap(inbound.conn);
       const wrappedOutbound = Wrap(outbound.conn);
 
-      const largePlaintext = crypto.randomBytes(100000);
+      const largePlaintext = randomBytes(100000);
       wrappedOutbound.writeLP(largePlaintext);
       const response = await wrappedInbound.read(100000);
 
