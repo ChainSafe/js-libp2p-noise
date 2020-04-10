@@ -6,8 +6,6 @@ import {KeyPair} from "./@types/libp2p";
 import {bytes, bytes32} from "./@types/basic";
 import {Hkdf, INoisePayload} from "./@types/handshake";
 import {pb} from "./proto/payload";
-import {sessionKeyLogger} from "./logger"
-import {DUMP_SESSION_KEYS} from "./constants"
 
 const NoiseHandshakePayloadProto = pb.NoiseHandshakePayload;
 
@@ -49,7 +47,7 @@ export async function createHandshakePayload(
   });
 
   return Buffer.from(NoiseHandshakePayloadProto.encode(payloadInit).finish());
-}
+} 
 
 
 export async function signPayload(peerId: PeerId, payload: bytes): Promise<bytes> {
