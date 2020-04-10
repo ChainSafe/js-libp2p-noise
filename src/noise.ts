@@ -9,7 +9,7 @@ import {encode, decode} from 'it-length-prefixed';
 import {XXHandshake} from "./handshake-xx";
 import {IKHandshake} from "./handshake-ik";
 import {XXFallbackHandshake} from "./handshake-xx-fallback";
-import {generateKeypair, getPayload, dumpSessionKeys} from "./utils";
+import {generateKeypair, getPayload} from "./utils";
 import {uint16BEDecode, uint16BEEncode} from "./encoder";
 import {decryptStream, encryptStream} from "./crypto";
 import {bytes} from "./@types/basic";
@@ -83,8 +83,6 @@ export class Noise implements INoiseConnection {
     });
     const conn = await this.createSecureConnection(wrappedConnection, handshake);
 
-    dumpSessionKeys(handshake.session.hs, localPeer.id, remotePeer.id);
-
     return {
       conn,
       remotePeer: handshake.remotePeer,
@@ -114,8 +112,6 @@ export class Noise implements INoiseConnection {
       remotePeer
     });
     const conn = await this.createSecureConnection(wrappedConnection, handshake);
-
-    dumpSessionKeys(handshake.session.hs, localPeer.id, remotePeer ? remotePeer.id : undefined);
 
     return {
       conn,

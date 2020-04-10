@@ -4,7 +4,7 @@ import PeerId from "peer-id";
 import * as crypto from 'libp2p-crypto';
 import {KeyPair} from "./@types/libp2p";
 import {bytes, bytes32} from "./@types/basic";
-import {Hkdf, INoisePayload, HandshakeState} from "./@types/handshake";
+import {Hkdf, INoisePayload} from "./@types/handshake";
 import {pb} from "./proto/payload";
 import {sessionKeyLogger} from "./logger"
 import {DUMP_SESSION_KEYS} from "./constants"
@@ -114,26 +114,4 @@ export function getHkdf(ck: bytes32, ikm: bytes): Hkdf {
 
 export function isValidPublicKey(pk: bytes): boolean {
   return x25519.publicKeyVerify(pk.slice(0, 32));
-}
-
-export function dumpSessionKeys(hs: HandshakeState, localPeerId: Buffer, remotePeerId=Buffer.alloc(0)): void {
-  if(!DUMP_SESSION_KEYS){
-    return;
-  }
-
-  if(hs.e === undefined){
-    hs.e = {privateKey: Buffer.alloc(0), publicKey: Buffer.alloc(0)}
-  }
-
-  const log = `
-    PEER_ID_LOCAL ${localPeerId.toString('hex')}
-    PEER_ID_REMOTE ${remotePeerId.toString('hex')}
-    LOCAL_STATIC_KEY ${hs.s.privateKey.toString('hex')}
-    LOCAL_EPHEMEREAL_KEY ${hs.e.privateKey.toString('hex')}
-    REMOTE_STATIC_KEY ${hs.rs.toString('hex')}
-    REMOTE_EPHEMEREAL_KEY ${hs.re.toString('hex')}
-    ENCRYPTION_KEY ${hs.ss.cs.k.toString('hex')}
-  `
-
-  sessionKeyLogger(log);
 }

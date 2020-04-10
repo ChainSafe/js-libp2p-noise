@@ -4,7 +4,7 @@ import {XX} from "./handshakes/xx";
 import {KeyPair} from "./@types/libp2p";
 import {bytes, bytes32} from "./@types/basic";
 import {decodePayload, getPeerIdFromPayload, verifySignedPayload,} from "./utils";
-import {logger} from "./logger";
+import {logger, sessionKeyLogger} from "./logger";
 import {WrappedConnection} from "./noise";
 import {decode0, decode1} from "./encoder";
 import PeerId from "peer-id";
@@ -35,6 +35,10 @@ export class XXFallbackHandshake extends XXHandshake {
   public async propose(): Promise<void> {
     if (this.isInitiator) {
       this.xx.sendMessage(this.session, Buffer.alloc(0), this.ephemeralKeys);
+      if(this.session.hs.e){
+        sessionKeyLogger(`LOCAL_PUBLIC_EPHEMERAL_KEY ${this.session.hs.e.publicKey.toString('hex')}`)
+        sessionKeyLogger(`LOCAL_PRIVATE_EPHEMERAL_KEY ${this.session.hs.e.privateKey.toString('hex')}`)
+      }
       logger("XX Fallback Stage 0 - Initialized state as the first message was sent by initiator.");
     } else {
       logger("XX Fallback Stage 0 - Responder decoding initial msg from IK.");
@@ -48,6 +52,7 @@ export class XXFallbackHandshake extends XXHandshake {
         throw new Error("xx fallback stage 0 decryption validation fail");
       }
       logger("XX Fallback Stage 0 - Responder used received message from IK.");
+      sessionKeyLogger(`REMOTE_EPHEMEREAL_KEY ${this.session.hs.re.toString('hex')}`)
     }
   }
 
@@ -60,6 +65,8 @@ export class XXFallbackHandshake extends XXHandshake {
         throw new Error("xx fallback stage 1 decryption validation fail");
       }
       logger('XX Fallback Stage 1 - Initiator used received message from IK.');
+      sessionKeyLogger(`REMOTE_EPHEMEREAL_KEY ${this.session.hs.re.toString('hex')}`)
+      sessionKeyLogger(`REMOTE_STATIC_KEY ${this.session.hs.rs.toString('hex')}`)
 
       logger("Initiator going to check remote's signature...");
       try {
