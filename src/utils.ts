@@ -47,7 +47,7 @@ export async function createHandshakePayload(
   });
 
   return Buffer.from(NoiseHandshakePayloadProto.encode(payloadInit).finish());
-} 
+}
 
 
 export async function signPayload(peerId: PeerId, payload: bytes): Promise<bytes> {
