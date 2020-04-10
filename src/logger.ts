@@ -4,10 +4,10 @@ import {DUMP_SESSION_KEYS} from './constants';
 
 let keyLogger;
 if(DUMP_SESSION_KEYS){
-    keyLogger = debug('libp2p:session')
+  keyLogger = debug('libp2p:session')
 }
 else{
-    keyLogger = () => {}
+  keyLogger = () => {}
 }
 
 export const sessionKeyLogger = keyLogger;
