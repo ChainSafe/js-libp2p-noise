@@ -10,7 +10,7 @@ import {
   getPeerIdFromPayload,
   verifySignedPayload,
 } from "./utils";
-import { logger, sessionKeyLogger } from "./logger";
+import { logger, logLocalStaticKeys, logLocalEphemeralKeys, logRemoteEphemeralKey, logRemoteStaticKey, logCipherState, logSymmetricCipherState } from "./logger";
 import {decode0, decode1, decode2, encode0, encode1, encode2} from "./encoder";
 import { WrappedConnection } from "./noise";
 import PeerId from "peer-id";
@@ -50,17 +50,13 @@ export class XXHandshake implements IHandshake {
 
   // stage 0
   public async propose(): Promise<void> {
-    sessionKeyLogger(`LOCAL_STATIC_PUBLIC_KEY ${this.session.hs.s.publicKey.toString('hex')}`)
-    sessionKeyLogger(`LOCAL_STATIC_PRIVATE_KEY ${this.session.hs.s.privateKey.toString('hex')}`)
+    logLocalStaticKeys(this.session.hs.s)
     if (this.isInitiator) {
       logger("Stage 0 - Initiator starting to send first message.");
       const messageBuffer = this.xx.sendMessage(this.session, Buffer.alloc(0));
       this.connection.writeLP(encode0(messageBuffer));
       logger("Stage 0 - Initiator finished sending first message.");
-      if(this.session.hs.e){
-        sessionKeyLogger(`LOCAL_PUBLIC_EPHEMERAL_KEY ${this.session.hs.e.publicKey.toString('hex')}`)
-        sessionKeyLogger(`LOCAL_PRIVATE_EPHEMERAL_KEY ${this.session.hs.e.privateKey.toString('hex')}`)
-      }
+      logLocalEphemeralKeys(this.session.hs.e)
     } else {
       logger("Stage 0 - Responder waiting to receive first message...");
       const receivedMessageBuffer = decode0((await this.connection.readLP()).slice());
@@ -69,7 +65,7 @@ export class XXHandshake implements IHandshake {
         throw new Error("xx handshake stage 0 validation fail");
       }
       logger("Stage 0 - Responder received first message.");
-      sessionKeyLogger(`REMOTE_EPHEMEREAL_KEY ${this.session.hs.re.toString('hex')}`)
+      logRemoteEphemeralKey(this.session.hs.re)
     }
   }
 
@@ -83,8 +79,8 @@ export class XXHandshake implements IHandshake {
         throw new Error("xx handshake stage 1 validation fail");
       }
       logger('Stage 1 - Initiator received the message.');
-      sessionKeyLogger(`REMOTE_EPHEMEREAL_KEY ${this.session.hs.re.toString('hex')}`)
-      sessionKeyLogger(`REMOTE_STATIC_KEY ${this.session.hs.rs.toString('hex')}`)
+      logRemoteEphemeralKey(this.session.hs.re)
+      logRemoteStaticKey(this.session.hs.rs)
 
       logger("Initiator going to check remote's signature...");
       try {
@@ -100,10 +96,7 @@ export class XXHandshake implements IHandshake {
       const messageBuffer = this.xx.sendMessage(this.session, this.payload);
       this.connection.writeLP(encode1(messageBuffer));
       logger('Stage 1 - Responder sent the second handshake message with signed payload.')
-      if(this.session.hs.e){
-        sessionKeyLogger(`LOCAL_PUBLIC_EPHEMERAL_KEY ${this.session.hs.e.publicKey.toString('hex')}`)
-        sessionKeyLogger(`LOCAL_PRIVATE_EPHEMERAL_KEY ${this.session.hs.e.privateKey.toString('hex')}`)
-      }
+      logLocalEphemeralKeys(this.session.hs.e)
     }
   }
 
@@ -131,10 +124,8 @@ export class XXHandshake implements IHandshake {
         throw new Error(`Error occurred while verifying signed payload: ${e.message}`);
       }
     }
-    if(this.session.cs1 && this.session.cs2){
-      sessionKeyLogger(`CIPHER_STATE_1 ${this.session.cs1.n} ${this.session.cs1.k.toString('hex')}`)
-      sessionKeyLogger(`CIPHER_STATE_2 ${this.session.cs2.n} ${this.session.cs2.k.toString('hex')}`)
-    }
+    logSymmetricCipherState(this.session.hs.ss)
+    logCipherState(this.session)
   }
 
   public encrypt(plaintext: bytes, session: NoiseSession): bytes {

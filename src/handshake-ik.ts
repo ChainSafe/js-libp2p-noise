@@ -8,7 +8,7 @@ import {Buffer} from "buffer";
 import {decode0, decode1, encode0, encode1} from "./encoder";
 import {decodePayload, getPeerIdFromPayload, verifySignedPayload} from "./utils";
 import {FailedIKError} from "./errors";
-import {logger, sessionKeyLogger} from "./logger";
+import {logger, logLocalStaticKeys, logRemoteStaticKey, logLocalEphemeralKeys, logRemoteEphemeralKey, logSymmetricCipherState, logCipherState} from "./logger";
 import PeerId from "peer-id";
 
 export class IKHandshake implements IHandshake {
@@ -45,18 +45,14 @@ export class IKHandshake implements IHandshake {
   }
 
   public async stage0(): Promise<void> {
-    sessionKeyLogger(`LOCAL_STATIC_PUBLIC_KEY ${this.session.hs.s.publicKey.toString('hex')}`)
-    sessionKeyLogger(`LOCAL_STATIC_PRIVATE_KEY ${this.session.hs.s.privateKey.toString('hex')}`)
-    sessionKeyLogger(`REMOTE_STATIC_PUBLIC_KEY ${this.session.hs.rs.toString('hex')}`) 
+    logLocalStaticKeys(this.session.hs.s)
+    logRemoteStaticKey(this.session.hs.re)
     if (this.isInitiator) {
       logger("IK Stage 0 - Initiator sending message...");
       const messageBuffer = this.ik.sendMessage(this.session, this.payload);
       this.connection.writeLP(encode1(messageBuffer));
       logger("IK Stage 0 - Initiator sent message.");
-      if(this.session.hs.e){
-        sessionKeyLogger(`LOCAL_PUBLIC_EPHEMERAL_KEY ${this.session.hs.e.publicKey.toString('hex')}`)
-        sessionKeyLogger(`LOCAL_PRIVATE_EPHEMERAL_KEY ${this.session.hs.e.privateKey.toString('hex')}`)
-      }
+      logLocalEphemeralKeys(this.session.hs.e)
     } else {
       logger("IK Stage 0 - Responder receiving message...");
       const receivedMsg = await this.connection.readLP();
@@ -71,14 +67,14 @@ export class IKHandshake implements IHandshake {
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload);
         await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer);
         logger("IK Stage 0 - Responder successfully verified payload!");
-        sessionKeyLogger(`REMOTE_EPHEMEREAL_KEY ${this.session.hs.re.toString('hex')}`)
+        logRemoteEphemeralKey(this.session.hs.re)
       } catch (e) {
         logger("Responder breaking up with IK handshake in stage 0.");
 
         throw new FailedIKError(receivedMsg, `Error occurred while verifying initiator's signed payload: ${e.message}`);
       }
     }
-    sessionKeyLogger(`SYMMETRIC_CIPHER_STATE ${this.session.hs.ss.cs.n} ${this.session.hs.ss.cs.k.toString('hex')}`) 
+    logSymmetricCipherState(this.session.hs.ss)
   }
 
   public async stage1(): Promise<void> {
@@ -96,7 +92,7 @@ export class IKHandshake implements IHandshake {
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload);
         await verifySignedPayload(receivedMessageBuffer.ns.slice(0, 32), decodedPayload, this.remotePeer);
         logger("IK Stage 1 - Initiator successfully verified payload!");
-        sessionKeyLogger(`REMOTE_EPHEMERAL_KEY ${this.session.hs.re.toString('hex')}`)
+        logRemoteEphemeralKey(this.session.hs.re)
       } catch (e) {
         logger("Initiator breaking up with IK handshake in stage 1.");
         throw new FailedIKError(receivedMsg, `Error occurred while verifying responder's signed payload: ${e.message}`);
@@ -106,15 +102,9 @@ export class IKHandshake implements IHandshake {
       const messageBuffer = this.ik.sendMessage(this.session, this.payload);
       this.connection.writeLP(encode0(messageBuffer));
       logger("IK Stage 1 - Responder sent message...");
-      if(this.session.hs.e){
-        sessionKeyLogger(`LOCAL_PUBLIC_EPHEMERAL_KEY ${this.session.hs.e.publicKey.toString('hex')}`)
-        sessionKeyLogger(`LOCAL_PRIVATE_EPHEMERAL_KEY ${this.session.hs.e.privateKey.toString('hex')}`)
-      }
+      logLocalEphemeralKeys(this.session.hs.e)
     }
-    if(this.session.cs1 && this.session.cs2){
-      sessionKeyLogger(`CIPHER_STATE_1 ${this.session.cs1.n} ${this.session.cs1.k.toString('hex')}`)
-      sessionKeyLogger(`CIPHER_STATE_2 ${this.session.cs2.n} ${this.session.cs2.k.toString('hex')}`)
-    }
+    logCipherState(this.session)
   }
 
   public decrypt(ciphertext: bytes, session: NoiseSession): {plaintext: bytes; valid: boolean} {
