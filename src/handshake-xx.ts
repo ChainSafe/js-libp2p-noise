@@ -84,7 +84,7 @@ export class XXHandshake implements IHandshake {
         const decodedPayload = await decodePayload(plaintext);
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload);
         this.remotePeer = await verifySignedPayload(receivedMessageBuffer.ns, decodedPayload, this.remotePeer);
-        this.setEarlyData(decodedPayload.data)
+        this.setRemoteEarlyData(decodedPayload.data)
       } catch (e) {
         throw new Error(`Error occurred while verifying signed payload: ${e.message}`);
       }
@@ -117,7 +117,7 @@ export class XXHandshake implements IHandshake {
         const decodedPayload = await decodePayload(plaintext);
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload);
         await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer);
-        this.setEarlyData(decodedPayload.data)
+        this.setRemoteEarlyData(decodedPayload.data)
       } catch (e) {
         throw new Error(`Error occurred while verifying signed payload: ${e.message}`);
       }
@@ -151,7 +151,7 @@ export class XXHandshake implements IHandshake {
     }
   }
 
-  private setEarlyData(data: Uint8Array|null|undefined): void {
+  private setRemoteEarlyData(data: Uint8Array|null|undefined): void {
     if(data){
       this.remoteEarlyData = Buffer.from(data.buffer, data.byteOffset, data.length);
     }

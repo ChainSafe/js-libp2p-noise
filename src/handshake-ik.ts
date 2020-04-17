@@ -65,7 +65,7 @@ export class IKHandshake implements IHandshake {
         const decodedPayload = await decodePayload(plaintext);
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload);
         await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer);
-        this.setEarlyData(decodedPayload.data);
+        this.setRemoteEarlyData(decodedPayload.data);
         logger("IK Stage 0 - Responder successfully verified payload!");
       } catch (e) {
         logger("Responder breaking up with IK handshake in stage 0.");
@@ -89,7 +89,7 @@ export class IKHandshake implements IHandshake {
         const decodedPayload = await decodePayload(plaintext);
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload);
         await verifySignedPayload(receivedMessageBuffer.ns.slice(0, 32), decodedPayload, this.remotePeer);
-        this.setEarlyData(decodedPayload.data);
+        this.setRemoteEarlyData(decodedPayload.data);
         logger("IK Stage 1 - Initiator successfully verified payload!");
       } catch (e) {
         logger("Initiator breaking up with IK handshake in stage 1.");
@@ -133,7 +133,7 @@ export class IKHandshake implements IHandshake {
     }
   }
 
-  private setEarlyData(data: Uint8Array|null|undefined): void {
+  private setRemoteEarlyData(data: Uint8Array|null|undefined): void {
     if(data){
       this.remoteEarlyData = Buffer.from(data.buffer, data.byteOffset, data.length);
     }
