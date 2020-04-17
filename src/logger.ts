@@ -45,7 +45,3 @@ export function logCipherState(session: NoiseSession): void {
     keyLogger('Missing cipher state.')
   }
 }
-
-export function logSymmetricCipherState(ss: SymmetricState): void {
-  keyLogger(`SYMMETRIC_CIPHER_STATE ${ss.cs.n} ${ss.cs.k.toString('hex')}`) 
-}

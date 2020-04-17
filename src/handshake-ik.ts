@@ -14,7 +14,7 @@ import {
   logRemoteStaticKey, 
   logLocalEphemeralKeys, 
   logRemoteEphemeralKey, 
-  logSymmetricCipherState, logCipherState
+  logCipherState
 } from "./logger";
 import PeerId from "peer-id";
 
@@ -81,7 +81,6 @@ export class IKHandshake implements IHandshake {
         throw new FailedIKError(receivedMsg, `Error occurred while verifying initiator's signed payload: ${e.message}`);
       }
     }
-    logSymmetricCipherState(this.session.hs.ss)
   }
 
   public async stage1(): Promise<void> {

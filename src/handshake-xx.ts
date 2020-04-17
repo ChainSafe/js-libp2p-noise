@@ -17,7 +17,6 @@ import {
   logRemoteEphemeralKey, 
   logRemoteStaticKey, 
   logCipherState, 
-  logSymmetricCipherState 
 } from "./logger";
 import {decode0, decode1, decode2, encode0, encode1, encode2} from "./encoder";
 import { WrappedConnection } from "./noise";
@@ -132,7 +131,6 @@ export class XXHandshake implements IHandshake {
         throw new Error(`Error occurred while verifying signed payload: ${e.message}`);
       }
     }
-    logSymmetricCipherState(this.session.hs.ss)
     logCipherState(this.session)
   }
 
