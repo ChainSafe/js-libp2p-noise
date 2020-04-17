@@ -53,7 +53,7 @@ export class IKHandshake implements IHandshake {
 
   public async stage0(): Promise<void> {
     logLocalStaticKeys(this.session.hs.s)
-    logRemoteStaticKey(this.session.hs.re)
+    logRemoteStaticKey(this.session.hs.rs)
     if (this.isInitiator) {
       logger("IK Stage 0 - Initiator sending message...");
       const messageBuffer = this.ik.sendMessage(this.session, this.payload);
