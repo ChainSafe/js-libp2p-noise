@@ -7,7 +7,7 @@ export const logger = debug('libp2p:noise');
 
 let keyLogger;
 if(DUMP_SESSION_KEYS){
-    keyLogger = logger
+  keyLogger = logger
 }
 else {
   keyLogger = () => {}
