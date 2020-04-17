@@ -19,7 +19,7 @@ export class XXHandshake implements IHandshake {
   public isInitiator: boolean;
   public session: NoiseSession;
   public remotePeer!: PeerId;
-  public earlyData: Uint8Array;
+  public earlyData: Buffer;
 
   protected payload: bytes;
   protected connection: WrappedConnection;
@@ -153,7 +153,7 @@ export class XXHandshake implements IHandshake {
 
   private setEarlyData(data: Uint8Array|null|undefined): void {
     if(data){
-      this.earlyData = data
+      this.earlyData = Buffer.from(data.buffer, data.byteOffset, data.length);
     }
   }
 }
