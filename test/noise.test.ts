@@ -336,4 +336,30 @@ describe("Noise", () => {
       assert(false, e.message);
     }
   });
+
+  it("should accept and return early data from remote peer", async() => {
+    try {
+      const localPeerEarlyData = Buffer.from('early data')
+      const staticKeysInitiator = generateKeypair();
+      const noiseInit = new Noise(staticKeysInitiator.privateKey, localPeerEarlyData);
+      const staticKeysResponder = generateKeypair();
+      const noiseResp = new Noise(staticKeysResponder.privateKey);
+
+      // Prepare key cache for noise pipes
+      KeyCache.store(localPeer, staticKeysInitiator.publicKey);
+      KeyCache.store(remotePeer, staticKeysResponder.publicKey);
+
+      const [inboundConnection, outboundConnection] = DuplexPair();
+      const [outbound, inbound] = await Promise.all([
+        noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
+        noiseResp.secureInbound(remotePeer, inboundConnection),
+      ]);
+
+      assert(inbound.earlyData.equals(localPeerEarlyData))
+      assert(outbound.earlyData.equals(Buffer.alloc(0)))
+    } catch (e) {
+      console.error(e);
+      assert(false, e.message);
+    }
+  });
 });
