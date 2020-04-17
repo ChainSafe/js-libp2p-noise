@@ -19,6 +19,7 @@ export class XXHandshake implements IHandshake {
   public isInitiator: boolean;
   public session: NoiseSession;
   public remotePeer!: PeerId;
+  public earlyData: Uint8Array;
 
   protected payload: bytes;
   protected connection: WrappedConnection;
@@ -46,6 +47,7 @@ export class XXHandshake implements IHandshake {
     }
     this.xx = handshake || new XX();
     this.session = this.xx.initSession(this.isInitiator, this.prologue, this.staticKeypair);
+    this.earlyData = Buffer.alloc(0)
   }
 
   // stage 0
@@ -82,6 +84,7 @@ export class XXHandshake implements IHandshake {
         const decodedPayload = await decodePayload(plaintext);
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload);
         this.remotePeer = await verifySignedPayload(receivedMessageBuffer.ns, decodedPayload, this.remotePeer);
+        this.setEarlyData(decodedPayload.data)
       } catch (e) {
         throw new Error(`Error occurred while verifying signed payload: ${e.message}`);
       }
@@ -114,6 +117,7 @@ export class XXHandshake implements IHandshake {
         const decodedPayload = await decodePayload(plaintext);
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload);
         await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer);
+        this.setEarlyData(decodedPayload.data)
       } catch (e) {
         throw new Error(`Error occurred while verifying signed payload: ${e.message}`);
       }
@@ -144,6 +148,12 @@ export class XXHandshake implements IHandshake {
       return encryption ? session.cs1 : session.cs2;
     } else {
       return encryption ? session.cs2 : session.cs1;
+    }
+  }
+
+  private setEarlyData(data: Uint8Array|null|undefined): void {
+    if(data){
+      this.earlyData = data
     }
   }
 }
