@@ -3,11 +3,13 @@ import {DUMP_SESSION_KEYS} from './constants';
 import { KeyPair } from "./@types/libp2p";
 import { NoiseSession, SymmetricState } from "./@types/handshake";
 
+export const logger = debug('libp2p:noise');
+
 let keyLogger;
 if(DUMP_SESSION_KEYS){
-  keyLogger = debug('libp2p:session')
+    keyLogger = logger
 }
-else{
+else {
   keyLogger = () => {}
 }
 
@@ -47,5 +49,3 @@ export function logCipherState(session: NoiseSession): void {
 export function logSymmetricCipherState(ss: SymmetricState): void {
   keyLogger(`SYMMETRIC_CIPHER_STATE ${ss.cs.n} ${ss.cs.k.toString('hex')}`) 
 }
-
-export const logger = debug('libp2p:noise');
