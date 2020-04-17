@@ -10,7 +10,15 @@ import {
   getPeerIdFromPayload,
   verifySignedPayload,
 } from "./utils";
-import { logger, logLocalStaticKeys, logLocalEphemeralKeys, logRemoteEphemeralKey, logRemoteStaticKey, logCipherState, logSymmetricCipherState } from "./logger";
+import {
+  logger, 
+  logLocalStaticKeys, 
+  logLocalEphemeralKeys, 
+  logRemoteEphemeralKey, 
+  logRemoteStaticKey, 
+  logCipherState, 
+  logSymmetricCipherState 
+} from "./logger";
 import {decode0, decode1, decode2, encode0, encode1, encode2} from "./encoder";
 import { WrappedConnection } from "./noise";
 import PeerId from "peer-id";

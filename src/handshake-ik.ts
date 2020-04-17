@@ -8,7 +8,14 @@ import {Buffer} from "buffer";
 import {decode0, decode1, encode0, encode1} from "./encoder";
 import {decodePayload, getPeerIdFromPayload, verifySignedPayload} from "./utils";
 import {FailedIKError} from "./errors";
-import {logger, logLocalStaticKeys, logRemoteStaticKey, logLocalEphemeralKeys, logRemoteEphemeralKey, logSymmetricCipherState, logCipherState} from "./logger";
+import {
+  logger, 
+  logLocalStaticKeys,
+  logRemoteStaticKey, 
+  logLocalEphemeralKeys, 
+  logRemoteEphemeralKey, 
+  logSymmetricCipherState, logCipherState
+} from "./logger";
 import PeerId from "peer-id";
 
 export class IKHandshake implements IHandshake {
