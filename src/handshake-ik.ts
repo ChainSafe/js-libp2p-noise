@@ -135,7 +135,7 @@ export class IKHandshake implements IHandshake {
 
   private setEarlyData(data: Uint8Array|null|undefined): void {
     if(data){
-      this.earlyData = Buffer.from(data.buffer, data.byteOffset, data.length);
+      this.remoteEarlyData = Buffer.from(data.buffer, data.byteOffset, data.length);
     }
   }
 }

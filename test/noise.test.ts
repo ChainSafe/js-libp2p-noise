@@ -355,8 +355,8 @@ describe("Noise", () => {
         noiseResp.secureInbound(remotePeer, inboundConnection),
       ]);
 
-      assert(inbound.earlyData.equals(localPeerEarlyData))
-      assert(outbound.earlyData.equals(Buffer.alloc(0)))
+      assert(inbound.remoteEarlyData.equals(localPeerEarlyData))
+      assert(outbound.remoteEarlyData.equals(Buffer.alloc(0)))
     } catch (e) {
       console.error(e);
       assert(false, e.message);
