@@ -15,7 +15,7 @@ export class IKHandshake implements IHandshake {
   public isInitiator: boolean;
   public session: NoiseSession;
   public remotePeer!: PeerId;
-  public earlyData: Buffer;
+  public remoteEarlyData: Buffer;
 
   private payload: bytes;
   private prologue: bytes32;
@@ -43,7 +43,7 @@ export class IKHandshake implements IHandshake {
     }
     this.ik = handshake || new IK();
     this.session = this.ik.initSession(this.isInitiator, this.prologue, this.staticKeypair, remoteStaticKey);
-    this.earlyData = Buffer.alloc(0)
+    this.remoteEarlyData = Buffer.alloc(0)
   }
 
   public async stage0(): Promise<void> {

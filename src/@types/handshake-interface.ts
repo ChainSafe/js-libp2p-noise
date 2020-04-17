@@ -5,7 +5,7 @@ import PeerId from "peer-id";
 export interface IHandshake {
   session: NoiseSession;
   remotePeer: PeerId;
-  earlyData: Buffer;
+  remoteEarlyData: Buffer;
   encrypt(plaintext: bytes, session: NoiseSession): bytes;
   decrypt(ciphertext: bytes, session: NoiseSession): {plaintext: bytes; valid: boolean};
 }

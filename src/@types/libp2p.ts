@@ -14,7 +14,7 @@ export interface INoiseConnection {
 
 export type SecureOutbound = {
   conn: any;
-  earlyData: Buffer;
+  remoteEarlyData: Buffer;
   remotePeer: PeerId;
 }
 

@@ -67,7 +67,7 @@ export class XXFallbackHandshake extends XXHandshake {
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload);
         await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer);
         if(decodedPayload.data){
-          this.earlyData = Buffer.from(
+          this.remoteEarlyData = Buffer.from(
             decodedPayload.data.buffer, 
             decodedPayload.data.byteOffset, 
             decodedPayload.data.length

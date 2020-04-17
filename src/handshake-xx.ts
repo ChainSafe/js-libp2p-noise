@@ -19,7 +19,7 @@ export class XXHandshake implements IHandshake {
   public isInitiator: boolean;
   public session: NoiseSession;
   public remotePeer!: PeerId;
-  public earlyData: Buffer;
+  public remoteEarlyData: Buffer;
 
   protected payload: bytes;
   protected connection: WrappedConnection;
@@ -47,7 +47,7 @@ export class XXHandshake implements IHandshake {
     }
     this.xx = handshake || new XX();
     this.session = this.xx.initSession(this.isInitiator, this.prologue, this.staticKeypair);
-    this.earlyData = Buffer.alloc(0)
+    this.remoteEarlyData = Buffer.alloc(0)
   }
 
   // stage 0
@@ -153,7 +153,7 @@ export class XXHandshake implements IHandshake {
 
   private setEarlyData(data: Uint8Array|null|undefined): void {
     if(data){
-      this.earlyData = Buffer.from(data.buffer, data.byteOffset, data.length);
+      this.remoteEarlyData = Buffer.from(data.buffer, data.byteOffset, data.length);
     }
   }
 }

@@ -116,7 +116,7 @@ export class Noise implements INoiseConnection {
 
     return {
       conn,
-      earlyData: handshake.earlyData,
+      remoteEarlyData: handshake.remoteEarlyData,
       remotePeer: handshake.remotePeer
     };
   }
