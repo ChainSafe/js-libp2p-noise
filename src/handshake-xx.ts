@@ -151,7 +151,7 @@ export class XXHandshake implements IHandshake {
     }
   }
 
-  private setRemoteEarlyData(data: Uint8Array|null|undefined): void {
+  protected setRemoteEarlyData(data: Uint8Array|null|undefined): void {
     if(data){
       this.remoteEarlyData = Buffer.from(data.buffer, data.byteOffset, data.length);
     }
