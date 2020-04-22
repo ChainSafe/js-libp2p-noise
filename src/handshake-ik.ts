@@ -8,7 +8,14 @@ import {Buffer} from "buffer";
 import {decode0, decode1, encode0, encode1} from "./encoder";
 import {decodePayload, getPeerIdFromPayload, verifySignedPayload} from "./utils";
 import {FailedIKError} from "./errors";
-import {logger} from "./logger";
+import {
+  logger, 
+  logLocalStaticKeys,
+  logRemoteStaticKey, 
+  logLocalEphemeralKeys, 
+  logRemoteEphemeralKey, 
+  logCipherState
+} from "./logger";
 import PeerId from "peer-id";
 
 export class IKHandshake implements IHandshake {
@@ -45,11 +52,14 @@ export class IKHandshake implements IHandshake {
   }
 
   public async stage0(): Promise<void> {
+    logLocalStaticKeys(this.session.hs.s)
+    logRemoteStaticKey(this.session.hs.rs)
     if (this.isInitiator) {
       logger("IK Stage 0 - Initiator sending message...");
       const messageBuffer = this.ik.sendMessage(this.session, this.payload);
       this.connection.writeLP(encode1(messageBuffer));
       logger("IK Stage 0 - Initiator sent message.");
+      logLocalEphemeralKeys(this.session.hs.e)
     } else {
       logger("IK Stage 0 - Responder receiving message...");
       const receivedMsg = await this.connection.readLP();
@@ -64,6 +74,7 @@ export class IKHandshake implements IHandshake {
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload);
         await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer);
         logger("IK Stage 0 - Responder successfully verified payload!");
+        logRemoteEphemeralKey(this.session.hs.re)
       } catch (e) {
         logger("Responder breaking up with IK handshake in stage 0.");
 
@@ -87,6 +98,7 @@ export class IKHandshake implements IHandshake {
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload);
         await verifySignedPayload(receivedMessageBuffer.ns.slice(0, 32), decodedPayload, this.remotePeer);
         logger("IK Stage 1 - Initiator successfully verified payload!");
+        logRemoteEphemeralKey(this.session.hs.re)
       } catch (e) {
         logger("Initiator breaking up with IK handshake in stage 1.");
         throw new FailedIKError(receivedMsg, `Error occurred while verifying responder's signed payload: ${e.message}`);
@@ -96,7 +108,9 @@ export class IKHandshake implements IHandshake {
       const messageBuffer = this.ik.sendMessage(this.session, this.payload);
       this.connection.writeLP(encode0(messageBuffer));
       logger("IK Stage 1 - Responder sent message...");
+      logLocalEphemeralKeys(this.session.hs.e)
     }
+    logCipherState(this.session)
   }
 
   public decrypt(ciphertext: bytes, session: NoiseSession): {plaintext: bytes; valid: boolean} {

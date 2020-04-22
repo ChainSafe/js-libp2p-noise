@@ -10,7 +10,14 @@ import {
   getPeerIdFromPayload,
   verifySignedPayload,
 } from "./utils";
-import { logger } from "./logger";
+import {
+  logger, 
+  logLocalStaticKeys, 
+  logLocalEphemeralKeys, 
+  logRemoteEphemeralKey, 
+  logRemoteStaticKey, 
+  logCipherState, 
+} from "./logger";
 import {decode0, decode1, decode2, encode0, encode1, encode2} from "./encoder";
 import { WrappedConnection } from "./noise";
 import PeerId from "peer-id";
@@ -50,11 +57,13 @@ export class XXHandshake implements IHandshake {
 
   // stage 0
   public async propose(): Promise<void> {
+    logLocalStaticKeys(this.session.hs.s)
     if (this.isInitiator) {
       logger("Stage 0 - Initiator starting to send first message.");
       const messageBuffer = this.xx.sendMessage(this.session, Buffer.alloc(0));
       this.connection.writeLP(encode0(messageBuffer));
       logger("Stage 0 - Initiator finished sending first message.");
+      logLocalEphemeralKeys(this.session.hs.e)
     } else {
       logger("Stage 0 - Responder waiting to receive first message...");
       const receivedMessageBuffer = decode0((await this.connection.readLP()).slice());
@@ -63,6 +72,7 @@ export class XXHandshake implements IHandshake {
         throw new Error("xx handshake stage 0 validation fail");
       }
       logger("Stage 0 - Responder received first message.");
+      logRemoteEphemeralKey(this.session.hs.re)
     }
   }
 
@@ -76,6 +86,8 @@ export class XXHandshake implements IHandshake {
         throw new Error("xx handshake stage 1 validation fail");
       }
       logger('Stage 1 - Initiator received the message.');
+      logRemoteEphemeralKey(this.session.hs.re)
+      logRemoteStaticKey(this.session.hs.rs)
 
       logger("Initiator going to check remote's signature...");
       try {
@@ -91,6 +103,7 @@ export class XXHandshake implements IHandshake {
       const messageBuffer = this.xx.sendMessage(this.session, this.payload);
       this.connection.writeLP(encode1(messageBuffer));
       logger('Stage 1 - Responder sent the second handshake message with signed payload.')
+      logLocalEphemeralKeys(this.session.hs.e)
     }
   }
 
@@ -118,6 +131,7 @@ export class XXHandshake implements IHandshake {
         throw new Error(`Error occurred while verifying signed payload: ${e.message}`);
       }
     }
+    logCipherState(this.session)
   }
 
   public encrypt(plaintext: bytes, session: NoiseSession): bytes {
