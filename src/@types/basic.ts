@@ -1,9 +1,8 @@
-import BN from 'bn.js';
-import { Buffer } from 'buffer';
+import {Buffer} from 'buffer';
 
 export type bytes = Buffer;
 export type bytes32 = Buffer;
 export type bytes16 = Buffer;
 
 export type uint32 = number;
-export type uint64 = BN;
+export type uint64 = number;

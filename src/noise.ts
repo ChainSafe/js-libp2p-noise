@@ -1,4 +1,4 @@
-import {x25519} from 'bcrypto';
+import x25519 from 'bcrypto/lib/js/x25519';
 import {Buffer} from "buffer";
 import Wrap from 'it-pb-rpc';
 import DuplexPair from 'it-pair/duplex';
