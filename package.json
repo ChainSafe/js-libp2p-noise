@@ -68,7 +68,6 @@
   },
   "dependencies": {
     "bcrypto": "5.1.0",
-    "bn.js": "^5.0.0",
     "buffer": "^5.4.3",
     "debug": "^4.1.1",
     "it-buffer": "^0.1.1",
