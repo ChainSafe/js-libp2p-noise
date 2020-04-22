@@ -22,6 +22,7 @@ export class IKHandshake implements IHandshake {
   public isInitiator: boolean;
   public session: NoiseSession;
   public remotePeer!: PeerId;
+  public remoteEarlyData: Buffer;
 
   private payload: bytes;
   private prologue: bytes32;
@@ -49,6 +50,7 @@ export class IKHandshake implements IHandshake {
     }
     this.ik = handshake || new IK();
     this.session = this.ik.initSession(this.isInitiator, this.prologue, this.staticKeypair, remoteStaticKey);
+    this.remoteEarlyData = Buffer.alloc(0)
   }
 
   public async stage0(): Promise<void> {
@@ -73,6 +75,7 @@ export class IKHandshake implements IHandshake {
         const decodedPayload = await decodePayload(plaintext);
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload);
         await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer);
+        this.setRemoteEarlyData(decodedPayload.data);
         logger("IK Stage 0 - Responder successfully verified payload!");
         logRemoteEphemeralKey(this.session.hs.re)
       } catch (e) {
@@ -97,6 +100,7 @@ export class IKHandshake implements IHandshake {
         const decodedPayload = await decodePayload(plaintext);
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload);
         await verifySignedPayload(receivedMessageBuffer.ns.slice(0, 32), decodedPayload, this.remotePeer);
+        this.setRemoteEarlyData(decodedPayload.data);
         logger("IK Stage 1 - Initiator successfully verified payload!");
         logRemoteEphemeralKey(this.session.hs.re)
       } catch (e) {
@@ -140,6 +144,12 @@ export class IKHandshake implements IHandshake {
       return encryption ? session.cs1 : session.cs2;
     } else {
       return encryption ? session.cs2 : session.cs1;
+    }
+  }
+
+  private setRemoteEarlyData(data: Uint8Array|null|undefined): void {
+    if(data){
+      this.remoteEarlyData = Buffer.from(data.buffer, data.byteOffset, data.length);
     }
   }
 }

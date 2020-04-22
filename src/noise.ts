@@ -85,6 +85,7 @@ export class Noise implements INoiseConnection {
 
     return {
       conn,
+      remoteEarlyData: handshake.remoteEarlyData,
       remotePeer: handshake.remotePeer,
     }
   }
@@ -115,6 +116,7 @@ export class Noise implements INoiseConnection {
 
     return {
       conn,
+      remoteEarlyData: handshake.remoteEarlyData,
       remotePeer: handshake.remotePeer
     };
   }
