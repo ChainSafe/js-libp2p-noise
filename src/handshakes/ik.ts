@@ -1,4 +1,6 @@
 import {Buffer} from "buffer";
+import BN from "bn.js";
+
 import {CipherState, HandshakeState, MessageBuffer, NoiseSession} from "../@types/handshake";
 import {bytes, bytes32} from "../@types/basic";
 import {generateKeypair, isValidPublicKey} from "../utils";
@@ -20,21 +22,21 @@ export class IK extends AbstractHandshake {
     return {
       hs,
       i: initiator,
-      mc: 0,
+      mc: new BN(0),
     };
   }
 
   public sendMessage(session: NoiseSession, message: bytes): MessageBuffer {
     let messageBuffer: MessageBuffer;
-    if (session.mc === 0) {
+    if (session.mc.eqn(0)) {
       messageBuffer = this.writeMessageA(session.hs, message);
-    } else if (session.mc === 1) {
+    } else if (session.mc.eqn(1)) {
       const { messageBuffer: mb, h, cs1, cs2 } = this.writeMessageB(session.hs, message);
       messageBuffer = mb;
       session.h = h;
       session.cs1 = cs1;
       session.cs2 = cs2;
-    } else if (session.mc > 1) {
+    } else if (session.mc.gtn(1)) {
       if (session.i) {
         if (!session.cs1) {
           throw new Error("CS1 (cipher state) is not defined")
@@ -52,16 +54,16 @@ export class IK extends AbstractHandshake {
       throw new Error("Session invalid.")
     }
 
-    session.mc++;
+    session.mc = session.mc.add(new BN(1));
     return messageBuffer;
   }
 
   public recvMessage(session: NoiseSession, message: MessageBuffer): {plaintext: bytes; valid: boolean} {
     let plaintext = Buffer.alloc(0), valid = false;
-    if (session.mc === 0) {
+    if (session.mc.eqn(0)) {
       ({plaintext, valid} = this.readMessageA(session.hs, message));
     }
-    if (session.mc === 1) {
+    if (session.mc.eqn(1)) {
       const { plaintext: pt, valid: v, h, cs1, cs2 } = this.readMessageB(session.hs, message);
       plaintext = pt;
       valid = v;
@@ -69,7 +71,7 @@ export class IK extends AbstractHandshake {
       session.cs1 = cs1;
       session.cs2 = cs2;
     }
-    session.mc++;
+    session.mc = session.mc.add(new BN(1));
     return {plaintext, valid};
   }
 
