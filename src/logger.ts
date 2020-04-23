@@ -10,7 +10,7 @@ if(DUMP_SESSION_KEYS){
   keyLogger = logger
 }
 else {
-  keyLogger = () => {}
+  keyLogger = () => { /* do nothing */ }
 }
 
 export function logLocalStaticKeys(s: KeyPair): void {
@@ -29,11 +29,11 @@ export function logLocalEphemeralKeys(e: KeyPair|undefined): void {
 }
 
 export function logRemoteStaticKey(rs: Buffer): void {
-  keyLogger(`REMOTE_STATIC_PUBLIC_KEY ${rs.toString('hex')}`) 
+  keyLogger(`REMOTE_STATIC_PUBLIC_KEY ${rs.toString('hex')}`)
 }
 
 export function logRemoteEphemeralKey(re: Buffer): void {
-  keyLogger(`REMOTE_EPHEMERAL_PUBLIC_KEY ${re.toString('hex')}`) 
+  keyLogger(`REMOTE_EPHEMERAL_PUBLIC_KEY ${re.toString('hex')}`)
 }
 
 export function logCipherState(session: NoiseSession): void {
