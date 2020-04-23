@@ -1,19 +1,20 @@
 import {assert, expect} from "chai";
 import DuplexPair from 'it-pair/duplex';
-import {Noise} from "../src";
 import {createPeerIdsFromFixtures} from "./fixtures/peer";
 import Wrap from "it-pb-rpc";
-import {random} from "bcrypto";
 import sinon from "sinon";
+import BufferList from "bl";
+import {randomBytes} from 'libp2p-crypto';
+import {Buffer} from "buffer";
+
+import {Noise} from "../src";
 import {XXHandshake} from "../src/handshake-xx";
 import {createHandshakePayload, generateKeypair, getHandshakePayload, getPayload, signPayload} from "../src/utils";
 import {decode0, decode2, encode1, uint16BEDecode, uint16BEEncode} from "../src/encoder";
 import {XX} from "../src/handshakes/xx";
-import {Buffer} from "buffer";
 import {getKeyPairFromPeerId} from "./utils";
 import {KeyCache} from "../src/keycache";
 import {NOISE_MSG_MAX_LENGTH_BYTES} from "../src/constants";
-import BufferList from "bl";
 
 describe("Noise", () => {
   let remotePeer, localPeer;
@@ -122,7 +123,7 @@ describe("Noise", () => {
       const wrappedInbound = Wrap(inbound.conn);
       const wrappedOutbound = Wrap(outbound.conn);
 
-      const largePlaintext = random.randomBytes(100000);
+      const largePlaintext = randomBytes(100000);
       wrappedOutbound.writeLP(largePlaintext);
       const response = await wrappedInbound.read(100000);
 

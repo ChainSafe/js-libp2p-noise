@@ -75,8 +75,11 @@
     "it-pair": "^1.0.0",
     "it-pb-rpc": "^0.1.8",
     "it-pipe": "^1.1.0",
-    "libp2p-crypto": "^0.17.1",
+    "libp2p-crypto": "^0.17.6",
     "peer-id": "^0.13.5",
     "protobufjs": "6.8.8"
+  },
+  "resolutions": {
+    "bn.js": "4.4.0"
   }
 }
