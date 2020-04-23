@@ -1,7 +1,7 @@
 import {Buffer} from "buffer";
-import hash from 'hash.js';
-import {box} from 'tweetnacl';
-import {AEAD} from 'aead-js';
+import AEAD from 'bcrypto/lib/js/aead';
+import x25519 from 'bcrypto/lib/js/x25519';
+import SHA256 from 'bcrypto/lib/js/sha256';
 
 import {bytes, bytes32, uint32} from "../@types/basic";
 import {CipherState, MessageBuffer, SymmetricState} from "../@types/handshake";
@@ -106,8 +106,10 @@ export abstract class AbstractHandshake {
 
   protected dh(privateKey: bytes32, publicKey: bytes32): bytes32 {
     try {
-      const sharedKey = box.before(publicKey, privateKey)
-      return Buffer.from(sharedKey.buffer, sharedKey.byteOffset, sharedKey.length);
+      const derived = x25519.derive(publicKey, privateKey);
+      const result = Buffer.alloc(32);
+      derived.copy(result);
+      return result;
     } catch (e) {
       logger(e.message);
       return Buffer.alloc(32);
@@ -119,8 +121,7 @@ export abstract class AbstractHandshake {
   }
 
   protected getHash(a: bytes, b: bytes): bytes32 {
-    const hashValue = hash.sha256().update(Buffer.from([...a, ...b])).digest();
-    return Buffer.from(hashValue);
+    return SHA256.digest(Buffer.from([...a, ...b]));
   }
 
   protected mixKey(ss: SymmetricState, ikm: bytes32): void {

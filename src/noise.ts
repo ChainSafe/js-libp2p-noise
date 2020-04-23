@@ -1,4 +1,4 @@
-import {box} from 'tweetnacl';
+import x25519 from 'bcrypto/lib/js/x25519';
 import {Buffer} from "buffer";
 import Wrap from 'it-pb-rpc';
 import DuplexPair from 'it-pair/duplex';
@@ -49,7 +49,7 @@ export class Noise implements INoiseConnection {
     this.useNoisePipes = false;
 
     if (staticNoiseKey) {
-      const publicKey = Buffer.from(box.keyPair.fromSecretKey(staticNoiseKey).publicKey);
+      const publicKey = x25519.publicKeyCreate(staticNoiseKey);
       this.staticKeys = {
         privateKey: staticNoiseKey,
         publicKey,
