@@ -97,7 +97,7 @@ export async function verifySignedPayload(
   if (!payload.identitySig || !publicKey.verify(generatedPayload, Buffer.from(payload.identitySig))) {
     throw new Error("Static key doesn't match to peer that signed payload!");
   }
-  return remotePeer;
+  return PeerId.createFromPubKey(identityKey);
 }
 
 export function getHkdf(ck: bytes32, ikm: bytes): Hkdf {
