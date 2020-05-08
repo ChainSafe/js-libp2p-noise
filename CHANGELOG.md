@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2020-05-08
+
+#### Bugfixes
+- fix issue [#58](https://github.com/NodeFactoryIo/js-libp2p-noise/issues/58)
+
 ## [1.1.0] - 2020-04-23
 
 Stable version, interoperable with go.
