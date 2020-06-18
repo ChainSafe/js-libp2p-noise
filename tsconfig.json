@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "ES2018",
     "module": "commonjs",
     "strict": true,
     "resolveJsonModule": true,
@@ -15,6 +15,7 @@
     "**/src/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "dist"
   ]
 }
