@@ -1,13 +1,9 @@
 {
   "name": "libp2p-noise",
   "version": "1.1.2",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "module": "lib/index.js",
+  "main": "dist/src/index.js",
   "files": [
-    "dist",
-    "lib",
-    "src"
+    "dist"
   ],
   "repository": "git@github.com:NodeFactoryIo/js-libp2p-noise.git",
   "author": "NodeFactory <info@nodefactory.io>",
