@@ -1,12 +1,52 @@
 language: node_js
+cache: yarn
+stages:
+  - check
+  - test
+  - cov
 
-cache: false
+node_js:
+  - '12'
+  - '14'
 
-install:
-  - yarn install --frozen-lockfile --network-timeout 1000000
+os:
+  - linux
+  - osx
+  - windows
 
-script:
-  set -e;
-  yarn run lint;
-  yarn run build;
-  yarn run test
+script: npx nyc -s yarn run test:node --bail
+after_success: npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov
+
+jobs:
+  include:
+    - stage: check
+      script:
+        - yarn aegir dep-check
+        - yarn run lint
+
+    - stage: test
+      name: chrome
+      addons:
+        chrome: stable
+      script: npx aegir test -t browser -t webworker --ts
+
+    - stage: test
+      name: firefox
+      addons:
+        firefox: latest
+      script: npx aegir test -t browser -t webworker --ts -- --browsers FirefoxHeadless
+
+    - stage: test
+      name: electron-main
+      os: osx
+      script:
+        - npx aegir test -t electron-main --bail --ts
+
+    - stage: test
+      name: electron-renderer
+      os: osx
+      script:
+        - npx aegir test -t electron-renderer --bail --ts
+
+notifications:
+  email: false
