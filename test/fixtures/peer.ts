@@ -1,4 +1,4 @@
-import PeerId from 'peer-id';
+import PeerId from 'peer-id'
 
 // ed25519 keys
 const peers = [{
@@ -17,7 +17,7 @@ const peers = [{
   id: '12D3KooWPCofiCjhdtezP4eMnqBjjutFZNHjV39F5LWNrCvaLnzT',
   privKey: 'CAESYLhUut01XPu+yIPbtZ3WnxOd26FYuTMRn/BbdFYsZE2KxueKRlo9yIAxmFReoNFUKztUU4G2aUiTbqDQaA6i0MDG54pGWj3IgDGYVF6g0VQrO1RTgbZpSJNuoNBoDqLQwA==',
   pubKey: 'CAESIMbnikZaPciAMZhUXqDRVCs7VFOBtmlIk26g0GgOotDA'
-}];
+}]
 
 export async function createPeerIdsFromFixtures (length) {
   return Promise.all(
@@ -26,11 +26,11 @@ export async function createPeerIdsFromFixtures (length) {
 }
 
 export async function createPeerIds (length) {
-  const peerIds: any[] = [];
+  const peerIds: any[] = []
   for (let i = 0; i < length; i++) {
-    const id = await PeerId.create({ keyType: 'ed25519', bits: 256 });
-    peerIds.push(id);
+    const id = await PeerId.create({ keyType: 'ed25519', bits: 256 })
+    peerIds.push(id)
   }
 
-  return peerIds;
+  return peerIds
 }
