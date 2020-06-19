@@ -1,7 +1,9 @@
-export class FailedIKError extends Error {
-  public initialMsg: string;
+import BufferList from 'bl'
 
-  constructor (initialMsg: string, message?: string) {
+export class FailedIKError extends Error {
+  public initialMsg: string|BufferList|Buffer;
+
+  constructor (initialMsg: string|BufferList|Buffer, message?: string) {
     super(message)
 
     this.initialMsg = initialMsg

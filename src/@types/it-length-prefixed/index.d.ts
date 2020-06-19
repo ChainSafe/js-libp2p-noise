@@ -1,7 +1,6 @@
-declare module "it-length-prefixed" {
-  /* eslint-disable @typescript-eslint/interface-name-prefix */
-  import BufferList from "bl";
-  import {Buffer} from "buffer"
+declare module 'it-length-prefixed' {
+  import BufferList from 'bl'
+  import { Buffer } from 'buffer'
 
   interface LengthDecoderFunction {
     (data: Buffer | BufferList): number;
@@ -9,7 +8,7 @@ declare module "it-length-prefixed" {
   }
 
   interface LengthEncoderFunction {
-    (value: Buffer, target: number, offset: number): number|Buffer;
+    (value: number, target: Buffer, offset: number): number|Buffer;
     bytes: number;
   }
 
@@ -33,7 +32,7 @@ declare module "it-length-prefixed" {
     MAX_DATA_LENGTH: number;
   }
 
-  export const encode: Encoder;
-  export const decode: Decoder;
+  export const encode: Encoder
+  export const decode: Decoder
 
 }
