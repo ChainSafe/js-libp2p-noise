@@ -23,6 +23,7 @@ jobs:
       script:
         - yarn aegir dep-check
         - yarn run lint
+        - yarn run build
 
     - stage: test
       name: chrome

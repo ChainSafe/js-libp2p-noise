@@ -4,6 +4,7 @@
     "module": "commonjs",
     "strict": true,
     "allowJs": true,
+    "sourceMap": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "noImplicitAny": false,

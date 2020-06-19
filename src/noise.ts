@@ -226,7 +226,7 @@ export class Noise implements INoiseConnection {
     const [secure, user] = DuplexPair();
     const network = connection.unwrap();
 
-    pipe(
+    await pipe(
       secure, // write to wrapper
       ensureBuffer, // ensure any type of data is converted to buffer
       encryptStream(handshake), // data is encrypted

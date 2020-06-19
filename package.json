@@ -2,8 +2,10 @@
   "name": "libp2p-noise",
   "version": "1.1.2",
   "main": "dist/src/index.js",
+  "types": "dist/src/dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "repository": "git@github.com:NodeFactoryIo/js-libp2p-noise.git",
   "author": "NodeFactory <info@nodefactory.io>",
@@ -16,6 +18,7 @@
   "scripts": {
     "build": "aegir build --ts",
     "lint": "aegir lint --ts",
+    "lint:fix": "aegir lint --ts --fix",
     "test": "aegir test --ts",
     "test:node": "aegir test -t node --ts",
     "test:browser": "aegir test -t browser --ts",
