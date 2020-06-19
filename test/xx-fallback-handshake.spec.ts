@@ -9,10 +9,10 @@ import {
 import { XXFallbackHandshake } from '../src/handshake-xx-fallback'
 import { createPeerIdsFromFixtures } from './fixtures/peer'
 import { assert } from 'chai'
-import { decode1, encode0, encode1 } from '../src/encoder'
+import { encode0 } from '../src/encoder'
 
 describe('XX Fallback Handshake', () => {
-  let peerA, peerB, fakePeer
+  let peerA, peerB
 
   before(async () => {
     [peerA, peerB] = await createPeerIdsFromFixtures(2)
@@ -67,7 +67,6 @@ describe('XX Fallback Handshake', () => {
         assert(false)
       }
     } catch (e) {
-      console.error(e)
       assert(false, e.message)
     }
   })

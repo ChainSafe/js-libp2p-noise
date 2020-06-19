@@ -32,6 +32,7 @@ export class XXFallbackHandshake extends XXHandshake {
   }
 
   // stage 0
+  // eslint-disable-next-line require-await
   public async propose (): Promise<void> {
     if (this.isInitiator) {
       this.xx.sendMessage(this.session, Buffer.alloc(0), this.ephemeralKeys)

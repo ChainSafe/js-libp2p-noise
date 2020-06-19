@@ -2,14 +2,14 @@ import { Buffer } from 'buffer'
 import { bytes } from './@types/basic'
 import { MessageBuffer } from './@types/handshake'
 
-export const uint16BEEncode = (value, target, offset) => {
+export const uint16BEEncode = (value: number, target: bytes, offset: number): bytes => {
   target = target || Buffer.allocUnsafe(2)
   target.writeUInt16BE(value, offset)
   return target
 }
 uint16BEEncode.bytes = 2
 
-export const uint16BEDecode = data => {
+export const uint16BEDecode = (data: bytes): number => {
   if (data.length < 2) throw RangeError('Could not decode int16BE')
   return data.readUInt16BE(0)
 }

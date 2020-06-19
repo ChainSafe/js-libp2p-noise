@@ -1,12 +1,12 @@
-import { expect, assert } from 'chai'
+import { assert } from 'chai'
 import { KeyCache } from '../src/keycache'
 import { createPeerIds, createPeerIdsFromFixtures } from './fixtures/peer'
 
 describe('KeyCache', () => {
-  let peerA, peerB
+  let peerA
 
   before(async () => {
-    [peerA, peerB] = await createPeerIdsFromFixtures(2)
+    [peerA] = await createPeerIdsFromFixtures(2)
   })
 
   it('should store and load same key successfully', async () => {
@@ -14,9 +14,8 @@ describe('KeyCache', () => {
       const key = Buffer.from('this is id 007')
       await KeyCache.store(peerA, key)
       const result = await KeyCache.load(peerA)
-      assert(result.equals(key), 'Stored and loaded key are not the same')
+      assert(result?.equals(key), 'Stored and loaded key are not the same')
     } catch (e) {
-      console.error(e)
       assert(false, `Test failed - ${e.message}`)
     }
   })
@@ -27,7 +26,6 @@ describe('KeyCache', () => {
       const result = await KeyCache.load(newPeer)
       assert(!result)
     } catch (e) {
-      console.error(e)
       assert(false, `Test failed - ${e.message}`)
     }
   })

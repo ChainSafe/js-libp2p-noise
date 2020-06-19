@@ -36,11 +36,11 @@ export async function getPayload (
   )
 }
 
-export async function createHandshakePayload (
+export function createHandshakePayload (
   libp2pPublicKey: bytes,
   signedPayload: bytes,
   earlyData?: bytes
-): Promise<bytes> {
+): bytes {
   const payloadInit = NoiseHandshakePayloadProto.create({
     identityKey: libp2pPublicKey,
     identitySig: signedPayload,
@@ -51,14 +51,14 @@ export async function createHandshakePayload (
 }
 
 export async function signPayload (peerId: PeerId, payload: bytes): Promise<bytes> {
-  return peerId.privKey.sign(payload)
+  return await peerId.privKey.sign(payload)
 }
 
 export async function getPeerIdFromPayload (payload: pb.INoiseHandshakePayload): Promise<PeerId> {
   return await PeerId.createFromPubKey(Buffer.from(payload.identityKey as Uint8Array))
 }
 
-export async function decodePayload (payload: bytes|Uint8Array): Promise<pb.INoiseHandshakePayload> {
+export function decodePayload (payload: bytes|Uint8Array): pb.INoiseHandshakePayload {
   return NoiseHandshakePayloadProto.toObject(
     NoiseHandshakePayloadProto.decode(Buffer.from(payload))
   ) as INoisePayload

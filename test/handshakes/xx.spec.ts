@@ -14,15 +14,15 @@ describe('XX Handshake', () => {
       const xx = new XX()
 
       const kpInitiator: KeyPair = await generateKeypair()
-      const kpResponder: KeyPair = await generateKeypair()
+      await generateKeypair()
 
-      const session = await xx.initSession(true, prologue, kpInitiator)
+      await xx.initSession(true, prologue, kpInitiator)
     } catch (e) {
       assert(false, e.message)
     }
   })
 
-  it('Test get HKDF', async () => {
+  it('Test get HKDF', () => {
     const ckBytes = Buffer.from('4e6f6973655f58585f32353531395f58436861436861506f6c795f53484132353600000000000000000000000000000000000000000000000000000000000000', 'hex')
     const ikm = Buffer.from('a3eae50ea37a47e8a7aa0c7cd8e16528670536dcd538cebfd724fb68ce44f1910ad898860666227d4e8dd50d22a9a64d1c0a6f47ace092510161e9e442953da3', 'hex')
     const ck = Buffer.alloc(32)
@@ -54,7 +54,7 @@ describe('XX Handshake', () => {
     /* STAGE 0 */
 
     // initiator creates payload
-    const libp2pInitPrivKey = libp2pInitKeys.marshal().slice(0, 32)
+    libp2pInitKeys.marshal().slice(0, 32)
     const libp2pInitPubKey = libp2pInitKeys.marshal().slice(32, 64)
 
     const payloadInitEnc = await createHandshakePayload(libp2pInitPubKey, initSignedPayload)
@@ -71,7 +71,7 @@ describe('XX Handshake', () => {
     /* STAGE 1 */
 
     // responder creates payload
-    const libp2pRespPrivKey = libp2pRespKeys.marshal().slice(0, 32)
+    libp2pRespKeys.marshal().slice(0, 32)
     const libp2pRespPubKey = libp2pRespKeys.marshal().slice(32, 64)
     const payloadRespEnc = await createHandshakePayload(libp2pRespPubKey, respSignedPayload)
 

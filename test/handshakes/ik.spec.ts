@@ -29,7 +29,7 @@ describe('IK handshake', () => {
 
       // initiator creates payload
       const initSignedPayload = await libp2pInitKeys.sign(getHandshakePayload(kpInitiator.publicKey))
-      const libp2pInitPrivKey = libp2pInitKeys.marshal().slice(0, 32)
+      libp2pInitKeys.marshal().slice(0, 32)
       const libp2pInitPubKey = libp2pInitKeys.marshal().slice(32, 64)
       const payloadInitEnc = await createHandshakePayload(libp2pInitPubKey, initSignedPayload)
 
@@ -40,12 +40,12 @@ describe('IK handshake', () => {
       expect(messageBuffer.ne.length).not.equal(0)
 
       // responder receives message
-      const plaintext = ikR.recvMessage(responderSession, messageBuffer)
+      ikR.recvMessage(responderSession, messageBuffer)
 
       /* Stage 1 */
 
       // responder creates payload
-      const libp2pRespPrivKey = libp2pRespKeys.marshal().slice(0, 32)
+      libp2pRespKeys.marshal().slice(0, 32)
       const libp2pRespPubKey = libp2pRespKeys.marshal().slice(32, 64)
       const respSignedPayload = await libp2pRespKeys.sign(getHandshakePayload(kpResponder.publicKey))
       const payloadRespEnc = await createHandshakePayload(libp2pRespPubKey, respSignedPayload)
@@ -54,12 +54,11 @@ describe('IK handshake', () => {
       const messageBuffer2 = ikR.sendMessage(responderSession, message1)
 
       // initiator receives message
-      const plaintext2 = ikI.recvMessage(initiatorSession, messageBuffer2)
+      ikI.recvMessage(initiatorSession, messageBuffer2)
 
-      assert(initiatorSession.cs1.k.equals(responderSession.cs1.k))
-      assert(initiatorSession.cs2.k.equals(responderSession.cs2.k))
+      assert(initiatorSession?.cs1?.k.equals(responderSession?.cs1?.k || new Uint8Array()))
+      assert(initiatorSession?.cs2?.k.equals(responderSession?.cs2?.k || new Uint8Array()))
     } catch (e) {
-      console.error(e)
       return assert(false, e.message)
     }
   })

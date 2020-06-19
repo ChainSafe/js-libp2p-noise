@@ -8,10 +8,10 @@ import { generateKeypair, getPayload } from '../src/utils'
 import { IKHandshake } from '../src/handshake-ik'
 
 describe('IK Handshake', () => {
-  let peerA, peerB, fakePeer
+  let peerA, peerB
 
   before(async () => {
-    [peerA, peerB, fakePeer] = await createPeerIdsFromFixtures(3)
+    [peerA, peerB] = await createPeerIdsFromFixtures(3)
   })
 
   it('should finish both stages as initiator and responder', async () => {
@@ -49,7 +49,6 @@ describe('IK Handshake', () => {
       const { plaintext: decrypted } = handshakeResp.decrypt(encrypted, handshakeResp.session)
       assert(decrypted.equals(Buffer.from('encryptthis')))
     } catch (e) {
-      console.error(e)
       assert(false, e.message)
     }
   })

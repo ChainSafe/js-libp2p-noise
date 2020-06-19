@@ -1,7 +1,7 @@
 export class FailedIKError extends Error {
-  public initialMsg;
+  public initialMsg: string;
 
-  constructor (initialMsg, message?: string) {
+  constructor (initialMsg: string, message?: string) {
     super(message)
 
     this.initialMsg = initialMsg

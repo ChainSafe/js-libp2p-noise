@@ -1,7 +1,7 @@
 import debug from 'debug'
 import { DUMP_SESSION_KEYS } from './constants'
 import { KeyPair } from './@types/libp2p'
-import { NoiseSession, SymmetricState } from './@types/handshake'
+import { NoiseSession } from './@types/handshake'
 
 export const logger = debug('libp2p:noise')
 

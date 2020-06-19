@@ -30,8 +30,8 @@ describe('Noise', () => {
 
   it('should communicate through encrypted streams without noise pipes', async () => {
     try {
-      const noiseInit = new Noise(undefined, undefined, false)
-      const noiseResp = new Noise(undefined, undefined, false)
+      const noiseInit = new Noise(undefined, undefined)
+      const noiseResp = new Noise(undefined, undefined)
 
       const [inboundConnection, outboundConnection] = DuplexPair()
       const [outbound, inbound] = await Promise.all([
@@ -50,7 +50,7 @@ describe('Noise', () => {
   })
 
   it('should test that secureOutbound is spec compliant', async () => {
-    const noiseInit = new Noise(undefined, undefined, false)
+    const noiseInit = new Noise(undefined, undefined)
     const [inboundConnection, outboundConnection] = DuplexPair()
 
     const [outbound, { wrapped, handshake }] = await Promise.all([
@@ -111,8 +111,8 @@ describe('Noise', () => {
   it('should test large payloads', async function () {
     this.timeout(10000)
     try {
-      const noiseInit = new Noise(undefined, undefined, false)
-      const noiseResp = new Noise(undefined, undefined, false)
+      const noiseInit = new Noise(undefined, undefined)
+      const noiseResp = new Noise(undefined, undefined)
 
       const [inboundConnection, outboundConnection] = DuplexPair()
       const [outbound, inbound] = await Promise.all([
@@ -128,7 +128,6 @@ describe('Noise', () => {
 
       expect(response.length).equals(largePlaintext.length)
     } catch (e) {
-      console.log(e)
       assert(false, e.message)
     }
   })
@@ -162,7 +161,6 @@ describe('Noise', () => {
       assert(xxSpy.notCalled)
       assert(xxFallbackSpy.notCalled)
     } catch (e) {
-      console.error(e)
       assert(false, e.message)
     }
   })
@@ -194,7 +192,6 @@ describe('Noise', () => {
 
       assert(xxSpy.calledOnce, 'XX Fallback method was never called.')
     } catch (e) {
-      console.error(e)
       assert(false, e.message)
     }
   })
@@ -228,7 +225,6 @@ describe('Noise', () => {
 
       assert(xxSpy.calledOnce, 'XX Fallback method was never called.')
     } catch (e) {
-      console.error(e)
       assert(false, e.message)
     }
   })
@@ -263,7 +259,6 @@ describe('Noise', () => {
       assert(xxInitSpy.calledOnce, 'XX method was never called.')
       assert(xxRespSpy.calledOnce, 'XX Fallback method was never called.')
     } catch (e) {
-      console.error(e)
       assert(false, e.message)
     }
   })
@@ -301,7 +296,6 @@ describe('Noise', () => {
       assert(ikRespSpy.calledOnce, 'IK handshake was not called.')
       assert(xxFallbackInitSpy.notCalled, 'XX Fallback method was called.')
     } catch (e) {
-      console.error(e)
       assert(false, e.message)
     }
   })
@@ -332,7 +326,6 @@ describe('Noise', () => {
       assert(inbound.remotePeer.marshalPubKey().equals(localPeer.marshalPubKey()))
       assert(outbound.remotePeer.marshalPubKey().equals(remotePeer.marshalPubKey()))
     } catch (e) {
-      console.error(e)
       assert(false, e.message)
     }
   })
@@ -358,7 +351,6 @@ describe('Noise', () => {
       assert(inbound.remoteEarlyData.equals(localPeerEarlyData))
       assert(outbound.remoteEarlyData.equals(Buffer.alloc(0)))
     } catch (e) {
-      console.error(e)
       assert(false, e.message)
     }
   })

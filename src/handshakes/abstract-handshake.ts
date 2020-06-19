@@ -157,7 +157,7 @@ export abstract class AbstractHandshake {
     }
   }
 
-  protected split (ss: SymmetricState) {
+  protected split (ss: SymmetricState): {cs1: CipherState, cs2: CipherState} {
     const [tempk1, tempk2] = getHkdf(ss.ck, Buffer.alloc(0))
     const cs1 = this.initializeKey(tempk1)
     const cs2 = this.initializeKey(tempk2)

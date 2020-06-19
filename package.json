@@ -50,6 +50,12 @@
     "bn.js": "4.4.0"
   },
   "eslintConfig": {
-    "extends": "./node_modules/aegir/src/config/eslintrc-ts.js"
+    "extends": "./node_modules/aegir/src/config/eslintrc-ts.js",
+    "rules": {
+      "@typescript-eslint/no-unused-vars": "error"
+    },
+    "ignorePatterns": [
+      "src/proto/payload.js"
+    ]
   }
 }
