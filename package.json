@@ -16,11 +16,9 @@
   "scripts": {
     "build": "aegir build --ts",
     "lint": "aegir lint --ts",
-    "pretest": "yarn check-types",
     "test": "aegir test --ts",
     "test:node": "aegir test -t node --ts",
     "test:browser": "aegir test -t browser --ts",
-    "check-types": "tsc --noEmit",
     "proto:gen": "pbjs -t static-module -o ./src/proto/payload.js ./src/proto/payload.proto && pbts -o ./src/proto/payload.d.ts ./src/proto/payload.js && yarn run lint --fix"
   },
   "devDependencies": {

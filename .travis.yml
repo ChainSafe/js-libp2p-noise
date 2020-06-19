@@ -1,5 +1,5 @@
 language: node_js
-cache: npm
+cache: yarn
 stages:
   - check
   - test
@@ -14,16 +14,15 @@ os:
   - osx
   - windows
 
-script: npx nyc -s npm run test:node --ts -- --bail
+script: npx nyc -s yarn run test:node --bail
 after_success: npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov
 
 jobs:
   include:
     - stage: check
       script:
-        - npx aegir dep-check
-        - npm run lint --ts
-        - npm run check-types
+        - yarn aegir dep-check
+        - yarn run lint
 
     - stage: test
       name: chrome
