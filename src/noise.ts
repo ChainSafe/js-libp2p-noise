@@ -70,6 +70,9 @@ export class Noise implements INoiseConnection {
     const wrappedConnection = Wrap(
       connection,
       {
+        // wrong types in repo
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         lengthEncoder: uint16BEEncode,
         lengthDecoder: uint16BEDecode,
         maxDataLength: NOISE_MSG_MAX_LENGTH_BYTES
@@ -101,6 +104,9 @@ export class Noise implements INoiseConnection {
     const wrappedConnection = Wrap(
       connection,
       {
+        // wrong types in repo
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         lengthEncoder: uint16BEEncode,
         lengthDecoder: uint16BEDecode,
         maxDataLength: NOISE_MSG_MAX_LENGTH_BYTES
