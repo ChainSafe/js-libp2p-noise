@@ -5,6 +5,9 @@ stages:
   - test
   - cov
 
+env:
+  - YARN_GPG=no
+
 node_js:
   - '12'
   - '14'
