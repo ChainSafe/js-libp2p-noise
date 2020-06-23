@@ -7,7 +7,10 @@
     "dist",
     "src"
   ],
-  "repository": "git@github.com:NodeFactoryIo/js-libp2p-noise.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NodeFactoryIo/js-libp2p-noise.git"
+  },
   "author": "NodeFactory <info@nodefactory.io>",
   "license": "MIT",
   "keywords": [
