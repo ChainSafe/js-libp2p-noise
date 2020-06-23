@@ -1,10 +1,12 @@
+import BufferList from 'bl'
+
 export class FailedIKError extends Error {
-  public initialMsg;
+  public initialMsg: string|BufferList|Buffer;
 
-  constructor(initialMsg, message?: string) {
-    super(message);
+  constructor (initialMsg: string|BufferList|Buffer, message?: string) {
+    super(message)
 
-    this.initialMsg = initialMsg;
-    this.name = "FailedIKhandshake";
+    this.initialMsg = initialMsg
+    this.name = 'FailedIKhandshake'
   }
-};
+}

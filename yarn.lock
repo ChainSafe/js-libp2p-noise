@@ -1803,9 +1803,10 @@ add-stream@^1.0.0:
   resolved "https://registry.yarnpkg.com/add-stream/-/add-stream-1.0.0.tgz#6a7990437ca736d5e1288db92bd3266d5f5cb2aa"
   integrity sha1-anmQQ3ynNtXhKI25K9MmbV9csqo=
 
-aegir@ipfs/aegir#feat/cosmiconfig:
-  version "24.0.0"
-  resolved "https://codeload.github.com/ipfs/aegir/tar.gz/15d895f22055023a78d704c8beabbd45c35a8f61"
+aegir@25.0.0:
+  version "25.0.0"
+  resolved "https://registry.yarnpkg.com/aegir/-/aegir-25.0.0.tgz#9275c4dba0717355ee20c1c35cb27f474fadcca9"
+  integrity sha512-VP1ACVfnUj/k/kwc/W74IOFKVurPsN3BmWxtbxVpr7hLkOoi3/OYBaaROeVndmUiOHihye1PLQUAMpHROgRpeg==
   dependencies:
     "@babel/cli" "^7.10.1"
     "@babel/core" "^7.10.2"
@@ -1849,7 +1850,6 @@ aegir@ipfs/aegir#feat/cosmiconfig:
     eslint-plugin-node "^11.0.0"
     eslint-plugin-promise "^4.2.1"
     eslint-plugin-standard "^4.0.1"
-    esm "^3.2.25"
     execa "^4.0.0"
     extract-zip "^2.0.1"
     findup-sync "^4.0.0"
@@ -4594,11 +4594,6 @@ eslint@^6.3.0:
     table "^5.2.3"
     text-table "^0.2.0"
     v8-compile-cache "^2.0.3"
-
-esm@^3.2.25:
-  version "3.2.25"
-  resolved "https://registry.yarnpkg.com/esm/-/esm-3.2.25.tgz#342c18c29d56157688ba5ce31f8431fbb795cc10"
-  integrity sha512-U1suiZ2oDVWv4zPO56S0NcR5QriEahGtdN2OR6FiOG4WJvcjBVFB0qI4+eKoWFH483PKGuLuu6V8Z4T5g63UVA==
 
 espree@^6.1.2:
   version "6.2.1"
