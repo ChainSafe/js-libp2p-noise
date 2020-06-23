@@ -29,13 +29,13 @@ jobs:
       name: chrome
       addons:
         chrome: stable
-      script: npx aegir test -t browser -t webworker --ts
+      script: npx aegir test -t browser -t webworker --node true --ts
 
     - stage: test
       name: firefox
       addons:
         firefox: latest
-      script: npx aegir test -t browser -t webworker --ts -- --browsers FirefoxHeadless
+      script: npx aegir test -t browser -t webworker --ts --node true -- --browsers FirefoxHeadless
 
     - stage: test
       name: electron-main
@@ -47,7 +47,7 @@ jobs:
       name: electron-renderer
       os: osx
       script:
-        - npx aegir test -t electron-renderer --bail --ts
+        - npx aegir test -t electron-renderer --node true --bail --ts
 
 notifications:
   email: false
