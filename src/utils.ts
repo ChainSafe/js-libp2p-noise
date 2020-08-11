@@ -8,6 +8,7 @@ import { KeyPair } from './@types/libp2p'
 import { bytes, bytes32 } from './@types/basic'
 import { Hkdf, INoisePayload } from './@types/handshake'
 import { pb } from './proto/payload'
+import uint8ArrayEquals from 'uint8arrays/equals'
 
 const NoiseHandshakePayloadProto = pb.NoiseHandshakePayload
 
@@ -37,12 +38,12 @@ export async function getPayload (
 }
 
 export function createHandshakePayload (
-  libp2pPublicKey: bytes,
-  signedPayload: bytes,
-  earlyData?: bytes
+  libp2pPublicKey: Uint8Array,
+  signedPayload: Uint8Array,
+  earlyData?: Uint8Array
 ): bytes {
   const payloadInit = NoiseHandshakePayloadProto.create({
-    identityKey: libp2pPublicKey,
+    identityKey: Buffer.from(libp2pPublicKey),
     identitySig: signedPayload,
     data: earlyData || null
   })
@@ -51,7 +52,7 @@ export function createHandshakePayload (
 }
 
 export async function signPayload (peerId: PeerId, payload: bytes): Promise<bytes> {
-  return await peerId.privKey.sign(payload)
+  return Buffer.from(await peerId.privKey.sign(payload))
 }
 
 export async function getPeerIdFromPayload (payload: pb.INoiseHandshakePayload): Promise<PeerId> {
@@ -68,9 +69,9 @@ export function getHandshakePayload (publicKey: bytes): bytes {
   return Buffer.concat([Buffer.from('noise-libp2p-static-key:'), publicKey])
 }
 
-async function isValidPeerId (peerId: bytes, publicKeyProtobuf: bytes) {
+async function isValidPeerId (peerId: Uint8Array, publicKeyProtobuf: bytes) {
   const generatedPeerId = await PeerId.createFromPubKey(publicKeyProtobuf)
-  return generatedPeerId.id.equals(peerId)
+  return uint8ArrayEquals(generatedPeerId.id, peerId)
 }
 
 /**
