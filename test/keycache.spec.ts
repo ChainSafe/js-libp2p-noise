@@ -1,6 +1,7 @@
 import { assert } from 'chai'
 import { KeyCache } from '../src/keycache'
 import { createPeerIds, createPeerIdsFromFixtures } from './fixtures/peer'
+import uint8ArrayEquals from 'uint8arrays/equals'
 
 describe('KeyCache', () => {
   let peerA
@@ -14,7 +15,7 @@ describe('KeyCache', () => {
       const key = Buffer.from('this is id 007')
       await KeyCache.store(peerA, key)
       const result = await KeyCache.load(peerA)
-      assert(result?.equals(key), 'Stored and loaded key are not the same')
+      assert(uint8ArrayEquals(result, key), 'Stored and loaded key are not the same')
     } catch (e) {
       assert(false, `Test failed - ${e.message}`)
     }
