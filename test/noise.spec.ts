@@ -6,6 +6,7 @@ import sinon from 'sinon'
 import BufferList from 'bl'
 import { randomBytes } from 'libp2p-crypto'
 import { Buffer } from 'buffer'
+import uint8ArrayEquals from 'uint8arrays/equals'
 
 import { Noise } from '../src'
 import { XXHandshake } from '../src/handshake-xx'
@@ -123,7 +124,7 @@ describe('Noise', () => {
       const wrappedOutbound = Wrap(outbound.conn)
 
       const largePlaintext = randomBytes(100000)
-      wrappedOutbound.writeLP(largePlaintext)
+      wrappedOutbound.writeLP(Buffer.from(largePlaintext))
       const response = await wrappedInbound.read(100000)
 
       expect(response.length).equals(largePlaintext.length)
@@ -203,7 +204,7 @@ describe('Noise', () => {
       const noiseInit = new Noise(staticKeysInitiator.privateKey)
 
       const staticKeysResponder = generateKeypair()
-      const noiseResp = new Noise(staticKeysResponder.privateKey, undefined, false)
+      const noiseResp = new Noise(staticKeysResponder.privateKey, undefined)
       const xxSpy = sandbox.spy(noiseInit, 'performXXFallbackHandshake')
 
       // Prepare key cache for noise pipes
@@ -232,7 +233,7 @@ describe('Noise', () => {
   it.skip('Initiator starts with XX (pipes disabled), responder has enabled noise pipes', async () => {
     try {
       const staticKeysInitiator = generateKeypair()
-      const noiseInit = new Noise(staticKeysInitiator.privateKey, undefined, false)
+      const noiseInit = new Noise(staticKeysInitiator.privateKey, undefined)
       const staticKeysResponder = generateKeypair()
 
       const noiseResp = new Noise(staticKeysResponder.privateKey)
@@ -323,8 +324,8 @@ describe('Noise', () => {
       const response = await wrappedInbound.readLP()
       expect(response.toString()).equal('test v2')
 
-      assert(inbound.remotePeer.marshalPubKey().equals(localPeer.marshalPubKey()))
-      assert(outbound.remotePeer.marshalPubKey().equals(remotePeer.marshalPubKey()))
+      assert(uint8ArrayEquals(inbound.remotePeer.marshalPubKey(), localPeer.marshalPubKey()))
+      assert(uint8ArrayEquals(outbound.remotePeer.marshalPubKey(), remotePeer.marshalPubKey()))
     } catch (e) {
       assert(false, e.message)
     }

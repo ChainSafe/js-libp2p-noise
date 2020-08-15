@@ -1,11 +1,11 @@
-import { bytes, bytes32 } from './@types/basic'
+import { bytes32 } from './@types/basic'
 import PeerId from 'peer-id'
 
 /**
  * Storage for static keys of previously connected peers.
  */
 class Keycache {
-  private storage = new Map<bytes, bytes32>();
+  private storage = new Map<Uint8Array, bytes32>();
 
   public store (peerId: PeerId, key: bytes32): void {
     this.storage.set(peerId.id, key)
