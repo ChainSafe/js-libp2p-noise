@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 const { Noise } = require('../dist/src/index')
 const benchmark = require('benchmark')
 const DuplexPair = require('it-pair/duplex')
@@ -29,7 +31,7 @@ const bench = async function () {
       deffered.resolve()
     }
   })
-    .on("complete", function(stats) {
+    .on('complete', function (stats) {
       console.log(String(stats.currentTarget))
     })
   bench.run({ async: true })
