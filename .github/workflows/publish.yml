@@ -35,6 +35,10 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '12.x'
+          always-auth: true
+          scope: @nodefactory
+          registry-url: 'https://registry.npmjs.org'
+
       - name: Install dependencies
         run: yarn install --frozen-lockfile --non-interactive
 
@@ -44,6 +48,8 @@ jobs:
       - name: Publish packages
         # manual switch to latest
         run: yarn publish --ignore-scripts --no-git-tag-version --no-commit-hooks --non-interactive --tag beta
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
 
       - name: Get Changelog Entry
         id: changelog_reader
