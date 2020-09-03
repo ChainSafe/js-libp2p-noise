@@ -20,7 +20,10 @@
   ],
   "scripts": {
     "bench": "node benchmarks/benchmark.js",
+    "clean": "rm -rf dist",
+    "copy-dts": "copyfiles -u 1 \"src/**/*.d.ts\" dist/src",
     "build": "aegir build --ts",
+    "postbuild": "yarn run copy-dts",
     "lint": "aegir lint --ts",
     "lint:fix": "aegir lint --ts --fix",
     "test": "aegir test --ts --node true",
@@ -35,6 +38,7 @@
     "aegir": "25.0.0",
     "benchmark": "^2.1.4",
     "chai": "^4.2.0",
+    "copyfiles": "^2.3.0",
     "karma-mocha-webworker": "^1.3.0",
     "microtime": "^3.0.0",
     "mocha": "^6.2.2",
