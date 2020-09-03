@@ -38,20 +38,18 @@ jobs:
           always-auth: true
           registry-url: 'https://registry.npmjs.org'
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
       - name: Install dependencies
         run: yarn install --frozen-lockfile --non-interactive
 
       - name: Build packages
         run: yarn run build
 
-      - run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NODE_AUTH_TOKEN }}" > ~/.npmrc
-
       - name: Publish packages
         # manual switch to latest
         run: yarn publish --ignore-scripts --no-git-tag-version --no-commit-hooks --non-interactive --tag beta
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
 
       - name: Get Changelog Entry
         id: changelog_reader
