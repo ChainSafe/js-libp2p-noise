@@ -36,7 +36,7 @@ jobs:
         with:
           node-version: '12.x'
           always-auth: true
-          scope: @nodefactory
+          scope: '@nodefactory'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
