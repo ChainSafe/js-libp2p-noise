@@ -36,14 +36,16 @@ jobs:
         with:
           node-version: '12.x'
           always-auth: true
-          scope: '@nodefactory'
           registry-url: 'https://registry.npmjs.org'
-
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
       - name: Install dependencies
         run: yarn install --frozen-lockfile --non-interactive
 
       - name: Build packages
         run: yarn run build
+
+      - run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NODE_AUTH_TOKEN }}" > ~/.npmrc
 
       - name: Publish packages
         # manual switch to latest
