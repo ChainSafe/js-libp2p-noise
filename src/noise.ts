@@ -40,7 +40,7 @@ export class Noise implements INoiseConnection {
 
   /**
    *
-   * @param {bytes} staticNoiseKey x25519 private key, reuse for faster handshakes
+   * @param {bytes} staticNoiseKey - x25519 private key, reuse for faster handshakes
    * @param {bytes} earlyData
    */
   constructor (staticNoiseKey?: bytes, earlyData?: bytes) {
@@ -61,6 +61,7 @@ export class Noise implements INoiseConnection {
 
   /**
    * Encrypt outgoing data to the remote party (handshake as initiator)
+   *
    * @param {PeerId} localPeer - PeerId of the receiving peer
    * @param {any} connection - streaming iterable duplex that will be encrypted
    * @param {PeerId} remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer.
@@ -95,6 +96,7 @@ export class Noise implements INoiseConnection {
 
   /**
    * Decrypt incoming data (handshake as responder).
+   *
    * @param {PeerId} localPeer - PeerId of the receiving peer.
    * @param {any} connection - streaming iterable duplex that will be encryption.
    * @param {PeerId} remotePeer - optional PeerId of the initiating peer, if known. This may only exist during transport upgrades.
@@ -130,6 +132,7 @@ export class Noise implements INoiseConnection {
   /**
    * If Noise pipes supported, tries IK handshake first with XX as fallback if it fails.
    * If noise pipes disabled or remote peer static key is unknown, use XX.
+   *
    * @param {HandshakeParams} params
    */
   private async performHandshake (params: HandshakeParams): Promise<IHandshake> {
