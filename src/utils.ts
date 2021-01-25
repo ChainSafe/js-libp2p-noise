@@ -76,6 +76,7 @@ async function isValidPeerId (peerId: Uint8Array, publicKeyProtobuf: bytes) {
 
 /**
  * Verifies signed payload, throws on any irregularities.
+ *
  * @param {bytes} noiseStaticKey - owner's noise static key
  * @param {bytes} payload - decoded payload
  * @param {PeerId} remotePeer - owner's libp2p peer ID
