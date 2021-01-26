@@ -10,8 +10,8 @@ import { decode0, decode1 } from './encoder'
 import PeerId from 'peer-id'
 
 export class XXFallbackHandshake extends XXHandshake {
-  private ephemeralKeys?: KeyPair;
-  private initialMsg: bytes;
+  private readonly ephemeralKeys?: KeyPair
+  private readonly initialMsg: bytes
 
   constructor (
     isInitiator: boolean,
@@ -73,7 +73,8 @@ export class XXFallbackHandshake extends XXHandshake {
         await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer)
         this.setRemoteEarlyData(decodedPayload.data)
       } catch (e) {
-        throw new Error(`Error occurred while verifying signed payload from responder: ${e.message}`)
+        const err = e as Error
+        throw new Error(`Error occurred while verifying signed payload from responder: ${err.message}`)
       }
       logger('All good with the signature!')
     } else {

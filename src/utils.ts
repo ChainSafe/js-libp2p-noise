@@ -28,9 +28,9 @@ export async function getPayload (
   earlyData?: bytes
 ): Promise<bytes> {
   const signedPayload = await signPayload(localPeer, getHandshakePayload(staticPublicKey))
-  const earlyDataPayload = earlyData || Buffer.alloc(0)
+  const earlyDataPayload = earlyData ?? Buffer.alloc(0)
 
-  return await createHandshakePayload(
+  return createHandshakePayload(
     localPeer.marshalPubKey(),
     signedPayload,
     earlyDataPayload
@@ -45,7 +45,7 @@ export function createHandshakePayload (
   const payloadInit = NoiseHandshakePayloadProto.create({
     identityKey: Buffer.from(libp2pPublicKey),
     identitySig: signedPayload,
-    data: earlyData || null
+    data: earlyData ?? null
   })
 
   return Buffer.from(NoiseHandshakePayloadProto.encode(payloadInit).finish())
@@ -94,10 +94,12 @@ export async function verifySignedPayload (
   const generatedPayload = getHandshakePayload(noiseStaticKey)
   // Unmarshaling from PublicKey protobuf
   const publicKey = keys.unmarshalPublicKey(identityKey)
+  // TODO remove this after libp2p-crypto ships proper types
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   if (!payload.identitySig || !publicKey.verify(generatedPayload, Buffer.from(payload.identitySig))) {
     throw new Error("Static key doesn't match to peer that signed payload!")
   }
-  return PeerId.createFromPubKey(identityKey)
+  return await PeerId.createFromPubKey(identityKey)
 }
 
 export function getHkdf (ck: bytes32, ikm: bytes): Hkdf {

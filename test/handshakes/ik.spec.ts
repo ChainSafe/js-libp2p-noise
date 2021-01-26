@@ -56,8 +56,8 @@ describe('IK handshake', () => {
       // initiator receives message
       ikI.recvMessage(initiatorSession, messageBuffer2)
 
-      assert(initiatorSession?.cs1?.k.equals(responderSession?.cs1?.k || new Uint8Array()))
-      assert(initiatorSession?.cs2?.k.equals(responderSession?.cs2?.k || new Uint8Array()))
+      assert(initiatorSession?.cs1?.k.equals(responderSession?.cs1?.k ?? new Uint8Array()))
+      assert(initiatorSession?.cs2?.k.equals(responderSession?.cs2?.k ?? new Uint8Array()))
     } catch (e) {
       return assert(false, e.message)
     }

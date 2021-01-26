@@ -23,17 +23,17 @@ import { WrappedConnection } from './noise'
 import PeerId from 'peer-id'
 
 export class XXHandshake implements IHandshake {
-  public isInitiator: boolean;
-  public session: NoiseSession;
-  public remotePeer!: PeerId;
-  public remoteEarlyData: Buffer;
+  public isInitiator: boolean
+  public session: NoiseSession
+  public remotePeer!: PeerId
+  public remoteEarlyData: Buffer
 
-  protected payload: bytes;
-  protected connection: WrappedConnection;
-  protected xx: XX;
-  protected staticKeypair: KeyPair;
+  protected payload: bytes
+  protected connection: WrappedConnection
+  protected xx: XX
+  protected staticKeypair: KeyPair
 
-  private prologue: bytes32;
+  private readonly prologue: bytes32
 
   constructor (
     isInitiator: boolean,
@@ -52,7 +52,7 @@ export class XXHandshake implements IHandshake {
     if (remotePeer) {
       this.remotePeer = remotePeer
     }
-    this.xx = handshake || new XX()
+    this.xx = handshake ?? new XX()
     this.session = this.xx.initSession(this.isInitiator, this.prologue, this.staticKeypair)
     this.remoteEarlyData = Buffer.alloc(0)
   }
@@ -98,7 +98,8 @@ export class XXHandshake implements IHandshake {
         this.remotePeer = await verifySignedPayload(receivedMessageBuffer.ns, decodedPayload, this.remotePeer)
         this.setRemoteEarlyData(decodedPayload.data)
       } catch (e) {
-        throw new Error(`Error occurred while verifying signed payload: ${e.message}`)
+        const err = e as Error
+        throw new Error(`Error occurred while verifying signed payload: ${err.message}`)
       }
       logger('All good with the signature!')
     } else {
@@ -132,7 +133,8 @@ export class XXHandshake implements IHandshake {
         await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer)
         this.setRemoteEarlyData(decodedPayload.data)
       } catch (e) {
-        throw new Error(`Error occurred while verifying signed payload: ${e.message}`)
+        const err = e as Error
+        throw new Error(`Error occurred while verifying signed payload: ${err.message}`)
       }
     }
     logCipherState(this.session)
@@ -144,7 +146,7 @@ export class XXHandshake implements IHandshake {
     return this.xx.encryptWithAd(cs, Buffer.alloc(0), plaintext)
   }
 
-  public decrypt (ciphertext: bytes, session: NoiseSession): {plaintext: bytes; valid: boolean} {
+  public decrypt (ciphertext: bytes, session: NoiseSession): {plaintext: bytes, valid: boolean} {
     const cs = this.getCS(session, false)
     return this.xx.decryptWithAd(cs, Buffer.alloc(0), ciphertext)
   }

@@ -5,7 +5,7 @@ import PeerId from 'peer-id'
  * Storage for static keys of previously connected peers.
  */
 class Keycache {
-  private storage = new Map<Uint8Array, bytes32>();
+  private readonly storage = new Map<Uint8Array, bytes32>()
 
   public store (peerId: PeerId, key: bytes32): void {
     this.storage.set(peerId.id, key)
@@ -15,7 +15,7 @@ class Keycache {
     if (!peerId) {
       return null
     }
-    return this.storage.get(peerId.id) || null
+    return this.storage.get(peerId.id) ?? null
   }
 
   public resetStorage (): void {

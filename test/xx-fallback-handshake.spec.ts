@@ -48,7 +48,7 @@ describe('XX Fallback Handshake', () => {
       // This is the point where initiator falls back from IK
       const initialMsgI = await connectionFrom.readLP()
       const handshakeInit =
-        new XXFallbackHandshake(true, handshakePayload, prologue, staticKeysInitiator, connectionFrom, initialMsgI, peerB, ephemeralKeys)
+        new XXFallbackHandshake(true, handshakePayload, prologue, staticKeysInitiator, connectionFrom, initialMsgI.slice(0), peerB, ephemeralKeys)
 
       await handshakeInit.propose()
       await handshakeInit.exchange()
@@ -60,7 +60,10 @@ describe('XX Fallback Handshake', () => {
       const sessionResponder = handshakeResp.session
 
       // Test shared key
-      if (sessionInitator.cs1 && sessionResponder.cs1 && sessionInitator.cs2 && sessionResponder.cs2) {
+      if (sessionInitator.cs1 !== undefined &&
+        sessionResponder.cs1 !== undefined &&
+        sessionInitator.cs2 !== undefined &&
+        sessionResponder.cs2 !== undefined) {
         assert(sessionInitator.cs1.k.equals(sessionResponder.cs1.k))
         assert(sessionInitator.cs2.k.equals(sessionResponder.cs2.k))
       } else {

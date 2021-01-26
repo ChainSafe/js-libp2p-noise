@@ -3,7 +3,7 @@ import { IHandshake } from './@types/handshake-interface'
 import { NOISE_MSG_MAX_LENGTH_BYTES, NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG } from './constants'
 
 interface IReturnEncryptionWrapper {
-  (source: Iterable<Uint8Array>): AsyncIterableIterator<Uint8Array>;
+  (source: Iterable<Uint8Array>): AsyncIterableIterator<Uint8Array>
 }
 
 // Returns generator that encrypts payload from the user
