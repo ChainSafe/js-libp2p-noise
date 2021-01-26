@@ -27,6 +27,7 @@ jobs:
     - stage: check
       script:
         - yarn aegir dep-check
+        - npx aegir ts -p check
         - yarn run lint
         - yarn run build
 
@@ -34,25 +35,25 @@ jobs:
       name: chrome
       addons:
         chrome: stable
-      script: npx aegir test -t browser -t webworker --node true --ts
+      script: npx aegir test -t browser -t webworker
 
     - stage: test
       name: firefox
       addons:
         firefox: latest
-      script: npx aegir test -t browser -t webworker --ts --node true -- --browsers FirefoxHeadless
+      script: npx aegir test -t browser -t webworker -- --browsers FirefoxHeadless
 
     - stage: test
       name: electron-main
       os: osx
       script:
-        - npx aegir test -t electron-main --bail --ts
+        - npx aegir test -t electron-main --bail
 
     - stage: test
       name: electron-renderer
       os: osx
       script:
-        - npx aegir test -t electron-renderer --node true --bail --ts
+        - npx aegir test -t electron-renderer --bail
 
 notifications:
   email: false
