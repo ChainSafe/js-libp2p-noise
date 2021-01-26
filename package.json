@@ -1,6 +1,6 @@
 {
   "name": "libp2p-noise",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "files": [
@@ -35,7 +35,7 @@
     "@types/bl": "^2.1.0",
     "@types/chai": "^4.2.4",
     "@types/mocha": "^5.2.7",
-    "aegir": "30.3.0",
+    "aegir": "28.2.0",
     "benchmark": "^2.1.4",
     "chai": "^4.2.0",
     "copyfiles": "^2.4.1",
