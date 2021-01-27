@@ -26,8 +26,7 @@ jobs:
   include:
     - stage: check
       script:
-        - yarn aegir dep-check
-        - npx aegir ts -p check
+        - yarn run check
         - yarn run lint
         - yarn run build
 

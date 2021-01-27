@@ -144,7 +144,9 @@ describe('Noise', () => {
       KeyCache.store(localPeer, staticKeysInitiator.publicKey)
       KeyCache.store(remotePeer, staticKeysResponder.publicKey)
 
+      // @ts-expect-error
       const xxSpy = sandbox.spy(noiseInit, 'performXXHandshake')
+      // @ts-expect-error
       const xxFallbackSpy = sandbox.spy(noiseInit, 'performXXFallbackHandshake')
 
       const [inboundConnection, outboundConnection] = DuplexPair()
@@ -171,6 +173,7 @@ describe('Noise', () => {
       const staticKeysInitiator = generateKeypair()
       const noiseInit = new Noise(staticKeysInitiator.privateKey)
       const noiseResp = new Noise()
+      // @ts-expect-error
       const xxSpy = sandbox.spy(noiseInit, 'performXXFallbackHandshake')
 
       // Prepare key cache for noise pipes
@@ -205,6 +208,7 @@ describe('Noise', () => {
 
       const staticKeysResponder = generateKeypair()
       const noiseResp = new Noise(staticKeysResponder.privateKey, undefined)
+      // @ts-expect-error
       const xxSpy = sandbox.spy(noiseInit, 'performXXFallbackHandshake')
 
       // Prepare key cache for noise pipes
@@ -237,7 +241,9 @@ describe('Noise', () => {
       const staticKeysResponder = generateKeypair()
 
       const noiseResp = new Noise(staticKeysResponder.privateKey)
+      // @ts-expect-error
       const xxInitSpy = sandbox.spy(noiseInit, 'performXXHandshake')
+      // @ts-expect-error
       const xxRespSpy = sandbox.spy(noiseResp, 'performXXFallbackHandshake')
 
       // Prepare key cache for noise pipes
@@ -271,8 +277,11 @@ describe('Noise', () => {
       const staticKeysResponder = generateKeypair()
 
       const noiseResp = new Noise(staticKeysResponder.privateKey)
+      // @ts-expect-error
       const ikInitSpy = sandbox.spy(noiseInit, 'performIKHandshake')
+      // @ts-expect-error
       const xxFallbackInitSpy = sandbox.spy(noiseInit, 'performXXFallbackHandshake')
+      // @ts-expect-error
       const ikRespSpy = sandbox.spy(noiseResp, 'performIKHandshake')
 
       // Prepare key cache for noise pipes
