@@ -60,8 +60,9 @@ jobs:
       - run: yarn --prefer-offline --frozen-lockfile
       - run: npx nyc --reporter=lcov aegir test -t node -- --bail
       - uses: codecov/codecov-action@v1
-      
+
   test-chrome:
+    name: Test Chrome
     needs: check
     runs-on: ubuntu-latest
     steps:
@@ -83,6 +84,7 @@ jobs:
       - run: npx aegir test -t browser -t webworker --bail
 
   test-firefox:
+    name: Test Firefox
     needs: check
     runs-on: ubuntu-latest
     steps:
@@ -104,6 +106,7 @@ jobs:
       - run: npx aegir test -t browser -t webworker --bail -- --browsers FirefoxHeadless
       
   test-electron-main:
+    name: Test Electron Main
     needs: check
     runs-on: ubuntu-latest
     steps:
@@ -125,6 +128,7 @@ jobs:
       - run: npx xvfb-maybe aegir test -t electron-main --bail
 
   test-electron-renderer:
+    name: Test Electron Renderer
     needs: check
     runs-on: ubuntu-latest
     steps:
