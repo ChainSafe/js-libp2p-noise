@@ -44,8 +44,7 @@
     "events": "^3.2.0",
     "microtime": "^3.0.0",
     "mocha": "^8.2.1",
-    "sinon": "^9.2.4",
-    "typescript": "^4.1.4"
+    "sinon": "^9.2.4"
   },
   "dependencies": {
     "bcrypto": "^5.4.0",
@@ -71,7 +70,8 @@
       "@typescript-eslint/strict-boolean-expressions": "off"
     },
     "ignorePatterns": [
-      "src/proto/payload.js"
+      "src/proto/payload.js",
+      "test/fixtures/node-globals.js"
     ]
   }
 }

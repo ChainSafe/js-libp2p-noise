@@ -1,8 +1,13 @@
 const path = require('path')
+
+/** @type {import('aegir').Options["build"]["config"]} */
 const esbuild = {
   inject: [path.join(__dirname, 'test/fixtures/node-globals.js')]
 }
-module.exports = {
+
+
+/** @type {import('aegir').PartialOptions} */
+const config = {
     tsRepo: true,
     docs: {
       entryPoint: "src/index.ts"
@@ -15,7 +20,9 @@ module.exports = {
       }
     },
     build: {
-      bundlesizeMax: '228KB',
+      bundlesizeMax: '214KB',
       config: esbuild
     }
 }
+
+module.exports = config
