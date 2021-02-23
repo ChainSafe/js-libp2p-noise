@@ -28,8 +28,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
       - run: yarn --prefer-offline --frozen-lockfile
-      - run: yarn run check
       - run: yarn run build
+      - run: yarn run check
       - uses: ipfs/aegir/actions/bundle-size@master
         name: Check bundle size
         with:
