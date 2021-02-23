@@ -660,9 +660,10 @@ add-stream@^1.0.0:
   resolved "https://registry.yarnpkg.com/add-stream/-/add-stream-1.0.0.tgz#6a7990437ca736d5e1288db92bd3266d5f5cb2aa"
   integrity sha1-anmQQ3ynNtXhKI25K9MmbV9csqo=
 
-aegir@ipfs/aegir#feat/remove-webpack-karma:
-  version "30.3.0"
-  resolved "https://codeload.github.com/ipfs/aegir/tar.gz/c842d821dd6ad84f166a92331164d8403a8a3688"
+aegir@^31.0.0:
+  version "31.0.0"
+  resolved "https://registry.yarnpkg.com/aegir/-/aegir-31.0.0.tgz#667cbf8d58088f765a6dc3d0fe106488a61d83e1"
+  integrity sha512-QlgWbPQQh4jg1/TYdwTB+p196g7dF/48aCUM2rsiKXv4GIgDRMjTuMq9A4hUF/qSW2xwUjZhA7jFmSHhmnQZdg==
   dependencies:
     "@achingbrain/dependency-check" "^4.1.0"
     "@electron/get" "^1.12.3"
