@@ -30,7 +30,7 @@ jobs:
       - run: yarn --prefer-offline --frozen-lockfile
       - run: yarn run check
       - run: yarn run build
-      - uses: ipfs/aegir/actions/bundle-size@feat/remove-webpack-karma
+      - uses: ipfs/aegir/actions/bundle-size@master
         name: Check bundle size
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
