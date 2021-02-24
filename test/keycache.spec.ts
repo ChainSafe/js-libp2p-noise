@@ -15,9 +15,10 @@ describe('KeyCache', () => {
       const key = Buffer.from('this is id 007')
       await KeyCache.store(peerA, key)
       const result = await KeyCache.load(peerA)
-      assert(uint8ArrayEquals(result, key), 'Stored and loaded key are not the same')
+      assert(result !== null && uint8ArrayEquals(result, key), 'Stored and loaded key are not the same')
     } catch (e) {
-      assert(false, `Test failed - ${e.message}`)
+      const err = e as Error
+      assert(false, `Test failed - ${err.message}`)
     }
   })
 
@@ -25,9 +26,10 @@ describe('KeyCache', () => {
     try {
       const [newPeer] = await createPeerIds(1)
       const result = await KeyCache.load(newPeer)
-      assert(!result)
+      assert(result === null)
     } catch (e) {
-      assert(false, `Test failed - ${e.message}`)
+      const err = e as Error
+      assert(false, `Test failed - ${err.message}`)
     }
   })
 })

@@ -55,7 +55,7 @@ export class IK extends AbstractHandshake {
     return messageBuffer
   }
 
-  public recvMessage (session: NoiseSession, message: MessageBuffer): {plaintext: bytes; valid: boolean} {
+  public recvMessage (session: NoiseSession, message: MessageBuffer): {plaintext: bytes, valid: boolean} {
     let plaintext = Buffer.alloc(0); let valid = false
     if (session.mc === 0) {
       ({ plaintext, valid } = this.readMessageA(session.hs, message))
@@ -101,7 +101,7 @@ export class IK extends AbstractHandshake {
     return { messageBuffer, cs1, cs2, h: hs.ss.h }
   }
 
-  private readMessageA (hs: HandshakeState, message: MessageBuffer): {plaintext: bytes; valid: boolean} {
+  private readMessageA (hs: HandshakeState, message: MessageBuffer): {plaintext: bytes, valid: boolean} {
     if (isValidPublicKey(message.ne)) {
       hs.re = message.ne
     }
@@ -117,7 +117,7 @@ export class IK extends AbstractHandshake {
     return { plaintext, valid: (valid1 && valid2) }
   }
 
-  private readMessageB (hs: HandshakeState, message: MessageBuffer): {h: bytes; plaintext: bytes; valid: boolean; cs1: CipherState; cs2: CipherState} {
+  private readMessageB (hs: HandshakeState, message: MessageBuffer): {h: bytes, plaintext: bytes, valid: boolean, cs1: CipherState, cs2: CipherState} {
     if (isValidPublicKey(message.ne)) {
       hs.re = message.ne
     }

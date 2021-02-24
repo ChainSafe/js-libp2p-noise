@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "outDir": "dist",
+    "incremental": true,
+    "composite": true,
     "target": "ES2018",
     "module": "commonjs",
     "strict": true,
@@ -14,6 +17,7 @@
     ]
   },
   "include": [
+    "**/test/**/*.ts",
     "**/src/**/*.ts",
     "**/src/**/*.js"
   ],

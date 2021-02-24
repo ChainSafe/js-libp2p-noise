@@ -27,7 +27,7 @@ export class XX extends AbstractHandshake {
   private writeMessageA (hs: HandshakeState, payload: bytes, e?: KeyPair): MessageBuffer {
     const ns = Buffer.alloc(0)
 
-    if (e) {
+    if (e !== undefined) {
       hs.e = e
     } else {
       hs.e = generateKeypair()
@@ -68,7 +68,7 @@ export class XX extends AbstractHandshake {
     return { h: hs.ss.h, messageBuffer, cs1, cs2 }
   }
 
-  private readMessageA (hs: HandshakeState, message: MessageBuffer): {plaintext: bytes; valid: boolean} {
+  private readMessageA (hs: HandshakeState, message: MessageBuffer): {plaintext: bytes, valid: boolean} {
     if (isValidPublicKey(message.ne)) {
       hs.re = message.ne
     }
@@ -77,7 +77,7 @@ export class XX extends AbstractHandshake {
     return this.decryptAndHash(hs.ss, message.ciphertext)
   }
 
-  private readMessageB (hs: HandshakeState, message: MessageBuffer): {plaintext: bytes; valid: boolean} {
+  private readMessageB (hs: HandshakeState, message: MessageBuffer): {plaintext: bytes, valid: boolean} {
     if (isValidPublicKey(message.ne)) {
       hs.re = message.ne
     }
@@ -96,7 +96,7 @@ export class XX extends AbstractHandshake {
     return { plaintext, valid: (valid1 && valid2) }
   }
 
-  private readMessageC (hs: HandshakeState, message: MessageBuffer): {h: bytes; plaintext: bytes; valid: boolean; cs1: CipherState; cs2: CipherState} {
+  private readMessageC (hs: HandshakeState, message: MessageBuffer): {h: bytes, plaintext: bytes, valid: boolean, cs1: CipherState, cs2: CipherState} {
     const { plaintext: ns, valid: valid1 } = this.decryptAndHash(hs.ss, message.ns)
     if (valid1 && ns.length === 32 && isValidPublicKey(ns)) {
       hs.rs = ns
@@ -164,7 +164,7 @@ export class XX extends AbstractHandshake {
     return messageBuffer
   }
 
-  public recvMessage (session: NoiseSession, message: MessageBuffer): {plaintext: bytes; valid: boolean} {
+  public recvMessage (session: NoiseSession, message: MessageBuffer): {plaintext: bytes, valid: boolean} {
     let plaintext: bytes = Buffer.alloc(0)
     let valid = false
     if (session.mc === 0) {

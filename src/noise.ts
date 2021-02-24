@@ -21,22 +21,22 @@ import { logger } from './logger'
 import PeerId from 'peer-id'
 import { NOISE_MSG_MAX_LENGTH_BYTES } from './constants'
 
-export type WrappedConnection = ReturnType<typeof Wrap>;
+export type WrappedConnection = ReturnType<typeof Wrap>
 
-type HandshakeParams = {
-  connection: WrappedConnection;
-  isInitiator: boolean;
-  localPeer: PeerId;
-  remotePeer?: PeerId;
-};
+interface HandshakeParams {
+  connection: WrappedConnection
+  isInitiator: boolean
+  localPeer: PeerId
+  remotePeer?: PeerId
+}
 
 export class Noise implements INoiseConnection {
-  public protocol = '/noise';
+  public protocol = '/noise'
 
-  private readonly prologue = Buffer.alloc(0);
-  private readonly staticKeys: KeyPair;
-  private readonly earlyData?: bytes;
-  private useNoisePipes: boolean;
+  private readonly prologue = Buffer.alloc(0)
+  private readonly staticKeys: KeyPair
+  private readonly earlyData?: bytes
+  private readonly useNoisePipes: boolean
 
   /**
    *
@@ -44,7 +44,7 @@ export class Noise implements INoiseConnection {
    * @param {bytes} earlyData
    */
   constructor (staticNoiseKey?: bytes, earlyData?: bytes) {
-    this.earlyData = earlyData || Buffer.alloc(0)
+    this.earlyData = earlyData ?? Buffer.alloc(0)
     // disabled until properly specked
     this.useNoisePipes = false
 
@@ -71,9 +71,6 @@ export class Noise implements INoiseConnection {
     const wrappedConnection = Wrap(
       connection,
       {
-        // wrong types in repo
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         lengthEncoder: uint16BEEncode,
         lengthDecoder: uint16BEDecode,
         maxDataLength: NOISE_MSG_MAX_LENGTH_BYTES
@@ -106,9 +103,6 @@ export class Noise implements INoiseConnection {
     const wrappedConnection = Wrap(
       connection,
       {
-        // wrong types in repo
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         lengthEncoder: uint16BEEncode,
         lengthDecoder: uint16BEDecode,
         maxDataLength: NOISE_MSG_MAX_LENGTH_BYTES
@@ -153,7 +147,7 @@ export class Noise implements INoiseConnection {
         this.staticKeys,
         connection,
         // safe to cast as we did checks
-        KeyCache.load(params.remotePeer) || Buffer.alloc(32),
+        KeyCache.load(params.remotePeer) ?? Buffer.alloc(32),
         remotePeer as PeerId
       )
 
@@ -189,7 +183,8 @@ export class Noise implements INoiseConnection {
       await handshake.finish()
     } catch (e) {
       logger(e)
-      throw new Error(`Error occurred during XX Fallback handshake: ${e.message}`)
+      const err = e as Error
+      throw new Error(`Error occurred during XX Fallback handshake: ${err.message}`)
     }
 
     return handshake
@@ -211,7 +206,8 @@ export class Noise implements INoiseConnection {
         KeyCache.store(handshake.remotePeer, handshake.getRemoteStaticKey())
       }
     } catch (e) {
-      throw new Error(`Error occurred during XX handshake: ${e.message}`)
+      const err = e as Error
+      throw new Error(`Error occurred during XX handshake: ${err.message}`)
     }
 
     return handshake

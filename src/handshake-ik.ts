@@ -19,16 +19,16 @@ import {
 import PeerId from 'peer-id'
 
 export class IKHandshake implements IHandshake {
-  public isInitiator: boolean;
-  public session: NoiseSession;
-  public remotePeer!: PeerId;
-  public remoteEarlyData: Buffer;
+  public isInitiator: boolean
+  public session: NoiseSession
+  public remotePeer!: PeerId
+  public remoteEarlyData: Buffer
 
-  private payload: bytes;
-  private prologue: bytes32;
-  private staticKeypair: KeyPair;
-  private connection: WrappedConnection;
-  private ik: IK;
+  private readonly payload: bytes
+  private readonly prologue: bytes32
+  private readonly staticKeypair: KeyPair
+  private readonly connection: WrappedConnection
+  private readonly ik: IK
 
   constructor (
     isInitiator: boolean,
@@ -48,7 +48,7 @@ export class IKHandshake implements IHandshake {
     if (remotePeer) {
       this.remotePeer = remotePeer
     }
-    this.ik = handshake || new IK()
+    this.ik = handshake ?? new IK()
     this.session = this.ik.initSession(this.isInitiator, this.prologue, this.staticKeypair, remoteStaticKey)
     this.remoteEarlyData = Buffer.alloc(0)
   }
@@ -79,9 +79,10 @@ export class IKHandshake implements IHandshake {
         logger('IK Stage 0 - Responder successfully verified payload!')
         logRemoteEphemeralKey(this.session.hs.re)
       } catch (e) {
+        const err = e as Error
         logger('Responder breaking up with IK handshake in stage 0.')
 
-        throw new FailedIKError(receivedMsg, `Error occurred while verifying initiator's signed payload: ${e.message}`)
+        throw new FailedIKError(receivedMsg, `Error occurred while verifying initiator's signed payload: ${err.message}`)
       }
     }
   }
@@ -104,8 +105,9 @@ export class IKHandshake implements IHandshake {
         logger('IK Stage 1 - Initiator successfully verified payload!')
         logRemoteEphemeralKey(this.session.hs.re)
       } catch (e) {
+        const err = e as Error
         logger('Initiator breaking up with IK handshake in stage 1.')
-        throw new FailedIKError(receivedMsg, `Error occurred while verifying responder's signed payload: ${e.message}`)
+        throw new FailedIKError(receivedMsg, `Error occurred while verifying responder's signed payload: ${err.message}`)
       }
     } else {
       logger('IK Stage 1 - Responder sending message...')
@@ -117,7 +119,7 @@ export class IKHandshake implements IHandshake {
     logCipherState(this.session)
   }
 
-  public decrypt (ciphertext: bytes, session: NoiseSession): {plaintext: bytes; valid: boolean} {
+  public decrypt (ciphertext: bytes, session: NoiseSession): {plaintext: bytes, valid: boolean} {
     const cs = this.getCS(session, false)
     return this.ik.decryptWithAd(cs, Buffer.alloc(0), ciphertext)
   }

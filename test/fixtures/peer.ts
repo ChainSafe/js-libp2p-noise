@@ -19,9 +19,9 @@ const peers = [{
   pubKey: 'CAESIMbnikZaPciAMZhUXqDRVCs7VFOBtmlIk26g0GgOotDA'
 }]
 
-export async function createPeerIdsFromFixtures (length:number): Promise<PeerId[]> {
+export async function createPeerIdsFromFixtures (length: number): Promise<PeerId[]> {
   return await Promise.all(
-    Array.from({ length }).map((_, i) => PeerId.createFromJSON(peers[i]))
+    Array.from({ length }).map(async (_, i) => await PeerId.createFromJSON(peers[i]))
   )
 }
 

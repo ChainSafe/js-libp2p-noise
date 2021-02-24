@@ -8,7 +8,7 @@ export async function generateEd25519Keys (): Promise<PrivateKey> {
 
 export function getKeyPairFromPeerId (peerId: PeerId): KeyPair {
   return {
-    privateKey: peerId.privKey.marshal().slice(0, 32),
-    publicKey: peerId.marshalPubKey()
+    privateKey: Buffer.from(peerId.privKey.marshal().slice(0, 32)),
+    publicKey: Buffer.from(peerId.marshalPubKey())
   }
 }

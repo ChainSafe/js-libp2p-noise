@@ -1,8 +1,8 @@
 declare module 'it-pair' {
-  export type Duplex = [Stream, Stream];
+  export type Duplex = [Stream, Stream]
 
-  type Stream = {
-    sink(source: Iterable<any>): void;
-    source: Record<string, any>;
+  interface Stream {
+    sink: (source: Iterable<any>) => void
+    source: Record<string, any>
   }
 }

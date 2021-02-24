@@ -18,7 +18,7 @@ export abstract class AbstractHandshake {
     return e
   }
 
-  public decryptWithAd (cs: CipherState, ad: bytes, ciphertext: bytes): {plaintext: bytes; valid: boolean} {
+  public decryptWithAd (cs: CipherState, ad: bytes, ciphertext: bytes): {plaintext: bytes, valid: boolean} {
     const { plaintext, valid } = this.decrypt(cs.k, cs.n, ad, ciphertext)
     this.setNonce(cs, this.incrementNonce(cs.n))
 
@@ -78,7 +78,7 @@ export abstract class AbstractHandshake {
     return ciphertext
   }
 
-  protected decrypt (k: bytes32, n: uint32, ad: bytes, ciphertext: bytes): {plaintext: bytes; valid: boolean} {
+  protected decrypt (k: bytes32, n: uint32, ad: bytes, ciphertext: bytes): {plaintext: bytes, valid: boolean} {
     const nonce = this.nonceToBytes(n)
     const ctx = new AEAD()
     ciphertext = Buffer.from(ciphertext)
@@ -91,7 +91,7 @@ export abstract class AbstractHandshake {
     return { plaintext: ciphertext, valid: ctx.verify(tag) }
   }
 
-  protected decryptAndHash (ss: SymmetricState, ciphertext: bytes): {plaintext: bytes; valid: boolean} {
+  protected decryptAndHash (ss: SymmetricState, ciphertext: bytes): {plaintext: bytes, valid: boolean} {
     let plaintext: bytes; let valid = true
     if (this.hasKey(ss.cs)) {
       ({ plaintext, valid } = this.decryptWithAd(ss.cs, ss.h, ciphertext))
@@ -125,7 +125,7 @@ export abstract class AbstractHandshake {
 
   protected mixKey (ss: SymmetricState, ikm: bytes32): void {
     const [ck, tempK] = getHkdf(ss.ck, ikm)
-    ss.cs = this.initializeKey(tempK) as CipherState
+    ss.cs = this.initializeKey(tempK)
     ss.ck = ck
   }
 
@@ -173,7 +173,7 @@ export abstract class AbstractHandshake {
     return { ne, ns, ciphertext }
   }
 
-  protected readMessageRegular (cs: CipherState, message: MessageBuffer): {plaintext: bytes; valid: boolean} {
+  protected readMessageRegular (cs: CipherState, message: MessageBuffer): {plaintext: bytes, valid: boolean} {
     return this.decryptWithAd(cs, Buffer.alloc(0), message.ciphertext)
   }
 }
