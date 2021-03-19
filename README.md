@@ -1,7 +1,7 @@
 # js-libp2p-noise
 
 ![npm](https://img.shields.io/npm/v/libp2p-noise)
-[![Build Status](https://travis-ci.com/NodeFactoryIo/js-libp2p-noise.svg?branch=master)](https://travis-ci.com/NodeFactoryIo/js-libp2p-noise)
+[![CI](https://github.com/NodeFactoryIo/js-libp2p-noise/actions/workflows/ci.yml/badge.svg?branch=master&event=push)](https://github.com/NodeFactoryIo/js-libp2p-noise/actions/workflows/ci.yml)
 
 [![](https://img.shields.io/badge/project-libp2p-yellow.svg?style=flat-square)](https://libp2p.io/)
 ![](https://img.shields.io/github/issues-raw/nodefactoryio/js-libp2p-noise)
