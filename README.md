@@ -15,7 +15,8 @@
 
 This repository contains TypeScript implementation of noise protocol, an encryption protocol used in libp2p.
 
-##### Warning: Even though this package works in browser, it will bundle around 1.5Mb of code 
+##### Warning: Even though this package works in browser, it will bundle around 600Kb (200Kb gzipped) of code
+https://bundlephobia.com/result?p=libp2p-noise@latest
 
 ## Usage
 
