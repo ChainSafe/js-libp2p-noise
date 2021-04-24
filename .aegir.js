@@ -20,7 +20,7 @@ const config = {
       }
     },
     build: {
-      bundlesizeMax: '214KB',
+      bundlesizeMax: '231KB',
       config: esbuild
     }
 }
