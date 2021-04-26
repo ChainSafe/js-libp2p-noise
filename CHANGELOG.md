@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - update aegir to latest
 - update dependencies
 
+## [3.0.0]
+
+- Updates all deps to pull in the latest buffer and bl modules
+- Specifies a root name for pbjs code gen - message names for pbjs
+generated code are global so specifying a root name scopes them
+to prevent two modules accidentally trampling over each other's
+protobuf code by giving their messages the same name
+#### Breaking
+- buffer@6 dropped support for IE and Safari < 10
+
 ## [2.0.4]
 
 #### Bugfixes
