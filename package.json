@@ -51,7 +51,6 @@
     "@stablelib/sha256": "^1.0.1",
     "@stablelib/x25519": "^1.0.1",
     "aead-js": "^0.1.0",
-    "bcrypto": "^5.4.0",
     "debug": "^4.3.1",
     "it-buffer": "^0.1.1",
     "it-length-prefixed": "^5.0.2",

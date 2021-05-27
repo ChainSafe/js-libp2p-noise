@@ -121,7 +121,8 @@ export abstract class AbstractHandshake {
   }
 
   protected getHash (a: bytes, b: bytes): bytes32 {
-    return SHA256.digest(Buffer.from([...a, ...b]))
+    const hash = SHA256.hash(Buffer.from([...a, ...b]))
+    return Buffer.from(hash.buffer, hash.byteOffset, hash.length)
   }
 
   protected mixKey (ss: SymmetricState, ikm: bytes32): void {
