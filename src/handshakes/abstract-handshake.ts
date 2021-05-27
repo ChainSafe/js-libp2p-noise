@@ -1,6 +1,6 @@
 import { Buffer } from 'buffer'
 import AEAD from 'bcrypto/lib/js/aead'
-import x25519 from 'bcrypto/lib/js/x25519'
+import * as x25519 from '@stablelib/x25519'
 import SHA256 from 'bcrypto/lib/js/sha256'
 
 import { bytes, bytes32, uint32 } from '../@types/basic'
@@ -105,7 +105,8 @@ export abstract class AbstractHandshake {
 
   protected dh (privateKey: bytes32, publicKey: bytes32): bytes32 {
     try {
-      const derived = x25519.derive(publicKey, privateKey)
+      const derivedU8 = x25519.sharedKey(privateKey, publicKey)
+      const derived = Buffer.from(derivedU8.buffer, derivedU8.byteOffset, derivedU8.length)
       const result = Buffer.alloc(32)
       derived.copy(result)
       return result
