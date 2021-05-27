@@ -47,6 +47,8 @@
     "sinon": "^10.0.0"
   },
   "dependencies": {
+    "@stablelib/hkdf": "^1.0.1",
+    "@stablelib/sha256": "^1.0.1",
     "@stablelib/x25519": "^1.0.1",
     "bcrypto": "^5.4.0",
     "debug": "^4.3.1",

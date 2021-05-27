@@ -1,6 +1,6 @@
-import HKDF from 'bcrypto/lib/hkdf'
+import { HKDF } from '@stablelib/hkdf'
+import { SHA256 } from '@stablelib/sha256'
 import * as x25519 from '@stablelib/x25519'
-import SHA256 from 'bcrypto/lib/js/sha256'
 import { Buffer } from 'buffer'
 import PeerId from 'peer-id'
 import { keys } from 'libp2p-crypto'
@@ -102,9 +102,9 @@ export async function verifySignedPayload (
 }
 
 export function getHkdf (ck: bytes32, ikm: bytes): Hkdf {
-  const info = Buffer.alloc(0)
-  const prk = HKDF.extract(SHA256, ikm, ck)
-  const okm = HKDF.expand(SHA256, prk, info, 96)
+  const hkdf = new HKDF(SHA256, ikm, ck)
+  const okmU8Array = hkdf.expand(96)
+  const okm = Buffer.from(okmU8Array.buffer, okmU8Array.byteOffset, okmU8Array.length)
 
   const k1 = okm.slice(0, 32)
   const k2 = okm.slice(32, 64)
