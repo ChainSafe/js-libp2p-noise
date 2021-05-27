@@ -1,7 +1,7 @@
 import { Buffer } from 'buffer'
-import AEAD from 'bcrypto/lib/js/aead'
-import * as x25519 from '@stablelib/x25519'
-import SHA256 from 'bcrypto/lib/js/sha256'
+import { AEAD } from 'aead-js'
+import x25519 from '@stablelib/x25519'
+import SHA256 from '@stablelib/sha256'
 
 import { bytes, bytes32, uint32 } from '../@types/basic'
 import { CipherState, MessageBuffer, SymmetricState } from '../@types/handshake'
