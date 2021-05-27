@@ -118,5 +118,9 @@ export function isValidPublicKey (pk: bytes): boolean {
     return false
   }
 
+  if (pk.length !== 32) {
+    return false
+  }
+
   return true
 }
