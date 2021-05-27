@@ -1,5 +1,5 @@
 import HKDF from 'bcrypto/lib/hkdf'
-import x25519 from 'bcrypto/lib/js/x25519'
+import * as x25519 from '@stablelib/x25519'
 import SHA256 from 'bcrypto/lib/js/sha256'
 import { Buffer } from 'buffer'
 import PeerId from 'peer-id'
@@ -13,12 +13,11 @@ import uint8ArrayEquals from 'uint8arrays/equals'
 const NoiseHandshakePayloadProto = pb.NoiseHandshakePayload
 
 export function generateKeypair (): KeyPair {
-  const privateKey = x25519.privateKeyGenerate()
-  const publicKey = x25519.publicKeyCreate(privateKey)
+  const keypair = x25519.generateKeyPair()
 
   return {
-    publicKey,
-    privateKey
+    publicKey: Buffer.from(keypair.publicKey.buffer, keypair.publicKey.byteOffset, keypair.publicKey.length),
+    privateKey: Buffer.from(keypair.secretKey.buffer, keypair.secretKey.byteOffset, keypair.secretKey.length)
   }
 }
 
@@ -69,7 +68,7 @@ export function getHandshakePayload (publicKey: bytes): bytes {
   return Buffer.concat([Buffer.from('noise-libp2p-static-key:'), publicKey])
 }
 
-async function isValidPeerId (peerId: Uint8Array, publicKeyProtobuf: bytes) {
+async function isValidPeerId (peerId: Uint8Array, publicKeyProtobuf: bytes): Promise<boolean> {
   const generatedPeerId = await PeerId.createFromPubKey(publicKeyProtobuf)
   return uint8ArrayEquals(generatedPeerId.id, peerId)
 }
@@ -115,5 +114,9 @@ export function getHkdf (ck: bytes32, ikm: bytes): Hkdf {
 }
 
 export function isValidPublicKey (pk: bytes): boolean {
-  return x25519.publicKeyVerify(pk.slice(0, 32))
+  if (!Buffer.isBuffer(pk)) {
+    return false
+  }
+
+  return true
 }

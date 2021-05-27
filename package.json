@@ -36,6 +36,7 @@
     "util": false
   },
   "devDependencies": {
+    "@types/elliptic": "^6.4.12",
     "aegir": "^33.1.0",
     "benchmark": "^2.1.4",
     "buffer": "^6.0.3",
@@ -46,6 +47,7 @@
     "sinon": "^10.0.0"
   },
   "dependencies": {
+    "@stablelib/x25519": "^1.0.1",
     "bcrypto": "^5.4.0",
     "debug": "^4.3.1",
     "it-buffer": "^0.1.1",
