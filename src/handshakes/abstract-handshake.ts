@@ -73,7 +73,7 @@ export abstract class AbstractHandshake {
     return ciphertext
   }
 
-  protected decryptNew (k: bytes32, n: uint32, ad: bytes, ciphertext: bytes): {plaintext: bytes, valid: boolean} {
+  protected decrypt (k: bytes32, n: uint32, ad: bytes, ciphertext: bytes): {plaintext: bytes, valid: boolean} {
     const nonce = this.nonceToBytes(n)
     const ctx = new ChaCha20Poly1305(k)
     const encryptedMessage = ctx.open(nonce, ciphertext, ad)
