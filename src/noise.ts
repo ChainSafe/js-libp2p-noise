@@ -49,6 +49,7 @@ export class Noise implements INoiseConnection {
     this.useNoisePipes = false
 
     if (staticNoiseKey) {
+      // accepts x25519 private key of length 32
       const keyPair = x25519.generateKeyPairFromSeed(staticNoiseKey)
       this.staticKeys = {
         privateKey: Buffer.from(
