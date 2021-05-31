@@ -76,8 +76,26 @@ export abstract class AbstractHandshake {
   protected decrypt (k: bytes32, n: uint32, ad: bytes, ciphertext: bytes): {plaintext: bytes, valid: boolean} {
     const nonce = this.nonceToBytes(n)
     const ctx = new ChaCha20Poly1305(k)
-    const encryptedMessage = ctx.open(nonce, ciphertext, ad)
-    return { plaintext: ciphertext, valid: Boolean(encryptedMessage) }
+    const encryptedMessage = ctx.open(
+      nonce,
+      new Uint8Array(ciphertext.buffer, ciphertext.byteOffset, ciphertext.length),
+      ad
+    )
+    if (encryptedMessage) {
+      return {
+        plaintext: Buffer.from(
+          encryptedMessage.buffer,
+          encryptedMessage.byteOffset,
+          encryptedMessage.length
+        ),
+        valid: true
+      }
+    } else {
+      return {
+        plaintext: Buffer.from(''),
+        valid: false
+      }
+    }
   }
 
   protected decryptAndHash (ss: SymmetricState, ciphertext: bytes): {plaintext: bytes, valid: boolean} {
