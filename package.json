@@ -36,7 +36,6 @@
     "util": false
   },
   "devDependencies": {
-    "@types/elliptic": "^6.4.12",
     "aegir": "^33.1.0",
     "benchmark": "^2.1.4",
     "buffer": "^6.0.3",
