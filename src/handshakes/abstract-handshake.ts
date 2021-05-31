@@ -78,7 +78,7 @@ export abstract class AbstractHandshake {
     const ctx = new ChaCha20Poly1305(k)
     const encryptedMessage = ctx.open(
       nonce,
-      new Uint8Array(ciphertext.buffer, ciphertext.byteOffset, ciphertext.length),
+      ciphertext,
       ad
     )
     if (encryptedMessage) {
