@@ -1,6 +1,6 @@
 import { Buffer } from 'buffer'
-import x25519 from '@stablelib/x25519'
-import SHA256 from '@stablelib/sha256'
+import * as x25519 from '@stablelib/x25519'
+import * as SHA256 from '@stablelib/sha256'
 import { ChaCha20Poly1305 } from '@stablelib/chacha20poly1305'
 
 import { bytes, bytes32, uint32 } from '../@types/basic'
