@@ -1,7 +1,7 @@
 import { Buffer } from 'buffer'
-import { AEAD } from 'aead-js'
 import x25519 from '@stablelib/x25519'
 import SHA256 from '@stablelib/sha256'
+import { ChaCha20Poly1305 } from '@stablelib/chacha20poly1305'
 
 import { bytes, bytes32, uint32 } from '../@types/basic'
 import { CipherState, MessageBuffer, SymmetricState } from '../@types/handshake'
@@ -56,14 +56,9 @@ export abstract class AbstractHandshake {
 
   protected encrypt (k: bytes32, n: uint32, ad: bytes, plaintext: bytes): bytes {
     const nonce = this.nonceToBytes(n)
-    const ctx = new AEAD()
-    plaintext = Buffer.from(plaintext)
-    ctx.init(k, nonce)
-    ctx.aad(ad)
-    ctx.encrypt(plaintext)
-
-    // Encryption is done on the sent reference
-    return Buffer.concat([plaintext, ctx.final()])
+    const ctx = new ChaCha20Poly1305(k)
+    const encryptedMessage = ctx.seal(nonce, plaintext, ad)
+    return Buffer.from(encryptedMessage.buffer, encryptedMessage.byteOffset, encryptedMessage.length)
   }
 
   protected encryptAndHash (ss: SymmetricState, plaintext: bytes): bytes {
@@ -78,17 +73,11 @@ export abstract class AbstractHandshake {
     return ciphertext
   }
 
-  protected decrypt (k: bytes32, n: uint32, ad: bytes, ciphertext: bytes): {plaintext: bytes, valid: boolean} {
+  protected decryptNew (k: bytes32, n: uint32, ad: bytes, ciphertext: bytes): {plaintext: bytes, valid: boolean} {
     const nonce = this.nonceToBytes(n)
-    const ctx = new AEAD()
-    ciphertext = Buffer.from(ciphertext)
-    const tag = ciphertext.slice(ciphertext.length - 16)
-    ciphertext = ciphertext.slice(0, ciphertext.length - 16)
-    ctx.init(k, nonce)
-    ctx.aad(ad)
-    ctx.decrypt(ciphertext)
-    // Decryption is done on the sent reference
-    return { plaintext: ciphertext, valid: ctx.verify(tag) }
+    const ctx = new ChaCha20Poly1305(k)
+    const encryptedMessage = ctx.open(nonce, ciphertext, ad)
+    return { plaintext: ciphertext, valid: Boolean(encryptedMessage) }
   }
 
   protected decryptAndHash (ss: SymmetricState, ciphertext: bytes): {plaintext: bytes, valid: boolean} {
