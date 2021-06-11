@@ -5,10 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.5]
-#### Bugfixes
-- update aegir to latest
-- update dependencies
+## [3.1.0]
+
+# Added
+- Replaced bcrypto dependency
+- Add support for node 15
 
 ## [3.0.0]
 
@@ -19,6 +20,11 @@ to prevent two modules accidentally trampling over each other's
 protobuf code by giving their messages the same name
 #### Breaking
 - buffer@6 dropped support for IE and Safari < 10
+
+## [2.0.5]
+#### Bugfixes
+- update aegir to latest
+- update dependencies
 
 ## [2.0.4]
 
