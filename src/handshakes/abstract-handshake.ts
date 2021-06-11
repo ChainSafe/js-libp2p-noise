@@ -1,7 +1,7 @@
 import { Buffer } from 'buffer'
-import AEAD from 'bcrypto/lib/js/aead'
-import x25519 from 'bcrypto/lib/js/x25519'
-import SHA256 from 'bcrypto/lib/js/sha256'
+import * as x25519 from '@stablelib/x25519'
+import * as SHA256 from '@stablelib/sha256'
+import { ChaCha20Poly1305 } from '@stablelib/chacha20poly1305'
 
 import { bytes, bytes32, uint32 } from '../@types/basic'
 import { CipherState, MessageBuffer, SymmetricState } from '../@types/handshake'
@@ -56,14 +56,9 @@ export abstract class AbstractHandshake {
 
   protected encrypt (k: bytes32, n: uint32, ad: bytes, plaintext: bytes): bytes {
     const nonce = this.nonceToBytes(n)
-    const ctx = new AEAD()
-    plaintext = Buffer.from(plaintext)
-    ctx.init(k, nonce)
-    ctx.aad(ad)
-    ctx.encrypt(plaintext)
-
-    // Encryption is done on the sent reference
-    return Buffer.concat([plaintext, ctx.final()])
+    const ctx = new ChaCha20Poly1305(k)
+    const encryptedMessage = ctx.seal(nonce, plaintext, ad)
+    return Buffer.from(encryptedMessage.buffer, encryptedMessage.byteOffset, encryptedMessage.length)
   }
 
   protected encryptAndHash (ss: SymmetricState, plaintext: bytes): bytes {
@@ -80,15 +75,27 @@ export abstract class AbstractHandshake {
 
   protected decrypt (k: bytes32, n: uint32, ad: bytes, ciphertext: bytes): {plaintext: bytes, valid: boolean} {
     const nonce = this.nonceToBytes(n)
-    const ctx = new AEAD()
-    ciphertext = Buffer.from(ciphertext)
-    const tag = ciphertext.slice(ciphertext.length - 16)
-    ciphertext = ciphertext.slice(0, ciphertext.length - 16)
-    ctx.init(k, nonce)
-    ctx.aad(ad)
-    ctx.decrypt(ciphertext)
-    // Decryption is done on the sent reference
-    return { plaintext: ciphertext, valid: ctx.verify(tag) }
+    const ctx = new ChaCha20Poly1305(k)
+    const encryptedMessage = ctx.open(
+      nonce,
+      ciphertext,
+      ad
+    )
+    if (encryptedMessage) {
+      return {
+        plaintext: Buffer.from(
+          encryptedMessage.buffer,
+          encryptedMessage.byteOffset,
+          encryptedMessage.length
+        ),
+        valid: true
+      }
+    } else {
+      return {
+        plaintext: Buffer.from(''),
+        valid: false
+      }
+    }
   }
 
   protected decryptAndHash (ss: SymmetricState, ciphertext: bytes): {plaintext: bytes, valid: boolean} {
@@ -105,7 +112,8 @@ export abstract class AbstractHandshake {
 
   protected dh (privateKey: bytes32, publicKey: bytes32): bytes32 {
     try {
-      const derived = x25519.derive(publicKey, privateKey)
+      const derivedU8 = x25519.sharedKey(privateKey, publicKey)
+      const derived = Buffer.from(derivedU8.buffer, derivedU8.byteOffset, derivedU8.length)
       const result = Buffer.alloc(32)
       derived.copy(result)
       return result
@@ -120,7 +128,8 @@ export abstract class AbstractHandshake {
   }
 
   protected getHash (a: bytes, b: bytes): bytes32 {
-    return SHA256.digest(Buffer.from([...a, ...b]))
+    const hash = SHA256.hash(Buffer.from([...a, ...b]))
+    return Buffer.from(hash.buffer, hash.byteOffset, hash.length)
   }
 
   protected mixKey (ss: SymmetricState, ikm: bytes32): void {

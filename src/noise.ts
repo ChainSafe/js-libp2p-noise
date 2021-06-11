@@ -1,4 +1,4 @@
-import x25519 from 'bcrypto/lib/js/x25519'
+import * as x25519 from '@stablelib/x25519'
 import { Buffer } from 'buffer'
 import Wrap from 'it-pb-rpc'
 import DuplexPair from 'it-pair/duplex'
@@ -49,10 +49,19 @@ export class Noise implements INoiseConnection {
     this.useNoisePipes = false
 
     if (staticNoiseKey) {
-      const publicKey = x25519.publicKeyCreate(staticNoiseKey)
+      // accepts x25519 private key of length 32
+      const keyPair = x25519.generateKeyPairFromSeed(staticNoiseKey)
       this.staticKeys = {
-        privateKey: staticNoiseKey,
-        publicKey
+        privateKey: Buffer.from(
+          keyPair.secretKey.buffer,
+          keyPair.secretKey.byteOffset,
+          keyPair.secretKey.length
+        ),
+        publicKey: Buffer.from(
+          keyPair.publicKey.buffer,
+          keyPair.publicKey.byteOffset,
+          keyPair.publicKey.length
+        )
       }
     } else {
       this.staticKeys = generateKeypair()

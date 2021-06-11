@@ -1,6 +1,6 @@
-import HKDF from 'bcrypto/lib/hkdf'
-import x25519 from 'bcrypto/lib/js/x25519'
-import SHA256 from 'bcrypto/lib/js/sha256'
+import { HKDF } from '@stablelib/hkdf'
+import { SHA256 } from '@stablelib/sha256'
+import * as x25519 from '@stablelib/x25519'
 import { Buffer } from 'buffer'
 import PeerId from 'peer-id'
 import { keys } from 'libp2p-crypto'
@@ -13,12 +13,11 @@ import uint8ArrayEquals from 'uint8arrays/equals'
 const NoiseHandshakePayloadProto = pb.NoiseHandshakePayload
 
 export function generateKeypair (): KeyPair {
-  const privateKey = x25519.privateKeyGenerate()
-  const publicKey = x25519.publicKeyCreate(privateKey)
+  const keypair = x25519.generateKeyPair()
 
   return {
-    publicKey,
-    privateKey
+    publicKey: Buffer.from(keypair.publicKey.buffer, keypair.publicKey.byteOffset, keypair.publicKey.length),
+    privateKey: Buffer.from(keypair.secretKey.buffer, keypair.secretKey.byteOffset, keypair.secretKey.length)
   }
 }
 
@@ -69,7 +68,7 @@ export function getHandshakePayload (publicKey: bytes): bytes {
   return Buffer.concat([Buffer.from('noise-libp2p-static-key:'), publicKey])
 }
 
-async function isValidPeerId (peerId: Uint8Array, publicKeyProtobuf: bytes) {
+async function isValidPeerId (peerId: Uint8Array, publicKeyProtobuf: bytes): Promise<boolean> {
   const generatedPeerId = await PeerId.createFromPubKey(publicKeyProtobuf)
   return uint8ArrayEquals(generatedPeerId.id, peerId)
 }
@@ -103,9 +102,9 @@ export async function verifySignedPayload (
 }
 
 export function getHkdf (ck: bytes32, ikm: bytes): Hkdf {
-  const info = Buffer.alloc(0)
-  const prk = HKDF.extract(SHA256, ikm, ck)
-  const okm = HKDF.expand(SHA256, prk, info, 96)
+  const hkdf = new HKDF(SHA256, ikm, ck)
+  const okmU8Array = hkdf.expand(96)
+  const okm = Buffer.from(okmU8Array.buffer, okmU8Array.byteOffset, okmU8Array.length)
 
   const k1 = okm.slice(0, 32)
   const k2 = okm.slice(32, 64)
@@ -115,5 +114,13 @@ export function getHkdf (ck: bytes32, ikm: bytes): Hkdf {
 }
 
 export function isValidPublicKey (pk: bytes): boolean {
-  return x25519.publicKeyVerify(pk.slice(0, 32))
+  if (!Buffer.isBuffer(pk)) {
+    return false
+  }
+
+  if (pk.length !== 32) {
+    return false
+  }
+
+  return true
 }
