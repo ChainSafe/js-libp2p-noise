@@ -30,11 +30,10 @@ jobs:
       - run: yarn --prefer-offline --frozen-lockfile
       - run: yarn run build
       - run: yarn run check
-      # enable post chainsafe release
-      # - uses: ipfs/aegir/actions/bundle-size@master
-      #   name: Check bundle size
-      #   with:
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: ipfs/aegir/actions/bundle-size@master
+        name: Check bundle size
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
   test-node:
     name: Test Nodejs
