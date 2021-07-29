@@ -1,5 +1,5 @@
 {
-  "name": "libp2p-noise",
+  "name": "@chainsafe/libp2p-noise",
   "version": "4.0.0",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -9,9 +9,9 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/NodeFactoryIo/js-libp2p-noise.git"
+    "url": "git+https://github.com/ChainSafe/js-libp2p-noise.git"
   },
-  "author": "NodeFactory <info@nodefactory.io>",
+  "author": "ChainSafe <info@chainsafe.io>",
   "license": "MIT",
   "keywords": [
     "libp2p",
