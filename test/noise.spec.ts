@@ -6,7 +6,7 @@ import sinon from 'sinon'
 import BufferList from 'bl'
 import { randomBytes } from 'libp2p-crypto'
 import { Buffer } from 'buffer'
-import uint8ArrayEquals from 'uint8arrays/equals'
+import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 
 import { Noise } from '../src'
 import { XXHandshake } from '../src/handshake-xx'

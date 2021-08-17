@@ -8,7 +8,7 @@ import { KeyPair } from './@types/libp2p'
 import { bytes, bytes32 } from './@types/basic'
 import { Hkdf, INoisePayload } from './@types/handshake'
 import { pb } from './proto/payload'
-import uint8ArrayEquals from 'uint8arrays/equals'
+import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 
 const NoiseHandshakePayloadProto = pb.NoiseHandshakePayload
 
