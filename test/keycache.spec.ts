@@ -1,7 +1,7 @@
 import { assert } from 'chai'
 import { KeyCache } from '../src/keycache'
 import { createPeerIds, createPeerIdsFromFixtures } from './fixtures/peer'
-import uint8ArrayEquals from 'uint8arrays/equals'
+import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 
 describe('KeyCache', () => {
   let peerA
