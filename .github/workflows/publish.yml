@@ -45,12 +45,6 @@ jobs:
       - name: Build packages
         run: yarn run build
 
-      - name: Publish packages
-        # manual switch to latest
-        run: yarn publish --ignore-scripts --no-git-tag-version --no-commit-hooks --non-interactive --tag beta
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
-
       - name: Get Changelog Entry
         id: changelog_reader
         uses: mindsers/changelog-reader-action@v2
@@ -66,8 +60,13 @@ jobs:
         with:
           tag_name: ${{ needs.tag.outputs.tag }}
           body: ${{ steps.changelog_reader.outputs.changes }}
-          prerelease: true
+          prerelease: false
           release_name: Release ${{ needs.tag.outputs.tag }}
+      
+      - name: Publish packages
+        run: yarn publish --ignore-scripts --no-git-tag-version --no-commit-hooks --non-interactive
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
       #in case of failure
       - name: Rollback on failure
         if: failure()
