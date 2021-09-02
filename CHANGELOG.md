@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [4.1.0]
 
 # Added
+- Bump libp2p deps for uint8arrays@3.0.0 [#108](https://github.com/ChainSafe/js-libp2p-noise/pull/108) 
+
+## [4.1.0]
+
+# Added
 - Updated uint8arrays version to 3.0.0
 
 ## [4.0.0]
