@@ -3,7 +3,6 @@ import { SHA256 } from '@stablelib/sha256'
 import * as x25519 from '@stablelib/x25519'
 import { Buffer } from 'buffer'
 import PeerId from 'peer-id'
-import { keys } from 'libp2p-crypto'
 import { KeyPair } from './@types/libp2p'
 import { bytes, bytes32 } from './@types/basic'
 import { Hkdf, INoisePayload } from './@types/handshake'
@@ -92,13 +91,13 @@ export async function verifySignedPayload (
   }
   const generatedPayload = getHandshakePayload(noiseStaticKey)
   // Unmarshaling from PublicKey protobuf
-  const publicKey = keys.unmarshalPublicKey(identityKey)
+  const peerId = await PeerId.createFromPubKey(identityKey)
   // TODO remove this after libp2p-crypto ships proper types
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  if (!payload.identitySig || !publicKey.verify(generatedPayload, Buffer.from(payload.identitySig))) {
+  if (!payload.identitySig || !peerId.pubKey.verify(generatedPayload, Buffer.from(payload.identitySig))) {
     throw new Error("Static key doesn't match to peer that signed payload!")
   }
-  return await PeerId.createFromPubKey(identityKey)
+  return peerId
 }
 
 export function getHkdf (ck: bytes32, ikm: bytes): Hkdf {
