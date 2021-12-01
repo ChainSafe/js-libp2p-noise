@@ -56,8 +56,8 @@
     "it-pair": "^1.0.0",
     "it-pb-rpc": "^0.1.11",
     "it-pipe": "^1.1.0",
-    "libp2p-crypto": "^0.19.7",
-    "peer-id": "^0.15.3",
+    "libp2p-crypto": "^0.21.0",
+    "peer-id": "^0.16.0",
     "protobufjs": "^6.11.2",
     "uint8arrays": "^3.0.0"
   },
