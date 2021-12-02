@@ -5,12 +5,20 @@ import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
 import { fromString as uint8ArrayFromString } from 'uint8arrays'
 
-import { bytes, bytes32, uint32 } from '../@types/basic'
+import { bytes, bytes32, uint64 } from '../@types/basic'
 import { CipherState, MessageBuffer, SymmetricState } from '../@types/handshake'
 import { getHkdf } from '../utils'
 import { logger } from '../logger'
 
 export const MIN_NONCE = 0
+// For performance reasons, the nonce is represented as a JS `number`
+// JS `number` can only safely represent integers up to 2 ** 53 - 1
+// This is a slight deviation from the noise spec, which describes the max nonce as 2 ** 64 - 2
+// The effect is that this implementation will need a new handshake to be performed after fewer messages are exchanged than other implementations with full uint64 nonces.
+// 2 ** 53 - 1 is still a large number of messages, so the practical effect of this is negligible.
+export const MAX_NONCE = Number.MAX_SAFE_INTEGER
+
+const ERR_MAX_NONCE = 'Cipherstate has reached maximum n, a new handshake must be performed'
 
 export abstract class AbstractHandshake {
   public encryptWithAd (cs: CipherState, ad: Uint8Array, plaintext: Uint8Array): bytes {
@@ -32,7 +40,7 @@ export abstract class AbstractHandshake {
     return !this.isEmptyKey(cs.k)
   }
 
-  protected setNonce (cs: CipherState, nonce: uint32): void {
+  protected setNonce (cs: CipherState, nonce: uint64): void {
     cs.n = nonce
   }
 
@@ -45,18 +53,22 @@ export abstract class AbstractHandshake {
     return uint8ArrayEquals(emptyKey, k)
   }
 
-  protected incrementNonce (n: uint32): uint32 {
+  protected incrementNonce (n: uint64): uint64 {
     return n + 1
   }
 
-  protected nonceToBytes (n: uint32): bytes {
+  protected nonceToBytes (n: uint64): bytes {
+    // Even though we're treating the nonce as 8 bytes, RFC7539 specifies 12 bytes for a nonce.
     const nonce = new Uint8Array(12)
     new DataView(nonce.buffer, nonce.byteOffset, nonce.byteLength).setUint32(n, 4, true)
 
     return nonce
   }
 
-  protected encrypt (k: bytes32, n: uint32, ad: Uint8Array, plaintext: Uint8Array): bytes {
+  protected encrypt (k: bytes32, n: uint64, ad: Uint8Array, plaintext: Uint8Array): bytes {
+    if (n > MAX_NONCE) {
+      throw new Error(ERR_MAX_NONCE)
+    }
     const nonce = this.nonceToBytes(n)
     const ctx = new ChaCha20Poly1305(k)
     return ctx.seal(nonce, plaintext, ad)
@@ -74,7 +86,10 @@ export abstract class AbstractHandshake {
     return ciphertext
   }
 
-  protected decrypt (k: bytes32, n: uint32, ad: bytes, ciphertext: bytes): {plaintext: bytes, valid: boolean} {
+  protected decrypt (k: bytes32, n: uint64, ad: bytes, ciphertext: bytes): {plaintext: bytes, valid: boolean} {
+    if (n > MAX_NONCE) {
+      throw new Error(ERR_MAX_NONCE)
+    }
     const nonce = this.nonceToBytes(n)
     const ctx = new ChaCha20Poly1305(k)
     const encryptedMessage = ctx.open(

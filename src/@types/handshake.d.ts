@@ -1,4 +1,4 @@
-import { bytes, bytes32, uint32, uint64 } from './basic'
+import { bytes, bytes32, uint64 } from './basic'
 import { KeyPair } from './libp2p'
 
 export type Hkdf = [bytes, bytes, bytes]
@@ -11,7 +11,9 @@ export interface MessageBuffer {
 
 export interface CipherState {
   k: bytes32
-  n: uint32
+  // For performance reasons, the nonce is represented as a JS `number`
+  // The nonce is treated as a uint64, even though the underlying `number` only has 52 safely-available bits.
+  n: uint64
 }
 
 export interface SymmetricState {
