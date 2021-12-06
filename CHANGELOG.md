@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0]
+
+### BREAKING CHANGE
+
+- update peer-id and libp2p-crypto (requires nodejs v15+) [#116](https://github.com/ChainSafe/js-libp2p-noise/pull/116)
+
 ## [4.1.1]
 
 # Added
