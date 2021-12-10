@@ -50,6 +50,23 @@ This module exposes a crypto interface, as defined in the repository [js-interfa
 
 [» API Docs](https://github.com/libp2p/js-interfaces/tree/master/src/crypto#api)
 
+## Usage in browser
+
+### ESBUILD
+Make sure to define `process.env.DUMP_SESSION_KEYS` in your esbuild config:
+```
+{
+    entryPoints: {
+      app: 'src/index.ts',
+    },
+    define: {
+      'process.env.DUMP_SESSION_KEYS': false
+    },
+    bundle: true,
+    outdir: '.',
+    metafile: true,
+}
+```
 
 ## Contribute
 
