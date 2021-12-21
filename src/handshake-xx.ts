@@ -1,5 +1,3 @@
-import { Buffer } from 'buffer'
-
 import { XX } from './handshakes/xx'
 import { KeyPair } from './@types/libp2p'
 import { bytes, bytes32 } from './@types/basic'
@@ -26,7 +24,7 @@ export class XXHandshake implements IHandshake {
   public isInitiator: boolean
   public session: NoiseSession
   public remotePeer!: PeerId
-  public remoteEarlyData: Buffer
+  public remoteEarlyData: bytes
 
   protected payload: bytes
   protected connection: WrappedConnection
@@ -54,7 +52,7 @@ export class XXHandshake implements IHandshake {
     }
     this.xx = handshake ?? new XX()
     this.session = this.xx.initSession(this.isInitiator, this.prologue, this.staticKeypair)
-    this.remoteEarlyData = Buffer.alloc(0)
+    this.remoteEarlyData = new Uint8Array(0)
   }
 
   // stage 0
@@ -62,7 +60,7 @@ export class XXHandshake implements IHandshake {
     logLocalStaticKeys(this.session.hs.s)
     if (this.isInitiator) {
       logger('Stage 0 - Initiator starting to send first message.')
-      const messageBuffer = this.xx.sendMessage(this.session, Buffer.alloc(0))
+      const messageBuffer = this.xx.sendMessage(this.session, new Uint8Array(0))
       this.connection.writeLP(encode0(messageBuffer))
       logger('Stage 0 - Initiator finished sending first message.')
       logLocalEphemeralKeys(this.session.hs.e)
@@ -140,15 +138,16 @@ export class XXHandshake implements IHandshake {
     logCipherState(this.session)
   }
 
-  public encrypt (plaintext: bytes, session: NoiseSession): bytes {
+  public encrypt (plaintext: Uint8Array, session: NoiseSession): bytes {
     const cs = this.getCS(session)
 
-    return this.xx.encryptWithAd(cs, Buffer.alloc(0), plaintext)
+    return this.xx.encryptWithAd(cs, new Uint8Array(0), plaintext)
   }
 
-  public decrypt (ciphertext: bytes, session: NoiseSession): {plaintext: bytes, valid: boolean} {
+  public decrypt (ciphertext: Uint8Array, session: NoiseSession): {plaintext: bytes, valid: boolean} {
     const cs = this.getCS(session, false)
-    return this.xx.decryptWithAd(cs, Buffer.alloc(0), ciphertext)
+
+    return this.xx.decryptWithAd(cs, new Uint8Array(0), ciphertext)
   }
 
   public getRemoteStaticKey (): bytes {
@@ -169,7 +168,7 @@ export class XXHandshake implements IHandshake {
 
   protected setRemoteEarlyData (data: Uint8Array|null|undefined): void {
     if (data) {
-      this.remoteEarlyData = Buffer.from(data.buffer, data.byteOffset, data.length)
+      this.remoteEarlyData = data
     }
   }
 }

@@ -1,20 +1,19 @@
 declare module 'it-length-prefixed' {
-  import BufferList from 'bl'
-  import { Buffer } from 'buffer'
+  import BufferList from 'bl/BufferList'
 
   interface LengthDecoderFunction {
-    (data: Buffer | BufferList): number
+    (data: Uint8Array | BufferList): number
     bytes: number
   }
 
   interface LengthEncoderFunction {
-    (value: number, target: Buffer, offset: number): number|Buffer
+    (value: number, target: Uint8Array, offset: number): number|Uint8Array
     bytes: number
   }
 
   interface Encoder {
-    (options?: Partial<{lengthEncoder: LengthEncoderFunction}>): AsyncGenerator<BufferList, Buffer>
-    single: (chunk: Buffer, options?: Partial<{lengthEncoder: LengthEncoderFunction}>) => BufferList
+    (options?: Partial<{lengthEncoder: LengthEncoderFunction}>): AsyncGenerator<BufferList, Uint8Array>
+    single: (chunk: Uint8Array, options?: Partial<{lengthEncoder: LengthEncoderFunction}>) => BufferList
     MIN_POOL_SIZE: number
     DEFAULT_POOL_SIZE: number
   }

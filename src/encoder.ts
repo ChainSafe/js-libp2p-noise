@@ -1,33 +1,39 @@
-import { Buffer } from 'buffer'
 import { bytes } from './@types/basic'
 import { MessageBuffer } from './@types/handshake'
-import BufferList from 'bl'
+import BufferList from 'bl/BufferList'
+import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
+import allocUnsafe from './alloc-unsafe'
 
-export const uint16BEEncode = (value: number, target: Buffer, offset: number): Buffer => {
-  target = target || Buffer.allocUnsafe(2)
-  target.writeUInt16BE(value, offset)
+export const uint16BEEncode = (value: number, target: Uint8Array, offset: number): Uint8Array => {
+  target = target || allocUnsafe(2)
+  new DataView(target.buffer, target.byteOffset, target.byteLength).setUint16(offset, value, false)
   return target
 }
 uint16BEEncode.bytes = 2
 
-export const uint16BEDecode = (data: Buffer | BufferList): number => {
+export const uint16BEDecode = (data: Uint8Array | BufferList): number => {
   if (data.length < 2) throw RangeError('Could not decode int16BE')
-  return data.readUInt16BE(0)
+
+  if (data instanceof BufferList) {
+    return data.readUInt16BE(0)
+  }
+
+  return new DataView(data.buffer, data.byteOffset, data.byteLength).getUint16(0, false)
 }
 uint16BEDecode.bytes = 2
 
 // Note: IK and XX encoder usage is opposite (XX uses in stages encode0 where IK uses encode1)
 
 export function encode0 (message: MessageBuffer): bytes {
-  return Buffer.concat([message.ne, message.ciphertext])
+  return Buffer.from(uint8ArrayConcat([message.ne, message.ciphertext], message.ne.length + message.ciphertext.length))
 }
 
 export function encode1 (message: MessageBuffer): bytes {
-  return Buffer.concat([message.ne, message.ns, message.ciphertext])
+  return Buffer.from(uint8ArrayConcat([message.ne, message.ns, message.ciphertext], message.ne.length + message.ns.length + message.ciphertext.length))
 }
 
 export function encode2 (message: MessageBuffer): bytes {
-  return Buffer.concat([message.ns, message.ciphertext])
+  return Buffer.from(uint8ArrayConcat([message.ns, message.ciphertext], message.ns.length + message.ciphertext.length))
 }
 
 export function decode0 (input: bytes): MessageBuffer {

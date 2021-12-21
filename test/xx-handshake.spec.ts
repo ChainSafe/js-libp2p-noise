@@ -2,6 +2,7 @@ import { assert, expect } from 'chai'
 import Duplex from 'it-pair/duplex'
 import { Buffer } from 'buffer'
 import Wrap from 'it-pb-rpc'
+import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { XXHandshake } from '../src/handshake-xx'
 import { generateKeypair, getPayload } from '../src/utils'
 import { createPeerIdsFromFixtures } from './fixtures/peer'
@@ -43,8 +44,8 @@ describe('XX Handshake', () => {
 
       // Test shared key
       if (sessionInitator.cs1 && sessionResponder.cs1 && sessionInitator.cs2 && sessionResponder.cs2) {
-        assert(sessionInitator.cs1.k.equals(sessionResponder.cs1.k))
-        assert(sessionInitator.cs2.k.equals(sessionResponder.cs2.k))
+        assert(uint8ArrayEquals(sessionInitator.cs1.k, sessionResponder.cs1.k))
+        assert(uint8ArrayEquals(sessionInitator.cs2.k, sessionResponder.cs2.k))
       } else {
         assert(false)
       }
@@ -52,9 +53,9 @@ describe('XX Handshake', () => {
       // Test encryption and decryption
       const encrypted = handshakeInitator.encrypt(Buffer.from('encryptthis'), handshakeInitator.session)
       const { plaintext: decrypted, valid } = handshakeResponder.decrypt(encrypted, handshakeResponder.session)
-      assert(decrypted.equals(Buffer.from('encryptthis')))
+      assert(uint8ArrayEquals(decrypted, Buffer.from('encryptthis')))
       assert(valid)
-    } catch (e) {
+    } catch (e: any) {
       assert(false, e.message)
     }
   })
@@ -82,7 +83,7 @@ describe('XX Handshake', () => {
       await handshakeInitator.exchange()
 
       assert(false, 'Should throw exception')
-    } catch (e) {
+    } catch (e: any) {
       expect(e.message).equals("Error occurred while verifying signed payload: Peer ID doesn't match libp2p public key.")
     }
   })
@@ -113,7 +114,7 @@ describe('XX Handshake', () => {
       await handshakeResponder.finish()
 
       assert(false, 'Should throw exception')
-    } catch (e) {
+    } catch (e: any) {
       expect(e.message).equals("Error occurred while verifying signed payload: Peer ID doesn't match libp2p public key.")
     }
   })

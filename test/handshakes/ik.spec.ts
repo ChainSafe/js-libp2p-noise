@@ -1,4 +1,5 @@
 import { Buffer } from 'buffer'
+import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { IK } from '../../src/handshakes/ik'
 import { KeyPair } from '../../src/@types/libp2p'
 import { createHandshakePayload, generateKeypair, getHandshakePayload } from '../../src/utils'
@@ -56,9 +57,14 @@ describe('IK handshake', () => {
       // initiator receives message
       ikI.recvMessage(initiatorSession, messageBuffer2)
 
-      assert(initiatorSession?.cs1?.k.equals(responderSession?.cs1?.k ?? new Uint8Array()))
-      assert(initiatorSession?.cs2?.k.equals(responderSession?.cs2?.k ?? new Uint8Array()))
-    } catch (e) {
+      if (initiatorSession?.cs1?.k != null) {
+        assert(uint8ArrayEquals(initiatorSession.cs1.k, responderSession?.cs1?.k ?? new Uint8Array()))
+      }
+
+      if (initiatorSession?.cs2?.k != null) {
+        assert(uint8ArrayEquals(initiatorSession.cs2.k, responderSession?.cs2?.k ?? new Uint8Array()))
+      }
+    } catch (e: any) {
       return assert(false, e.message)
     }
   })

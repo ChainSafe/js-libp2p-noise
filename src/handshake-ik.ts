@@ -4,7 +4,6 @@ import { NoiseSession } from './@types/handshake'
 import { bytes, bytes32 } from './@types/basic'
 import { KeyPair } from './@types/libp2p'
 import { IHandshake } from './@types/handshake-interface'
-import { Buffer } from 'buffer'
 import { decode0, decode1, encode0, encode1 } from './encoder'
 import { decodePayload, getPeerIdFromPayload, verifySignedPayload } from './utils'
 import { FailedIKError } from './errors'
@@ -22,7 +21,7 @@ export class IKHandshake implements IHandshake {
   public isInitiator: boolean
   public session: NoiseSession
   public remotePeer!: PeerId
-  public remoteEarlyData: Buffer
+  public remoteEarlyData: Uint8Array
 
   private readonly payload: bytes
   private readonly prologue: bytes32
@@ -41,7 +40,7 @@ export class IKHandshake implements IHandshake {
     handshake?: IK
   ) {
     this.isInitiator = isInitiator
-    this.payload = Buffer.from(payload)
+    this.payload = payload
     this.prologue = prologue
     this.staticKeypair = staticKeypair
     this.connection = connection
@@ -50,7 +49,7 @@ export class IKHandshake implements IHandshake {
     }
     this.ik = handshake ?? new IK()
     this.session = this.ik.initSession(this.isInitiator, this.prologue, this.staticKeypair, remoteStaticKey)
-    this.remoteEarlyData = Buffer.alloc(0)
+    this.remoteEarlyData = new Uint8Array()
   }
 
   public async stage0 (): Promise<void> {
@@ -119,14 +118,14 @@ export class IKHandshake implements IHandshake {
     logCipherState(this.session)
   }
 
-  public decrypt (ciphertext: bytes, session: NoiseSession): {plaintext: bytes, valid: boolean} {
+  public decrypt (ciphertext: Uint8Array, session: NoiseSession): {plaintext: bytes, valid: boolean} {
     const cs = this.getCS(session, false)
-    return this.ik.decryptWithAd(cs, Buffer.alloc(0), ciphertext)
+    return this.ik.decryptWithAd(cs, new Uint8Array(0), ciphertext)
   }
 
-  public encrypt (plaintext: Buffer, session: NoiseSession): Buffer {
+  public encrypt (plaintext: Uint8Array, session: NoiseSession): bytes {
     const cs = this.getCS(session)
-    return this.ik.encryptWithAd(cs, Buffer.alloc(0), plaintext)
+    return this.ik.encryptWithAd(cs, new Uint8Array(0), plaintext)
   }
 
   public getLocalEphemeralKeys (): KeyPair {

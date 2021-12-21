@@ -1,13 +1,14 @@
 import { HKDF } from '@stablelib/hkdf'
 import { SHA256 } from '@stablelib/sha256'
 import * as x25519 from '@stablelib/x25519'
-import { Buffer } from 'buffer'
 import PeerId from 'peer-id'
 import { KeyPair } from './@types/libp2p'
 import { bytes, bytes32 } from './@types/basic'
 import { Hkdf, INoisePayload } from './@types/handshake'
 import { pb } from './proto/payload'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
+import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
+import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
 
 const NoiseHandshakePayloadProto = pb.NoiseHandshakePayload
 
@@ -15,8 +16,8 @@ export function generateKeypair (): KeyPair {
   const keypair = x25519.generateKeyPair()
 
   return {
-    publicKey: Buffer.from(keypair.publicKey.buffer, keypair.publicKey.byteOffset, keypair.publicKey.length),
-    privateKey: Buffer.from(keypair.secretKey.buffer, keypair.secretKey.byteOffset, keypair.secretKey.length)
+    publicKey: keypair.publicKey,
+    privateKey: keypair.secretKey
   }
 }
 
@@ -26,7 +27,7 @@ export async function getPayload (
   earlyData?: bytes
 ): Promise<bytes> {
   const signedPayload = await signPayload(localPeer, getHandshakePayload(staticPublicKey))
-  const earlyDataPayload = earlyData ?? Buffer.alloc(0)
+  const earlyDataPayload = earlyData ?? new Uint8Array(0)
 
   return createHandshakePayload(
     localPeer.marshalPubKey(),
@@ -41,30 +42,31 @@ export function createHandshakePayload (
   earlyData?: Uint8Array
 ): bytes {
   const payloadInit = NoiseHandshakePayloadProto.create({
-    identityKey: Buffer.from(libp2pPublicKey),
+    identityKey: libp2pPublicKey,
     identitySig: signedPayload,
     data: earlyData ?? null
   })
 
-  return Buffer.from(NoiseHandshakePayloadProto.encode(payloadInit).finish())
+  return NoiseHandshakePayloadProto.encode(payloadInit).finish()
 }
 
 export async function signPayload (peerId: PeerId, payload: bytes): Promise<bytes> {
-  return Buffer.from(await peerId.privKey.sign(payload))
+  return await peerId.privKey.sign(payload)
 }
 
 export async function getPeerIdFromPayload (payload: pb.INoiseHandshakePayload): Promise<PeerId> {
-  return await PeerId.createFromPubKey(Buffer.from(payload.identityKey as Uint8Array))
+  return await PeerId.createFromPubKey(payload.identityKey as Uint8Array)
 }
 
 export function decodePayload (payload: bytes|Uint8Array): pb.INoiseHandshakePayload {
   return NoiseHandshakePayloadProto.toObject(
-    NoiseHandshakePayloadProto.decode(Buffer.from(payload))
+    NoiseHandshakePayloadProto.decode(payload)
   ) as INoisePayload
 }
 
 export function getHandshakePayload (publicKey: bytes): bytes {
-  return Buffer.concat([Buffer.from('noise-libp2p-static-key:'), publicKey])
+  const prefix = uint8ArrayFromString('noise-libp2p-static-key:')
+  return uint8ArrayConcat([prefix, publicKey], prefix.length + publicKey.length)
 }
 
 async function isValidPeerId (peerId: Uint8Array, publicKeyProtobuf: bytes): Promise<boolean> {
@@ -85,7 +87,7 @@ export async function verifySignedPayload (
   payload: pb.INoiseHandshakePayload,
   remotePeer: PeerId
 ): Promise<PeerId> {
-  const identityKey = Buffer.from(payload.identityKey as Uint8Array)
+  const identityKey = payload.identityKey as Uint8Array
   if (!(await isValidPeerId(remotePeer.id, identityKey))) {
     throw new Error("Peer ID doesn't match libp2p public key.")
   }
@@ -94,16 +96,16 @@ export async function verifySignedPayload (
   const peerId = await PeerId.createFromPubKey(identityKey)
   // TODO remove this after libp2p-crypto ships proper types
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  if (!payload.identitySig || !peerId.pubKey.verify(generatedPayload, Buffer.from(payload.identitySig))) {
+  if (!payload.identitySig || !peerId.pubKey.verify(generatedPayload, payload.identitySig)) {
     throw new Error("Static key doesn't match to peer that signed payload!")
   }
   return peerId
 }
 
-export function getHkdf (ck: bytes32, ikm: bytes): Hkdf {
+export function getHkdf (ck: bytes32, ikm: Uint8Array): Hkdf {
   const hkdf = new HKDF(SHA256, ikm, ck)
   const okmU8Array = hkdf.expand(96)
-  const okm = Buffer.from(okmU8Array.buffer, okmU8Array.byteOffset, okmU8Array.length)
+  const okm = okmU8Array
 
   const k1 = okm.slice(0, 32)
   const k2 = okm.slice(32, 64)
@@ -113,7 +115,7 @@ export function getHkdf (ck: bytes32, ikm: bytes): Hkdf {
 }
 
 export function isValidPublicKey (pk: bytes): boolean {
-  if (!Buffer.isBuffer(pk)) {
+  if (!(pk instanceof Uint8Array)) {
     return false
   }
 
