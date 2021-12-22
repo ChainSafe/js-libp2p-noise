@@ -48,7 +48,7 @@ Where parameters for Noise constructor are:
 
 This module exposes a crypto interface, as defined in the repository [js-interfaces](https://github.com/libp2p/js-interfaces).
 
-[» API Docs](https://github.com/libp2p/js-interfaces/tree/master/src/crypto#api)
+[» API Docs](https://github.com/libp2p/js-libp2p-interfaces/tree/master/packages/libp2p-interfaces/src/crypto#api)
 
 
 ## Contribute
