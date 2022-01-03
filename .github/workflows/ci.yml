@@ -172,3 +172,5 @@ jobs:
             ${{ runner.os }}-yarn-
       - run: yarn --prefer-offline --frozen-lockfile
       - run: npx xvfb-maybe aegir test -t electron-renderer --bail
+        env:
+          ESBUILD_WORKER_THREADS: 0
