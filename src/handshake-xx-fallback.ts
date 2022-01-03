@@ -71,7 +71,7 @@ export class XXFallbackHandshake extends XXHandshake {
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload)
         await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer)
         this.setRemoteEarlyData(decodedPayload.data)
-      } catch (e) {
+      } catch (e: any) {
         const err = e as Error
         throw new Error(`Error occurred while verifying signed payload from responder: ${err.message}`)
       }

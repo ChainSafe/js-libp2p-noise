@@ -55,7 +55,7 @@ export class XX extends AbstractHandshake {
     return { ne, ns, ciphertext }
   }
 
-  private writeMessageC (hs: HandshakeState, payload: bytes) {
+  private writeMessageC (hs: HandshakeState, payload: bytes): { messageBuffer: MessageBuffer, cs1: CipherState, cs2: CipherState, h: bytes } {
     const spk = hs.s.publicKey
     const ns = this.encryptAndHash(hs.ss, spk)
     this.mixKey(hs.ss, this.dh(hs.s.privateKey, hs.re))

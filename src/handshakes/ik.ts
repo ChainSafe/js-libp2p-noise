@@ -85,7 +85,7 @@ export class IK extends AbstractHandshake {
     return { ne, ns, ciphertext }
   }
 
-  private writeMessageB (hs: HandshakeState, payload: bytes) {
+  private writeMessageB (hs: HandshakeState, payload: bytes): { messageBuffer: MessageBuffer, cs1: CipherState, cs2: CipherState, h: bytes} {
     hs.e = generateKeypair()
     const ne = hs.e.publicKey
     this.mixHash(hs.ss, ne)

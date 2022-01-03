@@ -1,7 +1,7 @@
 import { XX } from './handshakes/xx'
 import { KeyPair } from './@types/libp2p'
 import { bytes, bytes32 } from './@types/basic'
-import { NoiseSession } from './@types/handshake'
+import { CipherState, NoiseSession } from './@types/handshake'
 import { IHandshake } from './@types/handshake-interface'
 import {
   decodePayload,
@@ -95,7 +95,7 @@ export class XXHandshake implements IHandshake {
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload)
         this.remotePeer = await verifySignedPayload(receivedMessageBuffer.ns, decodedPayload, this.remotePeer)
         this.setRemoteEarlyData(decodedPayload.data)
-      } catch (e) {
+      } catch (e: any) {
         const err = e as Error
         throw new Error(`Error occurred while verifying signed payload: ${err.message}`)
       }
@@ -130,7 +130,7 @@ export class XXHandshake implements IHandshake {
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload)
         await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer)
         this.setRemoteEarlyData(decodedPayload.data)
-      } catch (e) {
+      } catch (e: any) {
         const err = e as Error
         throw new Error(`Error occurred while verifying signed payload: ${err.message}`)
       }
@@ -154,7 +154,7 @@ export class XXHandshake implements IHandshake {
     return this.session.hs.rs
   }
 
-  private getCS (session: NoiseSession, encryption = true) {
+  private getCS (session: NoiseSession, encryption = true): CipherState {
     if (!session.cs1 || !session.cs2) {
       throw new Error('Handshake not completed properly, cipher state does not exist.')
     }

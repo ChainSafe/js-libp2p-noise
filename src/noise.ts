@@ -153,7 +153,7 @@ export class Noise implements INoiseConnection {
 
       try {
         return await this.performIKHandshake(ikHandshake)
-      } catch (e) {
+      } catch (e: any) {
         // IK failed, go to XX fallback
         let ephemeralKeys
         if (params.isInitiator) {
@@ -181,7 +181,7 @@ export class Noise implements INoiseConnection {
       await handshake.propose()
       await handshake.exchange()
       await handshake.finish()
-    } catch (e) {
+    } catch (e: any) {
       logger(e)
       const err = e as Error
       throw new Error(`Error occurred during XX Fallback handshake: ${err.message}`)
@@ -205,7 +205,7 @@ export class Noise implements INoiseConnection {
       if (this.useNoisePipes && handshake.remotePeer) {
         KeyCache.store(handshake.remotePeer, handshake.getRemoteStaticKey())
       }
-    } catch (e) {
+    } catch (e: any) {
       const err = e as Error
       throw new Error(`Error occurred during XX handshake: ${err.message}`)
     }

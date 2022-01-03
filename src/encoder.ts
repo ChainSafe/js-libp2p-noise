@@ -2,7 +2,14 @@ import { bytes } from './@types/basic'
 import { MessageBuffer } from './@types/handshake'
 import BufferList from 'bl/BufferList'
 import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
-import allocUnsafe from './alloc-unsafe'
+
+const allocUnsafe = (len: number): Uint8Array => {
+  if (globalThis.Buffer) {
+    return globalThis.Buffer.allocUnsafe(len)
+  }
+
+  return new Uint8Array(len)
+}
 
 export const uint16BEEncode = (value: number, target: Uint8Array, offset: number): Uint8Array => {
   target = target || allocUnsafe(2)
@@ -25,15 +32,15 @@ uint16BEDecode.bytes = 2
 // Note: IK and XX encoder usage is opposite (XX uses in stages encode0 where IK uses encode1)
 
 export function encode0 (message: MessageBuffer): bytes {
-  return Buffer.from(uint8ArrayConcat([message.ne, message.ciphertext], message.ne.length + message.ciphertext.length))
+  return uint8ArrayConcat([message.ne, message.ciphertext], message.ne.length + message.ciphertext.length)
 }
 
 export function encode1 (message: MessageBuffer): bytes {
-  return Buffer.from(uint8ArrayConcat([message.ne, message.ns, message.ciphertext], message.ne.length + message.ns.length + message.ciphertext.length))
+  return uint8ArrayConcat([message.ne, message.ns, message.ciphertext], message.ne.length + message.ns.length + message.ciphertext.length)
 }
 
 export function encode2 (message: MessageBuffer): bytes {
-  return Buffer.from(uint8ArrayConcat([message.ns, message.ciphertext], message.ns.length + message.ciphertext.length))
+  return uint8ArrayConcat([message.ns, message.ciphertext], message.ns.length + message.ciphertext.length)
 }
 
 export function decode0 (input: bytes): MessageBuffer {
@@ -44,7 +51,7 @@ export function decode0 (input: bytes): MessageBuffer {
   return {
     ne: input.slice(0, 32),
     ciphertext: input.slice(32, input.length),
-    ns: Buffer.alloc(0)
+    ns: new Uint8Array(0)
   }
 }
 
@@ -66,7 +73,7 @@ export function decode2 (input: bytes): MessageBuffer {
   }
 
   return {
-    ne: Buffer.alloc(0),
+    ne: new Uint8Array(0),
     ns: input.slice(0, 48),
     ciphertext: input.slice(48, input.length)
   }
