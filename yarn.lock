@@ -4825,10 +4825,10 @@ it-pair@^1.0.0:
   dependencies:
     get-iterator "^1.0.2"
 
-it-pb-rpc@^0.1.12:
-  version "0.1.12"
-  resolved "https://registry.yarnpkg.com/it-pb-rpc/-/it-pb-rpc-0.1.12.tgz#230a575dce47bfdc9dd964c00120abfa5e290289"
-  integrity sha512-bRSlbe2JEiqUsaRjR/5TFv2JrduA08SM93QvVDXYyH/16LcDXrPe+Up++jLFYKUTlng4VNkSBw7AFfqdXLR+IQ==
+it-pb-rpc@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/it-pb-rpc/-/it-pb-rpc-0.2.0.tgz#9247489e73e4a7d382d63a74778c1c3308bd9297"
+  integrity sha512-Rojodsa6yxSTZDqVVF9HXKsISoHtlLNOL0P6b/7oCswiscbjCpt1IB78BxRDHpFL3tg8jFPMNDTP3v6ZjrMf9w==
   dependencies:
     it-handshake "^2.0.0"
     it-length-prefixed "^5.0.3"
