@@ -1,10 +1,9 @@
 import { WrappedConnection } from './noise'
 import { IK } from './handshakes/ik'
-import { NoiseSession } from './@types/handshake'
+import { CipherState, NoiseSession } from './@types/handshake'
 import { bytes, bytes32 } from './@types/basic'
 import { KeyPair } from './@types/libp2p'
 import { IHandshake } from './@types/handshake-interface'
-import { Buffer } from 'buffer'
 import { decode0, decode1, encode0, encode1 } from './encoder'
 import { decodePayload, getPeerIdFromPayload, verifySignedPayload } from './utils'
 import { FailedIKError } from './errors'
@@ -22,7 +21,7 @@ export class IKHandshake implements IHandshake {
   public isInitiator: boolean
   public session: NoiseSession
   public remotePeer!: PeerId
-  public remoteEarlyData: Buffer
+  public remoteEarlyData: Uint8Array
 
   private readonly payload: bytes
   private readonly prologue: bytes32
@@ -41,7 +40,7 @@ export class IKHandshake implements IHandshake {
     handshake?: IK
   ) {
     this.isInitiator = isInitiator
-    this.payload = Buffer.from(payload)
+    this.payload = payload
     this.prologue = prologue
     this.staticKeypair = staticKeypair
     this.connection = connection
@@ -50,7 +49,7 @@ export class IKHandshake implements IHandshake {
     }
     this.ik = handshake ?? new IK()
     this.session = this.ik.initSession(this.isInitiator, this.prologue, this.staticKeypair, remoteStaticKey)
-    this.remoteEarlyData = Buffer.alloc(0)
+    this.remoteEarlyData = new Uint8Array()
   }
 
   public async stage0 (): Promise<void> {
@@ -78,7 +77,7 @@ export class IKHandshake implements IHandshake {
         this.setRemoteEarlyData(decodedPayload.data)
         logger('IK Stage 0 - Responder successfully verified payload!')
         logRemoteEphemeralKey(this.session.hs.re)
-      } catch (e) {
+      } catch (e: any) {
         const err = e as Error
         logger('Responder breaking up with IK handshake in stage 0.')
 
@@ -91,7 +90,7 @@ export class IKHandshake implements IHandshake {
     if (this.isInitiator) {
       logger('IK Stage 1 - Initiator receiving message...')
       const receivedMsg = (await this.connection.readLP()).slice()
-      const receivedMessageBuffer = decode0(Buffer.from(receivedMsg))
+      const receivedMessageBuffer = decode0(receivedMsg)
       const { plaintext, valid } = this.ik.recvMessage(this.session, receivedMessageBuffer)
       logger('IK Stage 1 - Initiator got message, going to verify payload.')
       try {
@@ -104,7 +103,7 @@ export class IKHandshake implements IHandshake {
         this.setRemoteEarlyData(decodedPayload.data)
         logger('IK Stage 1 - Initiator successfully verified payload!')
         logRemoteEphemeralKey(this.session.hs.re)
-      } catch (e) {
+      } catch (e: any) {
         const err = e as Error
         logger('Initiator breaking up with IK handshake in stage 1.')
         throw new FailedIKError(receivedMsg, `Error occurred while verifying responder's signed payload: ${err.message}`)
@@ -119,14 +118,14 @@ export class IKHandshake implements IHandshake {
     logCipherState(this.session)
   }
 
-  public decrypt (ciphertext: bytes, session: NoiseSession): {plaintext: bytes, valid: boolean} {
+  public decrypt (ciphertext: Uint8Array, session: NoiseSession): {plaintext: bytes, valid: boolean} {
     const cs = this.getCS(session, false)
-    return this.ik.decryptWithAd(cs, Buffer.alloc(0), ciphertext)
+    return this.ik.decryptWithAd(cs, new Uint8Array(0), ciphertext)
   }
 
-  public encrypt (plaintext: Buffer, session: NoiseSession): Buffer {
+  public encrypt (plaintext: Uint8Array, session: NoiseSession): bytes {
     const cs = this.getCS(session)
-    return this.ik.encryptWithAd(cs, Buffer.alloc(0), plaintext)
+    return this.ik.encryptWithAd(cs, new Uint8Array(0), plaintext)
   }
 
   public getLocalEphemeralKeys (): KeyPair {
@@ -137,7 +136,7 @@ export class IKHandshake implements IHandshake {
     return this.session.hs.e
   }
 
-  private getCS (session: NoiseSession, encryption = true) {
+  private getCS (session: NoiseSession, encryption = true): CipherState {
     if (!session.cs1 || !session.cs2) {
       throw new Error('Handshake not completed properly, cipher state does not exist.')
     }
@@ -151,7 +150,7 @@ export class IKHandshake implements IHandshake {
 
   private setRemoteEarlyData (data: Uint8Array|null|undefined): void {
     if (data) {
-      this.remoteEarlyData = Buffer.from(data.buffer, data.byteOffset, data.length)
+      this.remoteEarlyData = data
     }
   }
 }

@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer'
 import { CipherState, HandshakeState, MessageBuffer, NoiseSession } from '../@types/handshake'
 import { bytes, bytes32 } from '../@types/basic'
 import { generateKeypair, isValidPublicKey } from '../utils'
@@ -56,7 +55,7 @@ export class IK extends AbstractHandshake {
   }
 
   public recvMessage (session: NoiseSession, message: MessageBuffer): {plaintext: bytes, valid: boolean} {
-    let plaintext = Buffer.alloc(0); let valid = false
+    let plaintext = new Uint8Array(0); let valid = false
     if (session.mc === 0) {
       ({ plaintext, valid } = this.readMessageA(session.hs, message))
     }
@@ -77,7 +76,7 @@ export class IK extends AbstractHandshake {
     const ne = hs.e.publicKey
     this.mixHash(hs.ss, ne)
     this.mixKey(hs.ss, this.dh(hs.e.privateKey, hs.rs))
-    const spk = Buffer.from(hs.s.publicKey)
+    const spk = hs.s.publicKey
     const ns = this.encryptAndHash(hs.ss, spk)
 
     this.mixKey(hs.ss, this.dh(hs.s.privateKey, hs.rs))
@@ -86,7 +85,7 @@ export class IK extends AbstractHandshake {
     return { ne, ns, ciphertext }
   }
 
-  private writeMessageB (hs: HandshakeState, payload: bytes) {
+  private writeMessageB (hs: HandshakeState, payload: bytes): { messageBuffer: MessageBuffer, cs1: CipherState, cs2: CipherState, h: bytes} {
     hs.e = generateKeypair()
     const ne = hs.e.publicKey
     this.mixHash(hs.ss, ne)
@@ -139,7 +138,7 @@ export class IK extends AbstractHandshake {
     const ss = this.initializeSymmetric(name)
     this.mixHash(ss, prologue)
     this.mixHash(ss, rs)
-    const re = Buffer.alloc(32)
+    const re = new Uint8Array(32)
 
     return { ss, s, rs, re, psk }
   }
@@ -149,7 +148,7 @@ export class IK extends AbstractHandshake {
     const ss = this.initializeSymmetric(name)
     this.mixHash(ss, prologue)
     this.mixHash(ss, s.publicKey)
-    const re = Buffer.alloc(32)
+    const re = new Uint8Array(32)
 
     return { ss, s, rs, re, psk }
   }

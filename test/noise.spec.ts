@@ -45,7 +45,7 @@ describe('Noise', () => {
       wrappedOutbound.writeLP(Buffer.from('test'))
       const response = await wrappedInbound.readLP()
       expect(response.toString()).equal('test')
-    } catch (e) {
+    } catch (e: any) {
       assert(false, e.message)
     }
   })
@@ -102,9 +102,9 @@ describe('Noise', () => {
       const data = receivedEncryptedPayload.slice(2, dataLength + 2)
       const { plaintext: decrypted, valid } = handshake.decrypt(data, handshake.session)
       // Decrypted data should match
-      assert(decrypted.equals(Buffer.from('test')))
+      assert(uint8ArrayEquals(decrypted, Buffer.from('test')))
       assert(valid)
-    } catch (e) {
+    } catch (e: any) {
       assert(false, e.message)
     }
   })
@@ -128,7 +128,7 @@ describe('Noise', () => {
       const response = await wrappedInbound.read(100000)
 
       expect(response.length).equals(largePlaintext.length)
-    } catch (e) {
+    } catch (e: any) {
       assert(false, e.message)
     }
   })
@@ -163,7 +163,7 @@ describe('Noise', () => {
 
       assert(xxSpy.notCalled)
       assert(xxFallbackSpy.notCalled)
-    } catch (e) {
+    } catch (e: any) {
       assert(false, e.message)
     }
   })
@@ -195,7 +195,7 @@ describe('Noise', () => {
       expect(response.toString()).equal('test fallback')
 
       assert(xxSpy.calledOnce, 'XX Fallback method was never called.')
-    } catch (e) {
+    } catch (e: any) {
       assert(false, e.message)
     }
   })
@@ -229,7 +229,7 @@ describe('Noise', () => {
       expect(response.toString()).equal('test fallback')
 
       assert(xxSpy.calledOnce, 'XX Fallback method was never called.')
-    } catch (e) {
+    } catch (e: any) {
       assert(false, e.message)
     }
   })
@@ -265,7 +265,7 @@ describe('Noise', () => {
 
       assert(xxInitSpy.calledOnce, 'XX method was never called.')
       assert(xxRespSpy.calledOnce, 'XX Fallback method was never called.')
-    } catch (e) {
+    } catch (e: any) {
       assert(false, e.message)
     }
   })
@@ -305,7 +305,7 @@ describe('Noise', () => {
       assert(ikInitSpy.calledOnce, 'IK handshake was not called.')
       assert(ikRespSpy.calledOnce, 'IK handshake was not called.')
       assert(xxFallbackInitSpy.notCalled, 'XX Fallback method was called.')
-    } catch (e) {
+    } catch (e: any) {
       assert(false, e.message)
     }
   })
@@ -335,7 +335,7 @@ describe('Noise', () => {
 
       assert(uint8ArrayEquals(inbound.remotePeer.marshalPubKey(), localPeer.marshalPubKey()))
       assert(uint8ArrayEquals(outbound.remotePeer.marshalPubKey(), remotePeer.marshalPubKey()))
-    } catch (e) {
+    } catch (e: any) {
       assert(false, e.message)
     }
   })
@@ -358,9 +358,9 @@ describe('Noise', () => {
         noiseResp.secureInbound(remotePeer, inboundConnection)
       ])
 
-      assert(inbound.remoteEarlyData.equals(localPeerEarlyData))
-      assert(outbound.remoteEarlyData.equals(Buffer.alloc(0)))
-    } catch (e) {
+      assert(uint8ArrayEquals(inbound.remoteEarlyData, localPeerEarlyData))
+      assert(uint8ArrayEquals(outbound.remoteEarlyData, Buffer.alloc(0)))
+    } catch (e: any) {
       assert(false, e.message)
     }
   })

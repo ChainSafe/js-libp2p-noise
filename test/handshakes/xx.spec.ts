@@ -1,5 +1,7 @@
 import { expect, assert } from 'chai'
 import { Buffer } from 'buffer'
+import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
+import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 
 import { XX } from '../../src/handshakes/xx'
 import { KeyPair } from '../../src/@types/libp2p'
@@ -17,7 +19,7 @@ describe('XX Handshake', () => {
       await generateKeypair()
 
       await xx.initSession(true, prologue, kpInitiator)
-    } catch (e) {
+    } catch (e: any) {
       assert(false, e.message)
     }
   })
@@ -29,9 +31,9 @@ describe('XX Handshake', () => {
     ckBytes.copy(ck)
 
     const [k1, k2, k3] = getHkdf(ck, ikm)
-    expect(k1.toString('hex')).to.equal('cc5659adff12714982f806e2477a8d5ddd071def4c29bb38777b7e37046f6914')
-    expect(k2.toString('hex')).to.equal('a16ada915e551ab623f38be674bb4ef15d428ae9d80688899c9ef9b62ef208fa')
-    expect(k3.toString('hex')).to.equal('ff67bf9727e31b06efc203907e6786667d2c7a74ac412b4d31a80ba3fd766f68')
+    expect(uint8ArrayToString(k1, 'hex')).to.equal('cc5659adff12714982f806e2477a8d5ddd071def4c29bb38777b7e37046f6914')
+    expect(uint8ArrayToString(k2, 'hex')).to.equal('a16ada915e551ab623f38be674bb4ef15d428ae9d80688899c9ef9b62ef208fa')
+    expect(uint8ArrayToString(k3, 'hex')).to.equal('ff67bf9727e31b06efc203907e6786667d2c7a74ac412b4d31a80ba3fd766f68')
   })
 
   async function doHandshake (xx) {
@@ -92,8 +94,8 @@ describe('XX Handshake', () => {
     // responder receive message
     xx.recvMessage(nsResp, messageBuffer3)
 
-    assert(nsInit.cs1.k.equals(nsResp.cs1.k))
-    assert(nsInit.cs2.k.equals(nsResp.cs2.k))
+    assert(uint8ArrayEquals(nsInit.cs1.k, nsResp.cs1.k))
+    assert(uint8ArrayEquals(nsInit.cs2.k, nsResp.cs2.k))
 
     return { nsInit, nsResp }
   }
@@ -102,7 +104,7 @@ describe('XX Handshake', () => {
     try {
       const xx = new XX()
       await doHandshake(xx)
-    } catch (e) {
+    } catch (e: any) {
       assert(false, e.message)
     }
   })
@@ -115,12 +117,12 @@ describe('XX Handshake', () => {
       const message = Buffer.from('HelloCrypto')
 
       const ciphertext = xx.encryptWithAd(nsInit.cs1, ad, message)
-      assert(!Buffer.from('HelloCrypto').equals(ciphertext), 'Encrypted message should not be same as plaintext.')
+      assert(!uint8ArrayEquals(Buffer.from('HelloCrypto'), ciphertext), 'Encrypted message should not be same as plaintext.')
       const { plaintext: decrypted, valid } = xx.decryptWithAd(nsResp.cs1, ad, ciphertext)
 
-      assert(Buffer.from('HelloCrypto').equals(decrypted), 'Decrypted text not equal to original message.')
+      assert(uint8ArrayEquals(Buffer.from('HelloCrypto'), decrypted), 'Decrypted text not equal to original message.')
       assert(valid)
-    } catch (e) {
+    } catch (e: any) {
       assert(false, e.message)
     }
   })
@@ -133,11 +135,11 @@ describe('XX Handshake', () => {
 
     const encrypted = xx.encryptWithAd(nsInit.cs1, ad, message)
     const { plaintext: decrypted } = xx.decryptWithAd(nsResp.cs1, ad, encrypted)
-    assert.equal('ethereum1', decrypted.toString('utf8'), 'Decrypted text not equal to original message.')
+    assert.equal('ethereum1', uint8ArrayToString(decrypted, 'utf8'), 'Decrypted text not equal to original message.')
 
     const message2 = Buffer.from('ethereum2')
     const encrypted2 = xx.encryptWithAd(nsInit.cs1, ad, message2)
     const { plaintext: decrypted2 } = xx.decryptWithAd(nsResp.cs1, ad, encrypted2)
-    assert.equal('ethereum2', decrypted2.toString('utf-8'), 'Decrypted text not equal to original message.')
+    assert.equal('ethereum2', uint8ArrayToString(decrypted2, 'utf-8'), 'Decrypted text not equal to original message.')
   })
 })

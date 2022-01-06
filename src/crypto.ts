@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer'
 import { IHandshake } from './@types/handshake-interface'
 import { NOISE_MSG_MAX_LENGTH_BYTES, NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG } from './constants'
 
@@ -10,15 +9,13 @@ interface IReturnEncryptionWrapper {
 export function encryptStream (handshake: IHandshake): IReturnEncryptionWrapper {
   return async function * (source) {
     for await (const chunk of source) {
-      const chunkBuffer = Buffer.from(chunk.buffer, chunk.byteOffset, chunk.length)
-
-      for (let i = 0; i < chunkBuffer.length; i += NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG) {
+      for (let i = 0; i < chunk.length; i += NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG) {
         let end = i + NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG
-        if (end > chunkBuffer.length) {
-          end = chunkBuffer.length
+        if (end > chunk.length) {
+          end = chunk.length
         }
 
-        const data = handshake.encrypt(chunkBuffer.slice(i, end), handshake.session)
+        const data = handshake.encrypt(chunk.slice(i, end), handshake.session)
         yield data
       }
     }
@@ -29,16 +26,13 @@ export function encryptStream (handshake: IHandshake): IReturnEncryptionWrapper 
 export function decryptStream (handshake: IHandshake): IReturnEncryptionWrapper {
   return async function * (source) {
     for await (const chunk of source) {
-      const chunkBuffer = Buffer.from(chunk.buffer, chunk.byteOffset, chunk.length)
-
-      for (let i = 0; i < chunkBuffer.length; i += NOISE_MSG_MAX_LENGTH_BYTES) {
+      for (let i = 0; i < chunk.length; i += NOISE_MSG_MAX_LENGTH_BYTES) {
         let end = i + NOISE_MSG_MAX_LENGTH_BYTES
-        if (end > chunkBuffer.length) {
-          end = chunkBuffer.length
+        if (end > chunk.length) {
+          end = chunk.length
         }
 
-        const chunk = chunkBuffer.slice(i, end)
-        const { plaintext: decrypted, valid } = await handshake.decrypt(chunk, handshake.session)
+        const { plaintext: decrypted, valid } = await handshake.decrypt(chunk.slice(i, end), handshake.session)
         if (!valid) {
           throw new Error('Failed to validate decrypted chunk')
         }

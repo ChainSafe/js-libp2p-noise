@@ -13,7 +13,7 @@ jobs:
     name: Lint and Typecheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v2
         with:
           node-version: 16
       - uses: actions/checkout@v2
@@ -44,7 +44,7 @@ jobs:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
       - uses: actions/checkout@v2
@@ -67,7 +67,7 @@ jobs:
     needs: check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v2
         with:
           node-version: 16
       - uses: actions/checkout@v2
@@ -89,7 +89,7 @@ jobs:
     needs: check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v2
         with:
           node-version: 16
       - uses: actions/checkout@v2
@@ -111,7 +111,7 @@ jobs:
     needs: check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v2
         with:
           node-version: 16
       - uses: actions/checkout@v2
@@ -134,7 +134,7 @@ jobs:
     needs: check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v2
         with:
           node-version: 16
       - uses: actions/checkout@v2
@@ -156,7 +156,7 @@ jobs:
     needs: check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v2
         with:
           node-version: 16
       - uses: actions/checkout@v2
@@ -172,3 +172,5 @@ jobs:
             ${{ runner.os }}-yarn-
       - run: yarn --prefer-offline --frozen-lockfile
       - run: npx xvfb-maybe aegir test -t electron-renderer --bail
+        env:
+          ESBUILD_WORKER_THREADS: 0

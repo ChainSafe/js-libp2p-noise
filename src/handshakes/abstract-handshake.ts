@@ -1,7 +1,9 @@
-import { Buffer } from 'buffer'
 import * as x25519 from '@stablelib/x25519'
 import * as SHA256 from '@stablelib/sha256'
 import { ChaCha20Poly1305 } from '@stablelib/chacha20poly1305'
+import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
+import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
+import { fromString as uint8ArrayFromString } from 'uint8arrays'
 
 import { bytes, bytes32, uint32 } from '../@types/basic'
 import { CipherState, MessageBuffer, SymmetricState } from '../@types/handshake'
@@ -11,14 +13,14 @@ import { logger } from '../logger'
 export const MIN_NONCE = 0
 
 export abstract class AbstractHandshake {
-  public encryptWithAd (cs: CipherState, ad: bytes, plaintext: bytes): bytes {
+  public encryptWithAd (cs: CipherState, ad: Uint8Array, plaintext: Uint8Array): bytes {
     const e = this.encrypt(cs.k, cs.n, ad, plaintext)
     this.setNonce(cs, this.incrementNonce(cs.n))
 
     return e
   }
 
-  public decryptWithAd (cs: CipherState, ad: bytes, ciphertext: bytes): {plaintext: bytes, valid: boolean} {
+  public decryptWithAd (cs: CipherState, ad: Uint8Array, ciphertext: Uint8Array): {plaintext: bytes, valid: boolean} {
     const { plaintext, valid } = this.decrypt(cs.k, cs.n, ad, ciphertext)
     this.setNonce(cs, this.incrementNonce(cs.n))
 
@@ -35,12 +37,12 @@ export abstract class AbstractHandshake {
   }
 
   protected createEmptyKey (): bytes32 {
-    return Buffer.alloc(32)
+    return new Uint8Array(32)
   }
 
   protected isEmptyKey (k: bytes32): boolean {
     const emptyKey = this.createEmptyKey()
-    return emptyKey.equals(k)
+    return uint8ArrayEquals(emptyKey, k)
   }
 
   protected incrementNonce (n: uint32): uint32 {
@@ -48,17 +50,16 @@ export abstract class AbstractHandshake {
   }
 
   protected nonceToBytes (n: uint32): bytes {
-    const nonce = Buffer.alloc(12)
-    nonce.writeUInt32LE(n, 4)
+    const nonce = new Uint8Array(12)
+    new DataView(nonce.buffer, nonce.byteOffset, nonce.byteLength).setUint32(n, 4, true)
 
     return nonce
   }
 
-  protected encrypt (k: bytes32, n: uint32, ad: bytes, plaintext: bytes): bytes {
+  protected encrypt (k: bytes32, n: uint32, ad: Uint8Array, plaintext: Uint8Array): bytes {
     const nonce = this.nonceToBytes(n)
     const ctx = new ChaCha20Poly1305(k)
-    const encryptedMessage = ctx.seal(nonce, plaintext, ad)
-    return Buffer.from(encryptedMessage.buffer, encryptedMessage.byteOffset, encryptedMessage.length)
+    return ctx.seal(nonce, plaintext, ad)
   }
 
   protected encryptAndHash (ss: SymmetricState, plaintext: bytes): bytes {
@@ -83,16 +84,12 @@ export abstract class AbstractHandshake {
     )
     if (encryptedMessage) {
       return {
-        plaintext: Buffer.from(
-          encryptedMessage.buffer,
-          encryptedMessage.byteOffset,
-          encryptedMessage.length
-        ),
+        plaintext: encryptedMessage,
         valid: true
       }
     } else {
       return {
-        plaintext: Buffer.from(''),
+        plaintext: new Uint8Array(0),
         valid: false
       }
     }
@@ -113,13 +110,15 @@ export abstract class AbstractHandshake {
   protected dh (privateKey: bytes32, publicKey: bytes32): bytes32 {
     try {
       const derivedU8 = x25519.sharedKey(privateKey, publicKey)
-      const derived = Buffer.from(derivedU8.buffer, derivedU8.byteOffset, derivedU8.length)
-      const result = Buffer.alloc(32)
-      derived.copy(result)
-      return result
-    } catch (e) {
+
+      if (derivedU8.length === 32) {
+        return derivedU8
+      }
+
+      return derivedU8.slice(0, 32)
+    } catch (e: any) {
       logger(e.message)
-      return Buffer.alloc(32)
+      return new Uint8Array(32)
     }
   }
 
@@ -127,9 +126,9 @@ export abstract class AbstractHandshake {
     ss.h = this.getHash(ss.h, data)
   }
 
-  protected getHash (a: bytes, b: bytes): bytes32 {
-    const hash = SHA256.hash(Buffer.from([...a, ...b]))
-    return Buffer.from(hash.buffer, hash.byteOffset, hash.length)
+  protected getHash (a: Uint8Array, b: Uint8Array): bytes32 {
+    const u = SHA256.hash(uint8ArrayConcat([a, b], a.length + b.length))
+    return u
   }
 
   protected mixKey (ss: SymmetricState, ikm: bytes32): void {
@@ -146,7 +145,7 @@ export abstract class AbstractHandshake {
   // Symmetric state related
 
   protected initializeSymmetric (protocolName: string): SymmetricState {
-    const protocolNameBytes: bytes = Buffer.from(protocolName, 'utf-8')
+    const protocolNameBytes = uint8ArrayFromString(protocolName, 'utf-8')
     const h = this.hashProtocolName(protocolNameBytes)
 
     const ck = h
@@ -156,18 +155,18 @@ export abstract class AbstractHandshake {
     return { cs, ck, h }
   }
 
-  protected hashProtocolName (protocolName: bytes): bytes32 {
+  protected hashProtocolName (protocolName: Uint8Array): bytes32 {
     if (protocolName.length <= 32) {
-      const h = Buffer.alloc(32)
-      protocolName.copy(h)
+      const h = new Uint8Array(32)
+      h.set(protocolName)
       return h
     } else {
-      return this.getHash(protocolName, Buffer.alloc(0))
+      return this.getHash(protocolName, new Uint8Array(0))
     }
   }
 
   protected split (ss: SymmetricState): {cs1: CipherState, cs2: CipherState} {
-    const [tempk1, tempk2] = getHkdf(ss.ck, Buffer.alloc(0))
+    const [tempk1, tempk2] = getHkdf(ss.ck, new Uint8Array(0))
     const cs1 = this.initializeKey(tempk1)
     const cs2 = this.initializeKey(tempk2)
 
@@ -175,14 +174,14 @@ export abstract class AbstractHandshake {
   }
 
   protected writeMessageRegular (cs: CipherState, payload: bytes): MessageBuffer {
-    const ciphertext = this.encryptWithAd(cs, Buffer.alloc(0), payload)
+    const ciphertext = this.encryptWithAd(cs, new Uint8Array(0), payload)
     const ne = this.createEmptyKey()
-    const ns = Buffer.alloc(0)
+    const ns = new Uint8Array(0)
 
     return { ne, ns, ciphertext }
   }
 
   protected readMessageRegular (cs: CipherState, message: MessageBuffer): {plaintext: bytes, valid: boolean} {
-    return this.decryptWithAd(cs, Buffer.alloc(0), message.ciphertext)
+    return this.decryptWithAd(cs, new Uint8Array(0), message.ciphertext)
   }
 }

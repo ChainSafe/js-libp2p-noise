@@ -1,6 +1,7 @@
 import Wrap from 'it-pb-rpc'
 import { Buffer } from 'buffer'
 import Duplex from 'it-pair/duplex'
+import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 
 import {
   generateKeypair,
@@ -64,12 +65,12 @@ describe('XX Fallback Handshake', () => {
         sessionResponder.cs1 !== undefined &&
         sessionInitator.cs2 !== undefined &&
         sessionResponder.cs2 !== undefined) {
-        assert(sessionInitator.cs1.k.equals(sessionResponder.cs1.k))
-        assert(sessionInitator.cs2.k.equals(sessionResponder.cs2.k))
+        assert(uint8ArrayEquals(sessionInitator.cs1.k, sessionResponder.cs1.k))
+        assert(uint8ArrayEquals(sessionInitator.cs2.k, sessionResponder.cs2.k))
       } else {
         assert(false)
       }
-    } catch (e) {
+    } catch (e: any) {
       assert(false, e.message)
     }
   })

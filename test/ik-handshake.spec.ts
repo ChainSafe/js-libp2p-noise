@@ -6,6 +6,7 @@ import { assert, expect } from 'chai'
 import { createPeerIdsFromFixtures } from './fixtures/peer'
 import { generateKeypair, getPayload } from '../src/utils'
 import { IKHandshake } from '../src/handshake-ik'
+import { equals as uint8ArrayEquals } from 'uint8arrays'
 
 describe('IK Handshake', () => {
   let peerA, peerB
@@ -38,8 +39,8 @@ describe('IK Handshake', () => {
 
       // Test shared key
       if (handshakeInit.session.cs1 && handshakeResp.session.cs1 && handshakeInit.session.cs2 && handshakeResp.session.cs2) {
-        assert(handshakeInit.session.cs1.k.equals(handshakeResp.session.cs1.k))
-        assert(handshakeInit.session.cs2.k.equals(handshakeResp.session.cs2.k))
+        assert(uint8ArrayEquals(handshakeInit.session.cs1.k, handshakeResp.session.cs1.k))
+        assert(uint8ArrayEquals(handshakeInit.session.cs2.k, handshakeResp.session.cs2.k))
       } else {
         assert(false)
       }
@@ -47,8 +48,8 @@ describe('IK Handshake', () => {
       // Test encryption and decryption
       const encrypted = handshakeInit.encrypt(Buffer.from('encryptthis'), handshakeInit.session)
       const { plaintext: decrypted } = handshakeResp.decrypt(encrypted, handshakeResp.session)
-      assert(decrypted.equals(Buffer.from('encryptthis')))
-    } catch (e) {
+      assert(uint8ArrayEquals(decrypted, Buffer.from('encryptthis')))
+    } catch (e: any) {
       assert(false, e.message)
     }
   })
@@ -72,7 +73,7 @@ describe('IK Handshake', () => {
 
       await handshakeInit.stage0()
       await handshakeResp.stage0()
-    } catch (e) {
+    } catch (e: any) {
       expect(e.message).to.include("Error occurred while verifying initiator's signed payload")
     }
   })

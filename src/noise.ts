@@ -1,5 +1,4 @@
 import * as x25519 from '@stablelib/x25519'
-import { Buffer } from 'buffer'
 import Wrap from 'it-pb-rpc'
 import DuplexPair from 'it-pair/duplex'
 import ensureBuffer from 'it-buffer'
@@ -33,7 +32,7 @@ interface HandshakeParams {
 export class Noise implements INoiseConnection {
   public protocol = '/noise'
 
-  private readonly prologue = Buffer.alloc(0)
+  private readonly prologue = new Uint8Array(0)
   private readonly staticKeys: KeyPair
   private readonly earlyData?: bytes
   private readonly useNoisePipes: boolean
@@ -44,7 +43,7 @@ export class Noise implements INoiseConnection {
    * @param {bytes} earlyData
    */
   constructor (staticNoiseKey?: bytes, earlyData?: bytes) {
-    this.earlyData = earlyData ?? Buffer.alloc(0)
+    this.earlyData = earlyData ?? new Uint8Array(0)
     // disabled until properly specked
     this.useNoisePipes = false
 
@@ -52,16 +51,8 @@ export class Noise implements INoiseConnection {
       // accepts x25519 private key of length 32
       const keyPair = x25519.generateKeyPairFromSeed(staticNoiseKey)
       this.staticKeys = {
-        privateKey: Buffer.from(
-          keyPair.secretKey.buffer,
-          keyPair.secretKey.byteOffset,
-          keyPair.secretKey.length
-        ),
-        publicKey: Buffer.from(
-          keyPair.publicKey.buffer,
-          keyPair.publicKey.byteOffset,
-          keyPair.publicKey.length
-        )
+        privateKey: keyPair.secretKey,
+        publicKey: keyPair.publicKey
       }
     } else {
       this.staticKeys = generateKeypair()
@@ -156,13 +147,13 @@ export class Noise implements INoiseConnection {
         this.staticKeys,
         connection,
         // safe to cast as we did checks
-        KeyCache.load(params.remotePeer) ?? Buffer.alloc(32),
+        KeyCache.load(params.remotePeer) ?? new Uint8Array(32),
         remotePeer as PeerId
       )
 
       try {
         return await this.performIKHandshake(ikHandshake)
-      } catch (e) {
+      } catch (e: any) {
         // IK failed, go to XX fallback
         let ephemeralKeys
         if (params.isInitiator) {
@@ -190,7 +181,7 @@ export class Noise implements INoiseConnection {
       await handshake.propose()
       await handshake.exchange()
       await handshake.finish()
-    } catch (e) {
+    } catch (e: any) {
       logger(e)
       const err = e as Error
       throw new Error(`Error occurred during XX Fallback handshake: ${err.message}`)
@@ -214,7 +205,7 @@ export class Noise implements INoiseConnection {
       if (this.useNoisePipes && handshake.remotePeer) {
         KeyCache.store(handshake.remotePeer, handshake.getRemoteStaticKey())
       }
-    } catch (e) {
+    } catch (e: any) {
       const err = e as Error
       throw new Error(`Error occurred during XX handshake: ${err.message}`)
     }

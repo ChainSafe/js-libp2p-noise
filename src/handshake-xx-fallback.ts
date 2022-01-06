@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer'
 import { XXHandshake } from './handshake-xx'
 import { XX } from './handshakes/xx'
 import { KeyPair } from './@types/libp2p'
@@ -35,7 +34,7 @@ export class XXFallbackHandshake extends XXHandshake {
   // eslint-disable-next-line require-await
   public async propose (): Promise<void> {
     if (this.isInitiator) {
-      this.xx.sendMessage(this.session, Buffer.alloc(0), this.ephemeralKeys)
+      this.xx.sendMessage(this.session, new Uint8Array(0), this.ephemeralKeys)
       logger('XX Fallback Stage 0 - Initialized state as the first message was sent by initiator.')
       logLocalEphemeralKeys(this.session.hs.e)
     } else {
@@ -43,8 +42,8 @@ export class XXFallbackHandshake extends XXHandshake {
       const receivedMessageBuffer = decode0(this.initialMsg)
       const { valid } = this.xx.recvMessage(this.session, {
         ne: receivedMessageBuffer.ne,
-        ns: Buffer.alloc(0),
-        ciphertext: Buffer.alloc(0)
+        ns: new Uint8Array(0),
+        ciphertext: new Uint8Array(0)
       })
       if (!valid) {
         throw new Error('xx fallback stage 0 decryption validation fail')
@@ -72,7 +71,7 @@ export class XXFallbackHandshake extends XXHandshake {
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload)
         await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer)
         this.setRemoteEarlyData(decodedPayload.data)
-      } catch (e) {
+      } catch (e: any) {
         const err = e as Error
         throw new Error(`Error occurred while verifying signed payload from responder: ${err.message}`)
       }
