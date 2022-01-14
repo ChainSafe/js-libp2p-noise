@@ -60,7 +60,7 @@ export abstract class AbstractHandshake {
   protected nonceToBytes (n: uint64): bytes {
     // Even though we're treating the nonce as 8 bytes, RFC7539 specifies 12 bytes for a nonce.
     const nonce = new Uint8Array(12)
-    new DataView(nonce.buffer, nonce.byteOffset, nonce.byteLength).setUint32(n, 4, true)
+    new DataView(nonce.buffer, nonce.byteOffset, nonce.byteLength).setUint32(4, n, true)
 
     return nonce
   }
