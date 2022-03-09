@@ -93,9 +93,7 @@ export async function verifySignedPayload (
   const generatedPayload = getHandshakePayload(noiseStaticKey)
   // Unmarshaling from PublicKey protobuf
   const publicKey = keys.unmarshalPublicKey(identityKey)
-  // TODO remove this after libp2p-crypto ships proper types
-  // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  if (!payload.identitySig || !publicKey.verify(generatedPayload, Buffer.from(payload.identitySig))) {
+  if (!payload.identitySig || !(await publicKey.verify(generatedPayload, Buffer.from(payload.identitySig)))) {
     throw new Error("Static key doesn't match to peer that signed payload!")
   }
   return await PeerId.createFromPubKey(identityKey)
