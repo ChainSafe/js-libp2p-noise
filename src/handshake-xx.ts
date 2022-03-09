@@ -93,7 +93,7 @@ export class XXHandshake implements IHandshake {
       try {
         const decodedPayload = await decodePayload(plaintext)
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload)
-        this.remotePeer = await verifySignedPayload(receivedMessageBuffer.ns, decodedPayload, this.remotePeer)
+        this.remotePeer = await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer)
         this.setRemoteEarlyData(decodedPayload.data)
       } catch (e: any) {
         const err = e as Error
