@@ -150,4 +150,4 @@ jobs:
             ${{ runner.os }}-yarn-
       - run: yarn --prefer-offline --frozen-lockfile
       - run: yarn run build
-      - run: npm run test:electron-main -- --bail
+      - run: npx xvfb-maybe npm run test:electron-main -- --bail
