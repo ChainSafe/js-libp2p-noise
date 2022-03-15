@@ -34,7 +34,8 @@
     "pretest": "yarn run check",
     "test": "aegir test -f \"./dist/test/**/*.spec.js\"",
     "test:node": "npm run test -- -t node",
-    "test:browser": "npm run test -- -t browser",
+    "test:browser": "npm run test -- -t browser -t webworker",
+    "test:electron-main": "npm run test -- -t electron-main",
     "docs": "aegir docs",
     "proto:gen": "pbjs -t static-module -w es6 -r libp2p-noise -o ./src/proto/payload.js ./src/proto/payload.proto && pbts -o ./src/proto/payload.d.ts ./src/proto/payload.js"
   },

@@ -1,9 +1,9 @@
 /* eslint-disable */
 
-const { Noise } = require('../dist/src/index')
-const benchmark = require('benchmark')
-const { duplexPair } = require('it-pair/duplex')
-const { createFromJSON } = require('@libp2p/peer-id-factory')
+import { Noise } from '../dist/src/index.js'
+import benchmark from 'benchmark'
+import { duplexPair } from 'it-pair/duplex'
+import { createFromJSON } from '@libp2p/peer-id-factory'
 
 const bench = async function () {
   console.log('Initializing handshake benchmark')
