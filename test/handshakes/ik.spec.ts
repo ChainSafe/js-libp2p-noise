@@ -1,10 +1,10 @@
 import { Buffer } from 'buffer'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
-import { IK } from '../../src/handshakes/ik'
-import { KeyPair } from '../../src/@types/libp2p'
-import { createHandshakePayload, generateKeypair, getHandshakePayload } from '../../src/utils'
+import { IK } from '../../src/handshakes/ik.js'
+import type { KeyPair } from '../../src/@types/libp2p.js'
+import { createHandshakePayload, generateKeypair, getHandshakePayload } from '../../src/utils.js'
 import { assert, expect } from 'chai'
-import { generateEd25519Keys } from '../utils'
+import { generateEd25519Keys } from '../utils.js'
 
 describe('IK handshake', () => {
   const prologue = Buffer.alloc(0)
@@ -64,8 +64,9 @@ describe('IK handshake', () => {
       if (initiatorSession?.cs2?.k != null) {
         assert(uint8ArrayEquals(initiatorSession.cs2.k, responderSession?.cs2?.k ?? new Uint8Array()))
       }
-    } catch (e: any) {
-      return assert(false, e.message)
+    } catch (e) {
+      const err = e as Error
+      return assert(false, err.message)
     }
   })
 })

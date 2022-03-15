@@ -1,14 +1,15 @@
 import { HKDF } from '@stablelib/hkdf'
 import { SHA256 } from '@stablelib/sha256'
 import * as x25519 from '@stablelib/x25519'
-import PeerId from 'peer-id'
-import { KeyPair } from './@types/libp2p'
-import { bytes, bytes32 } from './@types/basic'
-import { Hkdf, INoisePayload } from './@types/handshake'
-import { pb } from './proto/payload'
-import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
+import type { PeerId } from '@libp2p/interfaces/peer-id'
+import type { KeyPair } from './@types/libp2p.js'
+import type { bytes, bytes32 } from './@types/basic.js'
+import type { Hkdf, INoisePayload } from './@types/handshake.js'
+import { pb } from './proto/payload.js'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
+import { unmarshalPublicKey, unmarshalPrivateKey } from '@libp2p/crypto/keys'
+import { peerIdFromKeys } from '@libp2p/peer-id'
 
 const NoiseHandshakePayloadProto = pb.NoiseHandshakePayload
 
@@ -29,8 +30,12 @@ export async function getPayload (
   const signedPayload = await signPayload(localPeer, getHandshakePayload(staticPublicKey))
   const earlyDataPayload = earlyData ?? new Uint8Array(0)
 
+  if (localPeer.publicKey == null) {
+    throw new Error('PublicKey was missing from local PeerId')
+  }
+
   return createHandshakePayload(
-    localPeer.marshalPubKey(),
+    localPeer.publicKey,
     signedPayload,
     earlyDataPayload
   )
@@ -51,11 +56,17 @@ export function createHandshakePayload (
 }
 
 export async function signPayload (peerId: PeerId, payload: bytes): Promise<bytes> {
-  return await peerId.privKey.sign(payload)
+  if (peerId.privateKey == null) {
+    throw new Error('PrivateKey was missing from PeerId')
+  }
+
+  const privateKey = await unmarshalPrivateKey(peerId.privateKey)
+
+  return await privateKey.sign(payload)
 }
 
 export async function getPeerIdFromPayload (payload: pb.INoiseHandshakePayload): Promise<PeerId> {
-  return await PeerId.createFromPubKey(payload.identityKey as Uint8Array)
+  return await peerIdFromKeys(payload.identityKey as Uint8Array)
 }
 
 export function decodePayload (payload: bytes|Uint8Array): pb.INoiseHandshakePayload {
@@ -69,9 +80,9 @@ export function getHandshakePayload (publicKey: bytes): bytes {
   return uint8ArrayConcat([prefix, publicKey], prefix.length + publicKey.length)
 }
 
-async function isValidPeerId (peerId: Uint8Array, publicKeyProtobuf: bytes): Promise<boolean> {
-  const generatedPeerId = await PeerId.createFromPubKey(publicKeyProtobuf)
-  return uint8ArrayEquals(generatedPeerId.id, peerId)
+async function isValidPeerId (peerId: PeerId, publicKeyProtobuf: bytes): Promise<boolean> {
+  const generatedPeerId = await peerIdFromKeys(publicKeyProtobuf)
+  return generatedPeerId.equals(peerId)
 }
 
 /**
@@ -88,15 +99,29 @@ export async function verifySignedPayload (
   remotePeer: PeerId
 ): Promise<PeerId> {
   const identityKey = payload.identityKey as Uint8Array
-  if (!(await isValidPeerId(remotePeer.id, identityKey))) {
+  if (!(await isValidPeerId(remotePeer, identityKey))) {
     throw new Error("Peer ID doesn't match libp2p public key.")
   }
   const generatedPayload = getHandshakePayload(noiseStaticKey)
   // Unmarshaling from PublicKey protobuf
-  const peerId = await PeerId.createFromPubKey(identityKey)
-  if (!payload.identitySig || !(await peerId.pubKey.verify(generatedPayload, payload.identitySig))) {
+  const peerId = await peerIdFromKeys(identityKey)
+
+  if (peerId.publicKey == null) {
+    throw new Error('PublicKey was missing from PeerId')
+  }
+
+  if (payload.identitySig == null) {
+    throw new Error('Signature was missing from message')
+  }
+
+  const publicKey = unmarshalPublicKey(peerId.publicKey)
+
+  const valid = await publicKey.verify(generatedPayload, payload.identitySig)
+
+  if (!valid) {
     throw new Error("Static key doesn't match to peer that signed payload!")
   }
+
   return peerId
 }
 

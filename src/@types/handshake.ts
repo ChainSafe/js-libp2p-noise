@@ -1,5 +1,5 @@
-import { bytes, bytes32, uint64 } from './basic'
-import { KeyPair } from './libp2p'
+import type { bytes, bytes32, uint64 } from './basic.js'
+import type { KeyPair } from './libp2p.js'
 
 export type Hkdf = [bytes, bytes, bytes]
 

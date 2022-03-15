@@ -1,12 +1,9 @@
-import { IHandshake } from './@types/handshake-interface'
-import { NOISE_MSG_MAX_LENGTH_BYTES, NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG } from './constants'
-
-interface IReturnEncryptionWrapper {
-  (source: Iterable<Uint8Array>): AsyncIterableIterator<Uint8Array>
-}
+import type { Transform } from 'it-stream-types'
+import type { IHandshake } from './@types/handshake-interface.js'
+import { NOISE_MSG_MAX_LENGTH_BYTES, NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG } from './constants.js'
 
 // Returns generator that encrypts payload from the user
-export function encryptStream (handshake: IHandshake): IReturnEncryptionWrapper {
+export function encryptStream (handshake: IHandshake): Transform<Uint8Array> {
   return async function * (source) {
     for await (const chunk of source) {
       for (let i = 0; i < chunk.length; i += NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG) {
@@ -23,7 +20,7 @@ export function encryptStream (handshake: IHandshake): IReturnEncryptionWrapper 
 }
 
 // Decrypt received payload to the user
-export function decryptStream (handshake: IHandshake): IReturnEncryptionWrapper {
+export function decryptStream (handshake: IHandshake): Transform<Uint8Array> {
   return async function * (source) {
     for await (const chunk of source) {
       for (let i = 0; i < chunk.length; i += NOISE_MSG_MAX_LENGTH_BYTES) {

@@ -1,6 +1,6 @@
-import { bytes } from './@types/basic'
-import { MessageBuffer } from './@types/handshake'
-import BufferList from 'bl/BufferList'
+import type { bytes } from './@types/basic.js'
+import type { MessageBuffer } from './@types/handshake.js'
+import type { Uint8ArrayList } from 'uint8arraylist'
 import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
 
 const allocUnsafe = (len: number): Uint8Array => {
@@ -11,21 +11,21 @@ const allocUnsafe = (len: number): Uint8Array => {
   return new Uint8Array(len)
 }
 
-export const uint16BEEncode = (value: number, target: Uint8Array, offset: number): Uint8Array => {
-  target = target || allocUnsafe(2)
-  new DataView(target.buffer, target.byteOffset, target.byteLength).setUint16(offset, value, false)
+export const uint16BEEncode = (value: number, target?: Uint8Array, offset?: number): Uint8Array => {
+  target = target ?? allocUnsafe(2)
+  new DataView(target.buffer, target.byteOffset, target.byteLength).setUint16(offset ?? 0, value, false)
   return target
 }
 uint16BEEncode.bytes = 2
 
-export const uint16BEDecode = (data: Uint8Array | BufferList): number => {
+export const uint16BEDecode = (data: Uint8Array | Uint8ArrayList): number => {
   if (data.length < 2) throw RangeError('Could not decode int16BE')
 
-  if (data instanceof BufferList) {
-    return data.readUInt16BE(0)
+  if (data instanceof Uint8Array) {
+    return new DataView(data.buffer, data.byteOffset, data.byteLength).getUint16(0, false)
   }
 
-  return new DataView(data.buffer, data.byteOffset, data.byteLength).getUint16(0, false)
+  return data.getUint16(0)
 }
 uint16BEDecode.bytes = 2
 

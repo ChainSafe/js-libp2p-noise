@@ -1,16 +1,22 @@
-import debug from 'debug'
-import { DUMP_SESSION_KEYS } from './constants'
-import { KeyPair } from './@types/libp2p'
-import { NoiseSession } from './@types/handshake'
+import { Logger, logger } from '@libp2p/logger'
+import { DUMP_SESSION_KEYS } from './constants.js'
+import type { KeyPair } from './@types/libp2p.js'
+import type { NoiseSession } from './@types/handshake.js'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 
-export const logger = debug('libp2p:noise')
+const log = logger('libp2p:noise')
 
-let keyLogger
+export { log as logger }
+
+let keyLogger: Logger
 if (DUMP_SESSION_KEYS) {
-  keyLogger = logger
+  keyLogger = log
 } else {
-  keyLogger = () => { /* do nothing */ }
+  keyLogger = Object.assign(() => { /* do nothing */ }, {
+    enabled: false,
+    trace: () => {},
+    error: () => {}
+  })
 }
 
 export function logLocalStaticKeys (s: KeyPair): void {

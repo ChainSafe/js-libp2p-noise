@@ -1,21 +1,22 @@
-import { bytes32 } from './@types/basic'
-import PeerId from 'peer-id'
+import type { bytes32 } from './@types/basic.js'
+import type { PeerId } from '@libp2p/interfaces/peer-id'
+import { PeerMap } from '@libp2p/peer-collections'
 
 /**
  * Storage for static keys of previously connected peers.
  */
 class Keycache {
-  private readonly storage = new Map<Uint8Array, bytes32>()
+  private readonly storage = new PeerMap<bytes32>()
 
   public store (peerId: PeerId, key: bytes32): void {
-    this.storage.set(peerId.id, key)
+    this.storage.set(peerId, key)
   }
 
   public load (peerId?: PeerId): bytes32 | null {
     if (!peerId) {
       return null
     }
-    return this.storage.get(peerId.id) ?? null
+    return this.storage.get(peerId) ?? null
   }
 
   public resetStorage (): void {

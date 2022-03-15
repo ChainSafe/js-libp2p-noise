@@ -1,29 +1,27 @@
 import * as x25519 from '@stablelib/x25519'
-import Wrap from 'it-pb-rpc'
-import DuplexPair from 'it-pair/duplex'
-import ensureBuffer from 'it-buffer'
-import pipe from 'it-pipe'
+import { pbStream, ProtobufStream } from 'it-pb-stream'
+import { duplexPair } from 'it-pair/duplex'
+import { pipe } from 'it-pipe'
 import { encode, decode } from 'it-length-prefixed'
-
-import { XXHandshake } from './handshake-xx'
-import { IKHandshake } from './handshake-ik'
-import { XXFallbackHandshake } from './handshake-xx-fallback'
-import { generateKeypair, getPayload } from './utils'
-import { uint16BEDecode, uint16BEEncode } from './encoder'
-import { decryptStream, encryptStream } from './crypto'
-import { bytes } from './@types/basic'
-import { INoiseConnection, KeyPair, SecureOutbound } from './@types/libp2p'
-import { Duplex } from 'it-pair'
-import { IHandshake } from './@types/handshake-interface'
-import { KeyCache } from './keycache'
-import { logger } from './logger'
-import PeerId from 'peer-id'
-import { NOISE_MSG_MAX_LENGTH_BYTES } from './constants'
-
-export type WrappedConnection = ReturnType<typeof Wrap>
+import { XXHandshake } from './handshake-xx.js'
+import { IKHandshake } from './handshake-ik.js'
+import { XXFallbackHandshake } from './handshake-xx-fallback.js'
+import { generateKeypair, getPayload } from './utils.js'
+import { uint16BEDecode, uint16BEEncode } from './encoder.js'
+import { decryptStream, encryptStream } from './crypto.js'
+import type { bytes } from './@types/basic.js'
+import type { INoiseConnection, KeyPair } from './@types/libp2p.js'
+import type { IHandshake } from './@types/handshake-interface.js'
+import { KeyCache } from './keycache.js'
+import { logger } from './logger.js'
+import type { PeerId } from '@libp2p/interfaces/peer-id'
+import { NOISE_MSG_MAX_LENGTH_BYTES } from './constants.js'
+import type { Duplex } from 'it-stream-types'
+import type { FailedIKError } from './errors.js'
+import type { SecuredConnection } from '@libp2p/interfaces/connection-encrypter'
 
 interface HandshakeParams {
-  connection: WrappedConnection
+  connection: ProtobufStream
   isInitiator: boolean
   localPeer: PeerId
   remotePeer?: PeerId
@@ -38,7 +36,6 @@ export class Noise implements INoiseConnection {
   private readonly useNoisePipes: boolean
 
   /**
-   *
    * @param {bytes} staticNoiseKey - x25519 private key, reuse for faster handshakes
    * @param {bytes} earlyData
    */
@@ -65,10 +62,10 @@ export class Noise implements INoiseConnection {
    * @param {PeerId} localPeer - PeerId of the receiving peer
    * @param {any} connection - streaming iterable duplex that will be encrypted
    * @param {PeerId} remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer.
-   * @returns {Promise<SecureOutbound>}
+   * @returns {Promise<SecuredConnection>}
    */
-  public async secureOutbound (localPeer: PeerId, connection: any, remotePeer: PeerId): Promise<SecureOutbound> {
-    const wrappedConnection = Wrap(
+  public async secureOutbound (localPeer: PeerId, connection: any, remotePeer: PeerId): Promise<SecuredConnection> {
+    const wrappedConnection = pbStream(
       connection,
       {
         lengthEncoder: uint16BEEncode,
@@ -97,10 +94,10 @@ export class Noise implements INoiseConnection {
    * @param {PeerId} localPeer - PeerId of the receiving peer.
    * @param {any} connection - streaming iterable duplex that will be encryption.
    * @param {PeerId} remotePeer - optional PeerId of the initiating peer, if known. This may only exist during transport upgrades.
-   * @returns {Promise<SecureOutbound>}
+   * @returns {Promise<SecuredConnection>}
    */
-  public async secureInbound (localPeer: PeerId, connection: any, remotePeer?: PeerId): Promise<SecureOutbound> {
-    const wrappedConnection = Wrap(
+  public async secureInbound (localPeer: PeerId, connection: any, remotePeer?: PeerId): Promise<SecuredConnection> {
+    const wrappedConnection = pbStream(
       connection,
       {
         lengthEncoder: uint16BEEncode,
@@ -153,13 +150,15 @@ export class Noise implements INoiseConnection {
 
       try {
         return await this.performIKHandshake(ikHandshake)
-      } catch (e: any) {
+      } catch (e) {
+        const err = e as FailedIKError
+
         // IK failed, go to XX fallback
         let ephemeralKeys
         if (params.isInitiator) {
           ephemeralKeys = ikHandshake.getLocalEphemeralKeys()
         }
-        return await this.performXXFallbackHandshake(params, payload, e.initialMsg, ephemeralKeys)
+        return await this.performXXFallbackHandshake(params, payload, err.initialMsg as Uint8Array, ephemeralKeys)
       }
     } else {
       // run XX handshake
@@ -181,9 +180,9 @@ export class Noise implements INoiseConnection {
       await handshake.propose()
       await handshake.exchange()
       await handshake.finish()
-    } catch (e: any) {
-      logger(e)
+    } catch (e) {
       const err = e as Error
+      logger(err)
       throw new Error(`Error occurred during XX Fallback handshake: ${err.message}`)
     }
 
@@ -205,7 +204,7 @@ export class Noise implements INoiseConnection {
       if (this.useNoisePipes && handshake.remotePeer) {
         KeyCache.store(handshake.remotePeer, handshake.getRemoteStaticKey())
       }
-    } catch (e: any) {
+    } catch (e) {
       const err = e as Error
       throw new Error(`Error occurred during XX handshake: ${err.message}`)
     }
@@ -223,21 +222,19 @@ export class Noise implements INoiseConnection {
   }
 
   private async createSecureConnection (
-    connection: WrappedConnection,
+    connection: ProtobufStream,
     handshake: IHandshake
-  ): Promise<Duplex> {
+  ): Promise<Duplex<Uint8Array>> {
     // Create encryption box/unbox wrapper
-    const [secure, user] = DuplexPair()
+    const [secure, user] = duplexPair<Uint8Array>()
     const network = connection.unwrap()
 
     await pipe(
       secure, // write to wrapper
-      ensureBuffer, // ensure any type of data is converted to buffer
       encryptStream(handshake), // data is encrypted
       encode({ lengthEncoder: uint16BEEncode }), // prefix with message length
       network, // send to the remote peer
       decode({ lengthDecoder: uint16BEDecode }), // read message length prefix
-      ensureBuffer, // ensure any type of data is converted to buffer
       decryptStream(handshake), // decrypt the incoming data
       secure // pipe to the wrapper
     )

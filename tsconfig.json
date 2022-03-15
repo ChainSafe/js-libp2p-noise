@@ -1,28 +1,15 @@
 {
+  "extends": "aegir/src/config/tsconfig.aegir.json",
   "compilerOptions": {
     "outDir": "dist",
-    "incremental": true,
-    "composite": true,
-    "target": "ES2018",
-    "module": "commonjs",
-    "strict": true,
-    "allowJs": true,
-    "sourceMap": true,
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "noImplicitAny": false,
-    "typeRoots": [
-      "./node_modules/@types",
-      "./src/@types"
-    ]
+    "emitDeclarationOnly": false,
+    "module": "ES2020"
   },
   "include": [
-    "**/test/**/*.ts",
-    "**/src/**/*.ts",
-    "**/src/**/*.js"
+    "src",
+    "test"
   ],
   "exclude": [
-    "node_modules",
-    "dist"
+    "src/proto"
   ]
 }

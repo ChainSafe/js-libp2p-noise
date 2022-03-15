@@ -1,12 +1,12 @@
-import { WrappedConnection } from './noise'
-import { IK } from './handshakes/ik'
-import { CipherState, NoiseSession } from './@types/handshake'
-import { bytes, bytes32 } from './@types/basic'
-import { KeyPair } from './@types/libp2p'
-import { IHandshake } from './@types/handshake-interface'
-import { decode0, decode1, encode0, encode1 } from './encoder'
-import { decodePayload, getPeerIdFromPayload, verifySignedPayload } from './utils'
-import { FailedIKError } from './errors'
+import type { ProtobufStream } from 'it-pb-stream'
+import { IK } from './handshakes/ik.js'
+import type { CipherState, NoiseSession } from './@types/handshake.js'
+import type { bytes, bytes32 } from './@types/basic.js'
+import type { KeyPair } from './@types/libp2p.js'
+import type { IHandshake } from './@types/handshake-interface.js'
+import { decode0, decode1, encode0, encode1 } from './encoder.js'
+import { decodePayload, getPeerIdFromPayload, verifySignedPayload } from './utils.js'
+import { FailedIKError } from './errors.js'
 import {
   logger,
   logLocalStaticKeys,
@@ -14,8 +14,8 @@ import {
   logLocalEphemeralKeys,
   logRemoteEphemeralKey,
   logCipherState
-} from './logger'
-import PeerId from 'peer-id'
+} from './logger.js'
+import type { PeerId } from '@libp2p/interfaces/peer-id'
 
 export class IKHandshake implements IHandshake {
   public isInitiator: boolean
@@ -26,7 +26,7 @@ export class IKHandshake implements IHandshake {
   private readonly payload: bytes
   private readonly prologue: bytes32
   private readonly staticKeypair: KeyPair
-  private readonly connection: WrappedConnection
+  private readonly connection: ProtobufStream
   private readonly ik: IK
 
   constructor (
@@ -34,7 +34,7 @@ export class IKHandshake implements IHandshake {
     payload: bytes,
     prologue: bytes32,
     staticKeypair: KeyPair,
-    connection: WrappedConnection,
+    connection: ProtobufStream,
     remoteStaticKey: bytes,
     remotePeer?: PeerId,
     handshake?: IK
@@ -77,7 +77,7 @@ export class IKHandshake implements IHandshake {
         this.setRemoteEarlyData(decodedPayload.data)
         logger('IK Stage 0 - Responder successfully verified payload!')
         logRemoteEphemeralKey(this.session.hs.re)
-      } catch (e: any) {
+      } catch (e) {
         const err = e as Error
         logger('Responder breaking up with IK handshake in stage 0.')
 
@@ -103,7 +103,7 @@ export class IKHandshake implements IHandshake {
         this.setRemoteEarlyData(decodedPayload.data)
         logger('IK Stage 1 - Initiator successfully verified payload!')
         logRemoteEphemeralKey(this.session.hs.re)
-      } catch (e: any) {
+      } catch (e) {
         const err = e as Error
         logger('Initiator breaking up with IK handshake in stage 1.')
         throw new FailedIKError(receivedMsg, `Error occurred while verifying responder's signed payload: ${err.message}`)

@@ -1,14 +1,15 @@
 import { assert, expect } from 'chai'
-import Duplex from 'it-pair/duplex'
+import { duplexPair } from 'it-pair/duplex'
 import { Buffer } from 'buffer'
-import Wrap from 'it-pb-rpc'
+import { pbStream } from 'it-pb-stream'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
-import { XXHandshake } from '../src/handshake-xx'
-import { generateKeypair, getPayload } from '../src/utils'
-import { createPeerIdsFromFixtures } from './fixtures/peer'
+import { XXHandshake } from '../src/handshake-xx.js'
+import { generateKeypair, getPayload } from '../src/utils.js'
+import { createPeerIdsFromFixtures } from './fixtures/peer.js'
+import type { PeerId } from '@libp2p/interfaces/peer-id'
 
 describe('XX Handshake', () => {
-  let peerA, peerB, fakePeer
+  let peerA: PeerId, peerB: PeerId, fakePeer: PeerId
 
   before(async () => {
     [peerA, peerB, fakePeer] = await createPeerIdsFromFixtures(3)
@@ -16,9 +17,9 @@ describe('XX Handshake', () => {
 
   it('should propose, exchange and finish handshake', async () => {
     try {
-      const duplex = Duplex()
-      const connectionFrom = Wrap(duplex[0])
-      const connectionTo = Wrap(duplex[1])
+      const duplex = duplexPair<Uint8Array>()
+      const connectionFrom = pbStream(duplex[0])
+      const connectionTo = pbStream(duplex[1])
 
       const prologue = Buffer.alloc(0)
       const staticKeysInitiator = generateKeypair()
@@ -55,16 +56,17 @@ describe('XX Handshake', () => {
       const { plaintext: decrypted, valid } = handshakeResponder.decrypt(encrypted, handshakeResponder.session)
       assert(uint8ArrayEquals(decrypted, Buffer.from('encryptthis')))
       assert(valid)
-    } catch (e: any) {
-      assert(false, e.message)
+    } catch (e) {
+      const err = e as Error
+      assert(false, err.message)
     }
   })
 
   it('Initiator should fail to exchange handshake if given wrong public key in payload', async () => {
     try {
-      const duplex = Duplex()
-      const connectionFrom = Wrap(duplex[0])
-      const connectionTo = Wrap(duplex[1])
+      const duplex = duplexPair<Uint8Array>()
+      const connectionFrom = pbStream(duplex[0])
+      const connectionTo = pbStream(duplex[1])
 
       const prologue = Buffer.alloc(0)
       const staticKeysInitiator = generateKeypair()
@@ -83,16 +85,17 @@ describe('XX Handshake', () => {
       await handshakeInitator.exchange()
 
       assert(false, 'Should throw exception')
-    } catch (e: any) {
-      expect(e.message).equals("Error occurred while verifying signed payload: Peer ID doesn't match libp2p public key.")
+    } catch (e) {
+      const err = e as Error
+      expect(err.message).equals("Error occurred while verifying signed payload: Peer ID doesn't match libp2p public key.")
     }
   })
 
   it('Responder should fail to exchange handshake if given wrong public key in payload', async () => {
     try {
-      const duplex = Duplex()
-      const connectionFrom = Wrap(duplex[0])
-      const connectionTo = Wrap(duplex[1])
+      const duplex = duplexPair<Uint8Array>()
+      const connectionFrom = pbStream(duplex[0])
+      const connectionTo = pbStream(duplex[1])
 
       const prologue = Buffer.alloc(0)
       const staticKeysInitiator = generateKeypair()
@@ -114,8 +117,9 @@ describe('XX Handshake', () => {
       await handshakeResponder.finish()
 
       assert(false, 'Should throw exception')
-    } catch (e: any) {
-      expect(e.message).equals("Error occurred while verifying signed payload: Peer ID doesn't match libp2p public key.")
+    } catch (e) {
+      const err = e as Error
+      expect(err.message).equals("Error occurred while verifying signed payload: Peer ID doesn't match libp2p public key.")
     }
   })
 })
