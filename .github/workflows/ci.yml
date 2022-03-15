@@ -55,6 +55,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
       - run: yarn --prefer-offline --frozen-lockfile
+      - run: yarn run build
       - run: npm run test:node -- --bail --cov
       - uses: codecov/codecov-action@v1
 
@@ -78,6 +79,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
       - run: yarn --prefer-offline --frozen-lockfile
+      - run: yarn run build
       - run: npm run test:browser -- --bail
 
   test-firefox:
@@ -100,6 +102,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
       - run: yarn --prefer-offline --frozen-lockfile
+      - run: yarn run build
       - run: npm run test:browser -- --bail -- --browser firefox
 
   test-webkit:
@@ -123,6 +126,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
       - run: yarn --prefer-offline --frozen-lockfile
+      - run: yarn run build
       - run: npm run test:browser -- --bail -- --browser webkit
 
   test-electron-main:
@@ -145,4 +149,5 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
       - run: yarn --prefer-offline --frozen-lockfile
+      - run: yarn run build
       - run: npm run test:electron-main -- --bail
