@@ -1,12 +1,12 @@
-import { XXHandshake } from './handshake-xx'
-import { XX } from './handshakes/xx'
-import { KeyPair } from './@types/libp2p'
-import { bytes, bytes32 } from './@types/basic'
-import { decodePayload, getPeerIdFromPayload, verifySignedPayload } from './utils'
-import { logger, logLocalEphemeralKeys, logRemoteEphemeralKey, logRemoteStaticKey } from './logger'
-import { WrappedConnection } from './noise'
-import { decode0, decode1 } from './encoder'
-import PeerId from 'peer-id'
+import { XXHandshake } from './handshake-xx.js'
+import type { XX } from './handshakes/xx.js'
+import type { KeyPair } from './@types/libp2p.js'
+import type { bytes, bytes32 } from './@types/basic.js'
+import { decodePayload, getPeerIdFromPayload, verifySignedPayload } from './utils.js'
+import { logger, logLocalEphemeralKeys, logRemoteEphemeralKey, logRemoteStaticKey } from './logger.js'
+import type { ProtobufStream } from 'it-pb-stream'
+import { decode0, decode1 } from './encoder.js'
+import type { PeerId } from '@libp2p/interfaces/peer-id'
 
 export class XXFallbackHandshake extends XXHandshake {
   private readonly ephemeralKeys?: KeyPair
@@ -17,7 +17,7 @@ export class XXFallbackHandshake extends XXHandshake {
     payload: bytes,
     prologue: bytes32,
     staticKeypair: KeyPair,
-    connection: WrappedConnection,
+    connection: ProtobufStream,
     initialMsg: bytes,
     remotePeer?: PeerId,
     ephemeralKeys?: KeyPair,
@@ -71,7 +71,7 @@ export class XXFallbackHandshake extends XXHandshake {
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload)
         await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer)
         this.setRemoteEarlyData(decodedPayload.data)
-      } catch (e: any) {
+      } catch (e) {
         const err = e as Error
         throw new Error(`Error occurred while verifying signed payload from responder: ${err.message}`)
       }

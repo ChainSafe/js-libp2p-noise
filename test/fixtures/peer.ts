@@ -1,4 +1,5 @@
-import PeerId from 'peer-id'
+import type { PeerId } from '@libp2p/interfaces/peer-id'
+import { createEd25519PeerId, createFromJSON } from '@libp2p/peer-id-factory'
 
 // ed25519 keys
 const peers = [{
@@ -21,14 +22,14 @@ const peers = [{
 
 export async function createPeerIdsFromFixtures (length: number): Promise<PeerId[]> {
   return await Promise.all(
-    Array.from({ length }).map(async (_, i) => await PeerId.createFromJSON(peers[i]))
+    Array.from({ length }).map(async (_, i) => await createFromJSON(peers[i]))
   )
 }
 
 export async function createPeerIds (length: number): Promise<PeerId[]> {
   const peerIds: PeerId[] = []
   for (let i = 0; i < length; i++) {
-    const id = await PeerId.create({ keyType: 'Ed25519', bits: 256 })
+    const id = await createEd25519PeerId()
     peerIds.push(id)
   }
 

@@ -1,9 +1,9 @@
-import BufferList from 'bl'
+import type { Uint8ArrayList } from 'uint8arraylist'
 
 export class FailedIKError extends Error {
-  public initialMsg: string|BufferList|Uint8Array
+  public initialMsg: string|Uint8ArrayList|Uint8Array
 
-  constructor (initialMsg: string|BufferList|Uint8Array, message?: string) {
+  constructor (initialMsg: string|Uint8ArrayList|Uint8Array, message?: string) {
     super(message)
 
     this.initialMsg = initialMsg

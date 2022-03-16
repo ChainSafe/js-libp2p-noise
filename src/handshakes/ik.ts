@@ -1,8 +1,8 @@
-import { CipherState, HandshakeState, MessageBuffer, NoiseSession } from '../@types/handshake'
-import { bytes, bytes32 } from '../@types/basic'
-import { generateKeypair, isValidPublicKey } from '../utils'
-import { AbstractHandshake } from './abstract-handshake'
-import { KeyPair } from '../@types/libp2p'
+import type { CipherState, HandshakeState, MessageBuffer, NoiseSession } from '../@types/handshake.js'
+import type { bytes, bytes32 } from '../@types/basic.js'
+import { generateKeypair, isValidPublicKey } from '../utils.js'
+import { AbstractHandshake } from './abstract-handshake.js'
+import type { KeyPair } from '../@types/libp2p.js'
 
 export class IK extends AbstractHandshake {
   public initSession (initiator: boolean, prologue: bytes32, s: KeyPair, rs: bytes32): NoiseSession {

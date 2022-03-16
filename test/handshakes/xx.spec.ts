@@ -2,11 +2,11 @@ import { expect, assert } from 'chai'
 import { Buffer } from 'buffer'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
-
-import { XX } from '../../src/handshakes/xx'
-import { KeyPair } from '../../src/@types/libp2p'
-import { generateEd25519Keys } from '../utils'
-import { createHandshakePayload, generateKeypair, getHandshakePayload, getHkdf } from '../../src/utils'
+import { XX } from '../../src/handshakes/xx.js'
+import type { KeyPair } from '../../src/@types/libp2p.js'
+import { generateEd25519Keys } from '../utils.js'
+import { createHandshakePayload, generateKeypair, getHandshakePayload, getHkdf } from '../../src/utils.js'
+import type { NoiseSession } from '../../src/@types/handshake.js'
 
 describe('XX Handshake', () => {
   const prologue = Buffer.alloc(0)
@@ -19,8 +19,9 @@ describe('XX Handshake', () => {
       await generateKeypair()
 
       await xx.initSession(true, prologue, kpInitiator)
-    } catch (e: any) {
-      assert(false, e.message)
+    } catch (e) {
+      const err = e as Error
+      assert(false, err.message)
     }
   })
 
@@ -36,7 +37,7 @@ describe('XX Handshake', () => {
     expect(uint8ArrayToString(k3, 'hex')).to.equal('ff67bf9727e31b06efc203907e6786667d2c7a74ac412b4d31a80ba3fd766f68')
   })
 
-  async function doHandshake (xx) {
+  async function doHandshake (xx: XX): Promise<{ nsInit: NoiseSession, nsResp: NoiseSession }> {
     const kpInit = await generateKeypair()
     const kpResp = await generateKeypair()
 
@@ -94,6 +95,10 @@ describe('XX Handshake', () => {
     // responder receive message
     xx.recvMessage(nsResp, messageBuffer3)
 
+    if (nsInit.cs1 == null || nsResp.cs1 == null || nsInit.cs2 == null || nsResp.cs2 == null) {
+      throw new Error('CipherState missing')
+    }
+
     assert(uint8ArrayEquals(nsInit.cs1.k, nsResp.cs1.k))
     assert(uint8ArrayEquals(nsInit.cs2.k, nsResp.cs2.k))
 
@@ -104,8 +109,9 @@ describe('XX Handshake', () => {
     try {
       const xx = new XX()
       await doHandshake(xx)
-    } catch (e: any) {
-      assert(false, e.message)
+    } catch (e) {
+      const err = e as Error
+      assert(false, err.message)
     }
   })
 
@@ -116,14 +122,19 @@ describe('XX Handshake', () => {
       const ad = Buffer.from('authenticated')
       const message = Buffer.from('HelloCrypto')
 
+      if (nsInit.cs1 == null || nsResp.cs1 == null || nsInit.cs2 == null || nsResp.cs2 == null) {
+        throw new Error('CipherState missing')
+      }
+
       const ciphertext = xx.encryptWithAd(nsInit.cs1, ad, message)
       assert(!uint8ArrayEquals(Buffer.from('HelloCrypto'), ciphertext), 'Encrypted message should not be same as plaintext.')
       const { plaintext: decrypted, valid } = xx.decryptWithAd(nsResp.cs1, ad, ciphertext)
 
       assert(uint8ArrayEquals(Buffer.from('HelloCrypto'), decrypted), 'Decrypted text not equal to original message.')
       assert(valid)
-    } catch (e: any) {
-      assert(false, e.message)
+    } catch (e) {
+      const err = e as Error
+      assert(false, err.message)
     }
   })
 
@@ -132,6 +143,10 @@ describe('XX Handshake', () => {
     const { nsInit, nsResp } = await doHandshake(xx)
     const ad = Buffer.from('authenticated')
     const message = Buffer.from('ethereum1')
+
+    if (nsInit.cs1 == null || nsResp.cs1 == null || nsInit.cs2 == null || nsResp.cs2 == null) {
+      throw new Error('CipherState missing')
+    }
 
     const encrypted = xx.encryptWithAd(nsInit.cs1, ad, message)
     const { plaintext: decrypted } = xx.decryptWithAd(nsResp.cs1, ad, encrypted)

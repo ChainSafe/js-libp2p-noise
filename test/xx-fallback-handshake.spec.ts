@@ -1,19 +1,19 @@
-import Wrap from 'it-pb-rpc'
+import { pbStream } from 'it-pb-stream'
 import { Buffer } from 'buffer'
-import Duplex from 'it-pair/duplex'
+import { duplexPair } from 'it-pair/duplex'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
-
 import {
   generateKeypair,
   getPayload
-} from '../src/utils'
-import { XXFallbackHandshake } from '../src/handshake-xx-fallback'
-import { createPeerIdsFromFixtures } from './fixtures/peer'
+} from '../src/utils.js'
+import { XXFallbackHandshake } from '../src/handshake-xx-fallback.js'
+import { createPeerIdsFromFixtures } from './fixtures/peer.js'
 import { assert } from 'chai'
-import { encode0 } from '../src/encoder'
+import { encode0 } from '../src/encoder.js'
+import type { PeerId } from '@libp2p/interfaces/peer-id'
 
 describe('XX Fallback Handshake', () => {
-  let peerA, peerB
+  let peerA: PeerId, peerB: PeerId
 
   before(async () => {
     [peerA, peerB] = await createPeerIdsFromFixtures(2)
@@ -21,9 +21,9 @@ describe('XX Fallback Handshake', () => {
 
   it('should test that both parties can fallback to XX and finish handshake', async () => {
     try {
-      const duplex = Duplex()
-      const connectionFrom = Wrap(duplex[0])
-      const connectionTo = Wrap(duplex[1])
+      const duplex = duplexPair<Uint8Array>()
+      const connectionFrom = pbStream(duplex[0])
+      const connectionTo = pbStream(duplex[1])
 
       const prologue = Buffer.alloc(0)
       const staticKeysInitiator = generateKeypair()
@@ -70,8 +70,9 @@ describe('XX Fallback Handshake', () => {
       } else {
         assert(false)
       }
-    } catch (e: any) {
-      assert(false, e.message)
+    } catch (e) {
+      const err = e as Error
+      assert(false, err.message)
     }
   })
 })

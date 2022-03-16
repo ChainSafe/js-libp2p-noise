@@ -5,10 +5,10 @@ import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
 import { fromString as uint8ArrayFromString } from 'uint8arrays'
 
-import { bytes, bytes32, uint64 } from '../@types/basic'
-import { CipherState, MessageBuffer, SymmetricState } from '../@types/handshake'
-import { getHkdf } from '../utils'
-import { logger } from '../logger'
+import type { bytes, bytes32, uint64 } from '../@types/basic.js'
+import type { CipherState, MessageBuffer, SymmetricState } from '../@types/handshake.js'
+import { getHkdf } from '../utils.js'
+import { logger } from '../logger.js'
 
 export const MIN_NONCE = 0
 // For performance reasons, the nonce is represented as a JS `number`
@@ -131,8 +131,9 @@ export abstract class AbstractHandshake {
       }
 
       return derivedU8.slice(0, 32)
-    } catch (e: any) {
-      logger(e.message)
+    } catch (e) {
+      const err = e as Error
+      logger(err.message)
       return new Uint8Array(32)
     }
   }

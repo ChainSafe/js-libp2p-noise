@@ -1,24 +1,25 @@
 import { assert, expect } from 'chai'
-import DuplexPair from 'it-pair/duplex'
-import { createPeerIdsFromFixtures } from './fixtures/peer'
-import Wrap from 'it-pb-rpc'
+import { duplexPair } from 'it-pair/duplex'
+import { createPeerIdsFromFixtures } from './fixtures/peer.js'
+import { pbStream } from 'it-pb-stream'
 import sinon from 'sinon'
-import BufferList from 'bl'
-import { randomBytes } from 'libp2p-crypto'
+import { randomBytes } from '@libp2p/crypto'
 import { Buffer } from 'buffer'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
-
-import { Noise } from '../src'
-import { XXHandshake } from '../src/handshake-xx'
-import { createHandshakePayload, generateKeypair, getHandshakePayload, getPayload, signPayload } from '../src/utils'
-import { decode0, decode2, encode1, uint16BEDecode, uint16BEEncode } from '../src/encoder'
-import { XX } from '../src/handshakes/xx'
-import { getKeyPairFromPeerId } from './utils'
-import { KeyCache } from '../src/keycache'
-import { NOISE_MSG_MAX_LENGTH_BYTES } from '../src/constants'
+import { Noise } from '../src/index.js'
+import { XXHandshake } from '../src/handshake-xx.js'
+import { createHandshakePayload, generateKeypair, getHandshakePayload, getPayload, signPayload } from '../src/utils.js'
+import { decode0, decode2, encode1, uint16BEDecode, uint16BEEncode } from '../src/encoder.js'
+import { XX } from '../src/handshakes/xx.js'
+import { getKeyPairFromPeerId } from './utils.js'
+import { KeyCache } from '../src/keycache.js'
+import { NOISE_MSG_MAX_LENGTH_BYTES } from '../src/constants.js'
+import type { PeerId } from '@libp2p/interfaces/peer-id'
+import { Uint8ArrayList } from 'uint8arraylist'
+import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 
 describe('Noise', () => {
-  let remotePeer, localPeer
+  let remotePeer: PeerId, localPeer: PeerId
   const sandbox = sinon.createSandbox()
 
   before(async () => {
@@ -34,30 +35,31 @@ describe('Noise', () => {
       const noiseInit = new Noise(undefined, undefined)
       const noiseResp = new Noise(undefined, undefined)
 
-      const [inboundConnection, outboundConnection] = DuplexPair()
+      const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
       const [outbound, inbound] = await Promise.all([
         noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
         noiseResp.secureInbound(remotePeer, inboundConnection, localPeer)
       ])
-      const wrappedInbound = Wrap(inbound.conn)
-      const wrappedOutbound = Wrap(outbound.conn)
+      const wrappedInbound = pbStream(inbound.conn)
+      const wrappedOutbound = pbStream(outbound.conn)
 
       wrappedOutbound.writeLP(Buffer.from('test'))
       const response = await wrappedInbound.readLP()
-      expect(response.toString()).equal('test')
-    } catch (e: any) {
-      assert(false, e.message)
+      expect(uint8ArrayToString(response.slice())).equal('test')
+    } catch (e) {
+      const err = e as Error
+      assert(false, err.message)
     }
   })
 
   it('should test that secureOutbound is spec compliant', async () => {
     const noiseInit = new Noise(undefined, undefined)
-    const [inboundConnection, outboundConnection] = DuplexPair()
+    const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
 
     const [outbound, { wrapped, handshake }] = await Promise.all([
       noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
       (async () => {
-        const wrapped = Wrap(
+        const wrapped = pbStream(
           inboundConnection,
           {
             lengthEncoder: uint16BEEncode,
@@ -93,19 +95,21 @@ describe('Noise', () => {
     ])
 
     try {
-      const wrappedOutbound = Wrap(outbound.conn)
-      wrappedOutbound.write(new BufferList([Buffer.from('test')]))
+      const wrappedOutbound = pbStream(outbound.conn)
+      wrappedOutbound.write(new Uint8ArrayList(Buffer.from('test')))
 
       // Check that noise message is prefixed with 16-bit big-endian unsigned integer
       const receivedEncryptedPayload = (await wrapped.read()).slice()
-      const dataLength = receivedEncryptedPayload.readInt16BE(0)
+      const view = new DataView(receivedEncryptedPayload.buffer, receivedEncryptedPayload.byteOffset, receivedEncryptedPayload.byteLength)
+      const dataLength = view.getInt16(0)
       const data = receivedEncryptedPayload.slice(2, dataLength + 2)
       const { plaintext: decrypted, valid } = handshake.decrypt(data, handshake.session)
       // Decrypted data should match
       assert(uint8ArrayEquals(decrypted, Buffer.from('test')))
       assert(valid)
-    } catch (e: any) {
-      assert(false, e.message)
+    } catch (e) {
+      const err = e as Error
+      assert(false, err.message)
     }
   })
 
@@ -115,21 +119,22 @@ describe('Noise', () => {
       const noiseInit = new Noise(undefined, undefined)
       const noiseResp = new Noise(undefined, undefined)
 
-      const [inboundConnection, outboundConnection] = DuplexPair()
+      const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
       const [outbound, inbound] = await Promise.all([
         noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
         noiseResp.secureInbound(remotePeer, inboundConnection, localPeer)
       ])
-      const wrappedInbound = Wrap(inbound.conn)
-      const wrappedOutbound = Wrap(outbound.conn)
+      const wrappedInbound = pbStream(inbound.conn)
+      const wrappedOutbound = pbStream(outbound.conn)
 
       const largePlaintext = randomBytes(100000)
       wrappedOutbound.writeLP(Buffer.from(largePlaintext))
       const response = await wrappedInbound.read(100000)
 
       expect(response.length).equals(largePlaintext.length)
-    } catch (e: any) {
-      assert(false, e.message)
+    } catch (e) {
+      const err = e as Error
+      assert(false, err.message)
     }
   })
 
@@ -149,22 +154,23 @@ describe('Noise', () => {
       // @ts-expect-error
       const xxFallbackSpy = sandbox.spy(noiseInit, 'performXXFallbackHandshake')
 
-      const [inboundConnection, outboundConnection] = DuplexPair()
+      const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
       const [outbound, inbound] = await Promise.all([
         noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
         noiseResp.secureInbound(remotePeer, inboundConnection, localPeer)
       ])
-      const wrappedInbound = Wrap(inbound.conn)
-      const wrappedOutbound = Wrap(outbound.conn)
+      const wrappedInbound = pbStream(inbound.conn)
+      const wrappedOutbound = pbStream(outbound.conn)
 
       wrappedOutbound.writeLP(Buffer.from('test v2'))
       const response = await wrappedInbound.readLP()
-      expect(response.toString()).equal('test v2')
+      expect(uint8ArrayToString(response.slice())).equal('test v2')
 
       assert(xxSpy.notCalled)
       assert(xxFallbackSpy.notCalled)
-    } catch (e: any) {
-      assert(false, e.message)
+    } catch (e) {
+      const err = e as Error
+      assert(false, err.message)
     }
   })
 
@@ -181,22 +187,23 @@ describe('Noise', () => {
       KeyCache.store(localPeer, staticKeysInitiator.publicKey)
       KeyCache.store(remotePeer, generateKeypair().publicKey)
 
-      const [inboundConnection, outboundConnection] = DuplexPair()
+      const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
       const [outbound, inbound] = await Promise.all([
         noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
         noiseResp.secureInbound(remotePeer, inboundConnection, localPeer)
       ])
 
-      const wrappedInbound = Wrap(inbound.conn)
-      const wrappedOutbound = Wrap(outbound.conn)
+      const wrappedInbound = pbStream(inbound.conn)
+      const wrappedOutbound = pbStream(outbound.conn)
 
       wrappedOutbound.writeLP(Buffer.from('test fallback'))
       const response = await wrappedInbound.readLP()
-      expect(response.toString()).equal('test fallback')
+      expect(uint8ArrayToString(response.slice())).equal('test fallback')
 
       assert(xxSpy.calledOnce, 'XX Fallback method was never called.')
-    } catch (e: any) {
-      assert(false, e.message)
+    } catch (e) {
+      const err = e as Error
+      assert(false, err.message)
     }
   })
 
@@ -215,22 +222,23 @@ describe('Noise', () => {
       KeyCache.store(localPeer, staticKeysInitiator.publicKey)
       KeyCache.store(remotePeer, staticKeysResponder.publicKey)
 
-      const [inboundConnection, outboundConnection] = DuplexPair()
+      const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
       const [outbound, inbound] = await Promise.all([
         noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
         noiseResp.secureInbound(remotePeer, inboundConnection, localPeer)
       ])
 
-      const wrappedInbound = Wrap(inbound.conn)
-      const wrappedOutbound = Wrap(outbound.conn)
+      const wrappedInbound = pbStream(inbound.conn)
+      const wrappedOutbound = pbStream(outbound.conn)
 
       wrappedOutbound.writeLP(Buffer.from('test fallback'))
       const response = await wrappedInbound.readLP()
-      expect(response.toString()).equal('test fallback')
+      expect(uint8ArrayToString(response.slice())).equal('test fallback')
 
       assert(xxSpy.calledOnce, 'XX Fallback method was never called.')
-    } catch (e: any) {
-      assert(false, e.message)
+    } catch (e) {
+      const err = e as Error
+      assert(false, err.message)
     }
   })
 
@@ -249,24 +257,25 @@ describe('Noise', () => {
       // Prepare key cache for noise pipes
       KeyCache.store(localPeer, staticKeysInitiator.publicKey)
 
-      const [inboundConnection, outboundConnection] = DuplexPair()
+      const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
 
       const [outbound, inbound] = await Promise.all([
         noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
         noiseResp.secureInbound(remotePeer, inboundConnection, localPeer)
       ])
 
-      const wrappedInbound = Wrap(inbound.conn)
-      const wrappedOutbound = Wrap(outbound.conn)
+      const wrappedInbound = pbStream(inbound.conn)
+      const wrappedOutbound = pbStream(outbound.conn)
 
       wrappedOutbound.writeLP(Buffer.from('test fallback'))
       const response = await wrappedInbound.readLP()
-      expect(response.toString()).equal('test fallback')
+      expect(uint8ArrayToString(response.slice())).equal('test fallback')
 
       assert(xxInitSpy.calledOnce, 'XX method was never called.')
       assert(xxRespSpy.calledOnce, 'XX Fallback method was never called.')
-    } catch (e: any) {
-      assert(false, e.message)
+    } catch (e) {
+      const err = e as Error
+      assert(false, err.message)
     }
   })
 
@@ -288,25 +297,26 @@ describe('Noise', () => {
       KeyCache.resetStorage()
       KeyCache.store(remotePeer, staticKeysResponder.publicKey)
 
-      const [inboundConnection, outboundConnection] = DuplexPair()
+      const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
 
       const [outbound, inbound] = await Promise.all([
         noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
         noiseResp.secureInbound(remotePeer, inboundConnection, localPeer)
       ])
 
-      const wrappedInbound = Wrap(inbound.conn)
-      const wrappedOutbound = Wrap(outbound.conn)
+      const wrappedInbound = pbStream(inbound.conn)
+      const wrappedOutbound = pbStream(outbound.conn)
 
       wrappedOutbound.writeLP(Buffer.from('test fallback'))
       const response = await wrappedInbound.readLP()
-      expect(response.toString()).equal('test fallback')
+      expect(uint8ArrayToString(response.slice())).equal('test fallback')
 
       assert(ikInitSpy.calledOnce, 'IK handshake was not called.')
       assert(ikRespSpy.calledOnce, 'IK handshake was not called.')
       assert(xxFallbackInitSpy.notCalled, 'XX Fallback method was called.')
-    } catch (e: any) {
-      assert(false, e.message)
+    } catch (e) {
+      const err = e as Error
+      assert(false, err.message)
     }
   })
 
@@ -321,22 +331,28 @@ describe('Noise', () => {
       KeyCache.store(localPeer, staticKeysInitiator.publicKey)
       KeyCache.store(remotePeer, staticKeysResponder.publicKey)
 
-      const [inboundConnection, outboundConnection] = DuplexPair()
+      const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
       const [outbound, inbound] = await Promise.all([
         noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
         noiseResp.secureInbound(remotePeer, inboundConnection)
       ])
-      const wrappedInbound = Wrap(inbound.conn)
-      const wrappedOutbound = Wrap(outbound.conn)
+      const wrappedInbound = pbStream(inbound.conn)
+      const wrappedOutbound = pbStream(outbound.conn)
 
       wrappedOutbound.writeLP(Buffer.from('test v2'))
       const response = await wrappedInbound.readLP()
-      expect(response.toString()).equal('test v2')
+      expect(uint8ArrayToString(response.slice())).equal('test v2')
 
-      assert(uint8ArrayEquals(inbound.remotePeer.marshalPubKey(), localPeer.marshalPubKey()))
-      assert(uint8ArrayEquals(outbound.remotePeer.marshalPubKey(), remotePeer.marshalPubKey()))
-    } catch (e: any) {
-      assert(false, e.message)
+      if (inbound.remotePeer.publicKey == null || localPeer.publicKey == null ||
+        outbound.remotePeer.publicKey == null || remotePeer.publicKey == null) {
+        throw new Error('Public key missing from PeerId')
+      }
+
+      assert(uint8ArrayEquals(inbound.remotePeer.publicKey, localPeer.publicKey))
+      assert(uint8ArrayEquals(outbound.remotePeer.publicKey, remotePeer.publicKey))
+    } catch (e) {
+      const err = e as Error
+      assert(false, err.message)
     }
   })
 
@@ -352,7 +368,7 @@ describe('Noise', () => {
       KeyCache.store(localPeer, staticKeysInitiator.publicKey)
       KeyCache.store(remotePeer, staticKeysResponder.publicKey)
 
-      const [inboundConnection, outboundConnection] = DuplexPair()
+      const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
       const [outbound, inbound] = await Promise.all([
         noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
         noiseResp.secureInbound(remotePeer, inboundConnection)
@@ -360,8 +376,9 @@ describe('Noise', () => {
 
       assert(uint8ArrayEquals(inbound.remoteEarlyData, localPeerEarlyData))
       assert(uint8ArrayEquals(outbound.remoteEarlyData, Buffer.alloc(0)))
-    } catch (e: any) {
-      assert(false, e.message)
+    } catch (e) {
+      const err = e as Error
+      assert(false, err.message)
     }
   })
 })

@@ -1,13 +1,13 @@
-import { XX } from './handshakes/xx'
-import { KeyPair } from './@types/libp2p'
-import { bytes, bytes32 } from './@types/basic'
-import { CipherState, NoiseSession } from './@types/handshake'
-import { IHandshake } from './@types/handshake-interface'
+import { XX } from './handshakes/xx.js'
+import type { KeyPair } from './@types/libp2p.js'
+import type { bytes, bytes32 } from './@types/basic.js'
+import type { CipherState, NoiseSession } from './@types/handshake.js'
+import type { IHandshake } from './@types/handshake-interface.js'
 import {
   decodePayload,
   getPeerIdFromPayload,
   verifySignedPayload
-} from './utils'
+} from './utils.js'
 import {
   logger,
   logLocalStaticKeys,
@@ -15,10 +15,10 @@ import {
   logRemoteEphemeralKey,
   logRemoteStaticKey,
   logCipherState
-} from './logger'
-import { decode0, decode1, decode2, encode0, encode1, encode2 } from './encoder'
-import { WrappedConnection } from './noise'
-import PeerId from 'peer-id'
+} from './logger.js'
+import { decode0, decode1, decode2, encode0, encode1, encode2 } from './encoder.js'
+import type { ProtobufStream } from 'it-pb-stream'
+import type { PeerId } from '@libp2p/interfaces/peer-id'
 
 export class XXHandshake implements IHandshake {
   public isInitiator: boolean
@@ -27,7 +27,7 @@ export class XXHandshake implements IHandshake {
   public remoteEarlyData: bytes
 
   protected payload: bytes
-  protected connection: WrappedConnection
+  protected connection: ProtobufStream
   protected xx: XX
   protected staticKeypair: KeyPair
 
@@ -38,7 +38,7 @@ export class XXHandshake implements IHandshake {
     payload: bytes,
     prologue: bytes32,
     staticKeypair: KeyPair,
-    connection: WrappedConnection,
+    connection: ProtobufStream,
     remotePeer?: PeerId,
     handshake?: XX
   ) {
@@ -95,7 +95,7 @@ export class XXHandshake implements IHandshake {
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload)
         this.remotePeer = await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer)
         this.setRemoteEarlyData(decodedPayload.data)
-      } catch (e: any) {
+      } catch (e) {
         const err = e as Error
         throw new Error(`Error occurred while verifying signed payload: ${err.message}`)
       }
@@ -130,7 +130,7 @@ export class XXHandshake implements IHandshake {
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload)
         await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer)
         this.setRemoteEarlyData(decodedPayload.data)
-      } catch (e: any) {
+      } catch (e) {
         const err = e as Error
         throw new Error(`Error occurred while verifying signed payload: ${err.message}`)
       }

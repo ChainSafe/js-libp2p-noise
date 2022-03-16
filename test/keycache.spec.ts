@@ -1,11 +1,12 @@
 import { assert } from 'chai'
-import { KeyCache } from '../src/keycache'
-import { createPeerIds, createPeerIdsFromFixtures } from './fixtures/peer'
+import { KeyCache } from '../src/keycache.js'
+import { createPeerIds, createPeerIdsFromFixtures } from './fixtures/peer.js'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { Buffer } from 'buffer'
+import type { PeerId } from '@libp2p/interfaces/peer-id'
 
 describe('KeyCache', () => {
-  let peerA
+  let peerA: PeerId
 
   before(async () => {
     [peerA] = await createPeerIdsFromFixtures(2)
@@ -17,7 +18,7 @@ describe('KeyCache', () => {
       await KeyCache.store(peerA, key)
       const result = await KeyCache.load(peerA)
       assert(result !== null && uint8ArrayEquals(result, key), 'Stored and loaded key are not the same')
-    } catch (e: any) {
+    } catch (e) {
       const err = e as Error
       assert(false, `Test failed - ${err.message}`)
     }
@@ -28,7 +29,7 @@ describe('KeyCache', () => {
       const [newPeer] = await createPeerIds(1)
       const result = await KeyCache.load(newPeer)
       assert(result === null)
-    } catch (e: any) {
+    } catch (e) {
       const err = e as Error
       assert(false, `Test failed - ${err.message}`)
     }

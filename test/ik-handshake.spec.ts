@@ -1,15 +1,16 @@
-import Wrap from 'it-pb-rpc'
-import Duplex from 'it-pair/duplex'
+import { pbStream } from 'it-pb-stream'
+import { duplexPair } from 'it-pair/duplex'
 import { Buffer } from 'buffer'
 import { assert, expect } from 'chai'
 
-import { createPeerIdsFromFixtures } from './fixtures/peer'
-import { generateKeypair, getPayload } from '../src/utils'
-import { IKHandshake } from '../src/handshake-ik'
+import { createPeerIdsFromFixtures } from './fixtures/peer.js'
+import { generateKeypair, getPayload } from '../src/utils.js'
+import { IKHandshake } from '../src/handshake-ik.js'
 import { equals as uint8ArrayEquals } from 'uint8arrays'
+import type { PeerId } from '@libp2p/interfaces/peer-id'
 
 describe('IK Handshake', () => {
-  let peerA, peerB
+  let peerA: PeerId, peerB: PeerId
 
   before(async () => {
     [peerA, peerB] = await createPeerIdsFromFixtures(3)
@@ -18,9 +19,9 @@ describe('IK Handshake', () => {
   // IK handshake is not used, no idea why this test isn't passing but it makes no sense to debug until we start using it
   it.skip('should finish both stages as initiator and responder', async () => {
     try {
-      const duplex = Duplex()
-      const connectionFrom = Wrap(duplex[0])
-      const connectionTo = Wrap(duplex[1])
+      const duplex = duplexPair<Uint8Array>()
+      const connectionFrom = pbStream(duplex[0])
+      const connectionTo = pbStream(duplex[1])
 
       const prologue = Buffer.alloc(0)
       const staticKeysInitiator = generateKeypair()
@@ -50,16 +51,17 @@ describe('IK Handshake', () => {
       const encrypted = handshakeInit.encrypt(Buffer.from('encryptthis'), handshakeInit.session)
       const { plaintext: decrypted } = handshakeResp.decrypt(encrypted, handshakeResp.session)
       assert(uint8ArrayEquals(decrypted, Buffer.from('encryptthis')))
-    } catch (e: any) {
-      assert(false, e.message)
+    } catch (e) {
+      const err = e as Error
+      assert(false, err.message)
     }
   })
 
   it("should throw error if responder's static key changed", async () => {
     try {
-      const duplex = Duplex()
-      const connectionFrom = Wrap(duplex[0])
-      const connectionTo = Wrap(duplex[1])
+      const duplex = duplexPair<Uint8Array>()
+      const connectionFrom = pbStream(duplex[0])
+      const connectionTo = pbStream(duplex[1])
 
       const prologue = Buffer.alloc(0)
       const staticKeysInitiator = generateKeypair()
@@ -74,8 +76,9 @@ describe('IK Handshake', () => {
 
       await handshakeInit.stage0()
       await handshakeResp.stage0()
-    } catch (e: any) {
-      expect(e.message).to.include("Error occurred while verifying initiator's signed payload")
+    } catch (e) {
+      const err = e as Error
+      expect(err.message).to.include("Error occurred while verifying initiator's signed payload")
     }
   })
 })
