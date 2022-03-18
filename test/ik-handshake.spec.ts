@@ -1,13 +1,13 @@
+import type { PeerId } from '@libp2p/interfaces/peer-id'
+import { Buffer } from 'buffer'
 import { pbStream } from 'it-pb-stream'
 import { duplexPair } from 'it-pair/duplex'
-import { Buffer } from 'buffer'
-import { assert, expect } from 'chai'
-
-import { createPeerIdsFromFixtures } from './fixtures/peer.js'
-import { generateKeypair, getPayload } from '../src/utils.js'
-import { IKHandshake } from '../src/handshake-ik.js'
 import { equals as uint8ArrayEquals } from 'uint8arrays'
-import type { PeerId } from '@libp2p/interfaces/peer-id'
+import { assert, expect } from 'chai'
+import { stablelib } from '../src/crypto/stablelib.js'
+import { IKHandshake } from '../src/handshake-ik.js'
+import { getPayload } from '../src/utils.js'
+import { createPeerIdsFromFixtures } from './fixtures/peer.js'
 
 describe('IK Handshake', () => {
   let peerA: PeerId, peerB: PeerId
@@ -24,14 +24,14 @@ describe('IK Handshake', () => {
       const connectionTo = pbStream(duplex[1])
 
       const prologue = Buffer.alloc(0)
-      const staticKeysInitiator = generateKeypair()
-      const staticKeysResponder = generateKeypair()
+      const staticKeysInitiator = stablelib.generateX25519KeyPair()
+      const staticKeysResponder = stablelib.generateX25519KeyPair()
 
       const initPayload = await getPayload(peerA, staticKeysInitiator.publicKey)
-      const handshakeInit = new IKHandshake(true, initPayload, prologue, staticKeysInitiator, connectionFrom, staticKeysResponder.publicKey, peerB)
+      const handshakeInit = new IKHandshake(true, initPayload, prologue, stablelib, staticKeysInitiator, connectionFrom, staticKeysResponder.publicKey, peerB)
 
       const respPayload = await getPayload(peerB, staticKeysResponder.publicKey)
-      const handshakeResp = new IKHandshake(false, respPayload, prologue, staticKeysResponder, connectionTo, staticKeysInitiator.publicKey)
+      const handshakeResp = new IKHandshake(false, respPayload, prologue, stablelib, staticKeysResponder, connectionTo, staticKeysInitiator.publicKey)
 
       await handshakeInit.stage0()
       await handshakeResp.stage0()
@@ -64,15 +64,15 @@ describe('IK Handshake', () => {
       const connectionTo = pbStream(duplex[1])
 
       const prologue = Buffer.alloc(0)
-      const staticKeysInitiator = generateKeypair()
-      const staticKeysResponder = generateKeypair()
-      const oldScammyKeys = generateKeypair()
+      const staticKeysInitiator = stablelib.generateX25519KeyPair()
+      const staticKeysResponder = stablelib.generateX25519KeyPair()
+      const oldScammyKeys = stablelib.generateX25519KeyPair()
 
       const initPayload = await getPayload(peerA, staticKeysInitiator.publicKey)
-      const handshakeInit = new IKHandshake(true, initPayload, prologue, staticKeysInitiator, connectionFrom, oldScammyKeys.publicKey, peerB)
+      const handshakeInit = new IKHandshake(true, initPayload, prologue, stablelib, staticKeysInitiator, connectionFrom, oldScammyKeys.publicKey, peerB)
 
       const respPayload = await getPayload(peerB, staticKeysResponder.publicKey)
-      const handshakeResp = new IKHandshake(false, respPayload, prologue, staticKeysResponder, connectionTo, staticKeysInitiator.publicKey)
+      const handshakeResp = new IKHandshake(false, respPayload, prologue, stablelib, staticKeysResponder, connectionTo, staticKeysInitiator.publicKey)
 
       await handshakeInit.stage0()
       await handshakeResp.stage0()

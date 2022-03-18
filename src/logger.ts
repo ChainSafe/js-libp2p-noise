@@ -1,8 +1,8 @@
 import { Logger, logger } from '@libp2p/logger'
-import { DUMP_SESSION_KEYS } from './constants.js'
-import type { KeyPair } from './@types/libp2p.js'
-import type { NoiseSession } from './@types/handshake.js'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
+import type { NoiseSession } from './@types/handshake.js'
+import type { KeyPair } from './@types/libp2p.js'
+import { DUMP_SESSION_KEYS } from './constants.js'
 
 const log = logger('libp2p:noise')
 

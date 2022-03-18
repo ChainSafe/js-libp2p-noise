@@ -1,22 +1,23 @@
+import { randomBytes } from '@libp2p/crypto'
+import type { PeerId } from '@libp2p/interfaces/peer-id'
+import { Buffer } from 'buffer'
 import { assert, expect } from 'chai'
 import { duplexPair } from 'it-pair/duplex'
-import { createPeerIdsFromFixtures } from './fixtures/peer.js'
 import { pbStream } from 'it-pb-stream'
-import sinon from 'sinon'
-import { randomBytes } from '@libp2p/crypto'
-import { Buffer } from 'buffer'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
-import { Noise } from '../src/index.js'
-import { XXHandshake } from '../src/handshake-xx.js'
-import { createHandshakePayload, generateKeypair, getHandshakePayload, getPayload, signPayload } from '../src/utils.js'
-import { decode0, decode2, encode1, uint16BEDecode, uint16BEEncode } from '../src/encoder.js'
-import { XX } from '../src/handshakes/xx.js'
-import { getKeyPairFromPeerId } from './utils.js'
-import { KeyCache } from '../src/keycache.js'
-import { NOISE_MSG_MAX_LENGTH_BYTES } from '../src/constants.js'
-import type { PeerId } from '@libp2p/interfaces/peer-id'
-import { Uint8ArrayList } from 'uint8arraylist'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
+import { Uint8ArrayList } from 'uint8arraylist'
+import sinon from 'sinon'
+import { NOISE_MSG_MAX_LENGTH_BYTES } from '../src/constants.js'
+import { stablelib } from '../src/crypto/stablelib.js'
+import { decode0, decode2, encode1, uint16BEDecode, uint16BEEncode } from '../src/encoder.js'
+import { KeyCache } from '../src/keycache.js'
+import { XX } from '../src/handshakes/xx.js'
+import { XXHandshake } from '../src/handshake-xx.js'
+import { Noise } from '../src/index.js'
+import { createHandshakePayload, getHandshakePayload, getPayload, signPayload } from '../src/utils.js'
+import { createPeerIdsFromFixtures } from './fixtures/peer.js'
+import { getKeyPairFromPeerId } from './utils.js'
 
 describe('Noise', () => {
   let remotePeer: PeerId, localPeer: PeerId
@@ -68,11 +69,11 @@ describe('Noise', () => {
           }
         )
         const prologue = Buffer.alloc(0)
-        const staticKeys = generateKeypair()
-        const xx = new XX()
+        const staticKeys = stablelib.generateX25519KeyPair()
+        const xx = new XX(stablelib)
 
         const payload = await getPayload(remotePeer, staticKeys.publicKey)
-        const handshake = new XXHandshake(false, payload, prologue, staticKeys, wrapped, localPeer, xx)
+        const handshake = new XXHandshake(false, payload, prologue, stablelib, staticKeys, wrapped, localPeer, xx)
 
         let receivedMessageBuffer = decode0((await wrapped.readLP()).slice())
         // The first handshake message contains the initiator's ephemeral public key
@@ -140,9 +141,9 @@ describe('Noise', () => {
 
   it.skip('should communicate through encrypted streams with noise pipes', async () => {
     try {
-      const staticKeysInitiator = generateKeypair()
+      const staticKeysInitiator = stablelib.generateX25519KeyPair()
       const noiseInit = new Noise(staticKeysInitiator.privateKey)
-      const staticKeysResponder = generateKeypair()
+      const staticKeysResponder = stablelib.generateX25519KeyPair()
       const noiseResp = new Noise(staticKeysResponder.privateKey)
 
       // Prepare key cache for noise pipes
@@ -176,7 +177,7 @@ describe('Noise', () => {
 
   it.skip('IK -> XX fallback: initiator has invalid remote static key', async () => {
     try {
-      const staticKeysInitiator = generateKeypair()
+      const staticKeysInitiator = stablelib.generateX25519KeyPair()
       const noiseInit = new Noise(staticKeysInitiator.privateKey)
       const noiseResp = new Noise()
       // @ts-expect-error
@@ -185,7 +186,7 @@ describe('Noise', () => {
       // Prepare key cache for noise pipes
       KeyCache.resetStorage()
       KeyCache.store(localPeer, staticKeysInitiator.publicKey)
-      KeyCache.store(remotePeer, generateKeypair().publicKey)
+      KeyCache.store(remotePeer, stablelib.generateX25519KeyPair().publicKey)
 
       const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
       const [outbound, inbound] = await Promise.all([
@@ -210,10 +211,10 @@ describe('Noise', () => {
   // this didn't work before but we didn't verify decryption
   it.skip('IK -> XX fallback: responder has disabled noise pipes', async () => {
     try {
-      const staticKeysInitiator = generateKeypair()
+      const staticKeysInitiator = stablelib.generateX25519KeyPair()
       const noiseInit = new Noise(staticKeysInitiator.privateKey)
 
-      const staticKeysResponder = generateKeypair()
+      const staticKeysResponder = stablelib.generateX25519KeyPair()
       const noiseResp = new Noise(staticKeysResponder.privateKey, undefined)
       // @ts-expect-error
       const xxSpy = sandbox.spy(noiseInit, 'performXXFallbackHandshake')
@@ -244,9 +245,9 @@ describe('Noise', () => {
 
   it.skip('Initiator starts with XX (pipes disabled), responder has enabled noise pipes', async () => {
     try {
-      const staticKeysInitiator = generateKeypair()
+      const staticKeysInitiator = stablelib.generateX25519KeyPair()
       const noiseInit = new Noise(staticKeysInitiator.privateKey, undefined)
-      const staticKeysResponder = generateKeypair()
+      const staticKeysResponder = stablelib.generateX25519KeyPair()
 
       const noiseResp = new Noise(staticKeysResponder.privateKey)
       // @ts-expect-error
@@ -281,9 +282,9 @@ describe('Noise', () => {
 
   it.skip('IK: responder has no remote static key', async () => {
     try {
-      const staticKeysInitiator = generateKeypair()
+      const staticKeysInitiator = stablelib.generateX25519KeyPair()
       const noiseInit = new Noise(staticKeysInitiator.privateKey)
-      const staticKeysResponder = generateKeypair()
+      const staticKeysResponder = stablelib.generateX25519KeyPair()
 
       const noiseResp = new Noise(staticKeysResponder.privateKey)
       // @ts-expect-error
@@ -322,9 +323,9 @@ describe('Noise', () => {
 
   it('should working without remote peer provided in incoming connection', async () => {
     try {
-      const staticKeysInitiator = generateKeypair()
+      const staticKeysInitiator = stablelib.generateX25519KeyPair()
       const noiseInit = new Noise(staticKeysInitiator.privateKey)
-      const staticKeysResponder = generateKeypair()
+      const staticKeysResponder = stablelib.generateX25519KeyPair()
       const noiseResp = new Noise(staticKeysResponder.privateKey)
 
       // Prepare key cache for noise pipes
@@ -359,9 +360,9 @@ describe('Noise', () => {
   it('should accept and return early data from remote peer', async () => {
     try {
       const localPeerEarlyData = Buffer.from('early data')
-      const staticKeysInitiator = generateKeypair()
+      const staticKeysInitiator = stablelib.generateX25519KeyPair()
       const noiseInit = new Noise(staticKeysInitiator.privateKey, localPeerEarlyData)
-      const staticKeysResponder = generateKeypair()
+      const staticKeysResponder = stablelib.generateX25519KeyPair()
       const noiseResp = new Noise(staticKeysResponder.privateKey)
 
       // Prepare key cache for noise pipes

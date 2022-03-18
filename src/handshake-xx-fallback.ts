@@ -1,12 +1,13 @@
+import type { PeerId } from '@libp2p/interfaces/peer-id'
+import type { ProtobufStream } from 'it-pb-stream'
+import type { bytes, bytes32 } from './@types/basic.js'
+import type { KeyPair } from './@types/libp2p.js'
 import { XXHandshake } from './handshake-xx.js'
 import type { XX } from './handshakes/xx.js'
-import type { KeyPair } from './@types/libp2p.js'
-import type { bytes, bytes32 } from './@types/basic.js'
-import { decodePayload, getPeerIdFromPayload, verifySignedPayload } from './utils.js'
-import { logger, logLocalEphemeralKeys, logRemoteEphemeralKey, logRemoteStaticKey } from './logger.js'
-import type { ProtobufStream } from 'it-pb-stream'
+import type { ICryptoInterface } from './crypto.js'
 import { decode0, decode1 } from './encoder.js'
-import type { PeerId } from '@libp2p/interfaces/peer-id'
+import { logger, logLocalEphemeralKeys, logRemoteEphemeralKey, logRemoteStaticKey } from './logger.js'
+import { decodePayload, getPeerIdFromPayload, verifySignedPayload } from './utils.js'
 
 export class XXFallbackHandshake extends XXHandshake {
   private readonly ephemeralKeys?: KeyPair
@@ -16,6 +17,7 @@ export class XXFallbackHandshake extends XXHandshake {
     isInitiator: boolean,
     payload: bytes,
     prologue: bytes32,
+    crypto: ICryptoInterface,
     staticKeypair: KeyPair,
     connection: ProtobufStream,
     initialMsg: bytes,
@@ -23,7 +25,7 @@ export class XXFallbackHandshake extends XXHandshake {
     ephemeralKeys?: KeyPair,
     handshake?: XX
   ) {
-    super(isInitiator, payload, prologue, staticKeypair, connection, remotePeer, handshake)
+    super(isInitiator, payload, prologue, crypto, staticKeypair, connection, remotePeer, handshake)
     if (ephemeralKeys) {
       this.ephemeralKeys = ephemeralKeys
     }

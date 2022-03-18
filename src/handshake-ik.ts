@@ -1,11 +1,12 @@
+import type { PeerId } from '@libp2p/interfaces/peer-id'
 import type { ProtobufStream } from 'it-pb-stream'
-import { IK } from './handshakes/ik.js'
 import type { CipherState, NoiseSession } from './@types/handshake.js'
 import type { bytes, bytes32 } from './@types/basic.js'
 import type { KeyPair } from './@types/libp2p.js'
 import type { IHandshake } from './@types/handshake-interface.js'
+import type { ICryptoInterface } from './crypto.js'
+import { IK } from './handshakes/ik.js'
 import { decode0, decode1, encode0, encode1 } from './encoder.js'
-import { decodePayload, getPeerIdFromPayload, verifySignedPayload } from './utils.js'
 import { FailedIKError } from './errors.js'
 import {
   logger,
@@ -15,7 +16,7 @@ import {
   logRemoteEphemeralKey,
   logCipherState
 } from './logger.js'
-import type { PeerId } from '@libp2p/interfaces/peer-id'
+import { decodePayload, getPeerIdFromPayload, verifySignedPayload } from './utils.js'
 
 export class IKHandshake implements IHandshake {
   public isInitiator: boolean
@@ -33,6 +34,7 @@ export class IKHandshake implements IHandshake {
     isInitiator: boolean,
     payload: bytes,
     prologue: bytes32,
+    crypto: ICryptoInterface,
     staticKeypair: KeyPair,
     connection: ProtobufStream,
     remoteStaticKey: bytes,
@@ -47,7 +49,7 @@ export class IKHandshake implements IHandshake {
     if (remotePeer) {
       this.remotePeer = remotePeer
     }
-    this.ik = handshake ?? new IK()
+    this.ik = handshake ?? new IK(crypto)
     this.session = this.ik.initSession(this.isInitiator, this.prologue, this.staticKeypair, remoteStaticKey)
     this.remoteEarlyData = new Uint8Array()
   }

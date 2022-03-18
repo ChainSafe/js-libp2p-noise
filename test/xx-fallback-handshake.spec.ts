@@ -1,16 +1,14 @@
-import { pbStream } from 'it-pb-stream'
+import type { PeerId } from '@libp2p/interfaces/peer-id'
 import { Buffer } from 'buffer'
+import { assert } from 'chai'
+import { pbStream } from 'it-pb-stream'
 import { duplexPair } from 'it-pair/duplex'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
-import {
-  generateKeypair,
-  getPayload
-} from '../src/utils.js'
-import { XXFallbackHandshake } from '../src/handshake-xx-fallback.js'
-import { createPeerIdsFromFixtures } from './fixtures/peer.js'
-import { assert } from 'chai'
+import { stablelib } from '../src/crypto/stablelib.js'
 import { encode0 } from '../src/encoder.js'
-import type { PeerId } from '@libp2p/interfaces/peer-id'
+import { XXFallbackHandshake } from '../src/handshake-xx-fallback.js'
+import { getPayload } from '../src/utils.js'
+import { createPeerIdsFromFixtures } from './fixtures/peer.js'
 
 describe('XX Fallback Handshake', () => {
   let peerA: PeerId, peerB: PeerId
@@ -26,9 +24,9 @@ describe('XX Fallback Handshake', () => {
       const connectionTo = pbStream(duplex[1])
 
       const prologue = Buffer.alloc(0)
-      const staticKeysInitiator = generateKeypair()
-      const staticKeysResponder = generateKeypair()
-      const ephemeralKeys = generateKeypair()
+      const staticKeysInitiator = stablelib.generateX25519KeyPair()
+      const staticKeysResponder = stablelib.generateX25519KeyPair()
+      const ephemeralKeys = stablelib.generateX25519KeyPair()
 
       // Initial msg for responder is IK first message from initiator
       const handshakePayload = await getPayload(peerA, staticKeysInitiator.publicKey)
@@ -40,7 +38,7 @@ describe('XX Fallback Handshake', () => {
 
       const respPayload = await getPayload(peerB, staticKeysResponder.publicKey)
       const handshakeResp =
-        new XXFallbackHandshake(false, respPayload, prologue, staticKeysResponder, connectionTo, initialMsgR, peerA)
+        new XXFallbackHandshake(false, respPayload, prologue, stablelib, staticKeysResponder, connectionTo, initialMsgR, peerA)
 
       await handshakeResp.propose()
       await handshakeResp.exchange()
@@ -49,7 +47,7 @@ describe('XX Fallback Handshake', () => {
       // This is the point where initiator falls back from IK
       const initialMsgI = await connectionFrom.readLP()
       const handshakeInit =
-        new XXFallbackHandshake(true, handshakePayload, prologue, staticKeysInitiator, connectionFrom, initialMsgI.slice(0), peerB, ephemeralKeys)
+        new XXFallbackHandshake(true, handshakePayload, prologue, stablelib, staticKeysInitiator, connectionFrom, initialMsgI.slice(0), peerB, ephemeralKeys)
 
       await handshakeInit.propose()
       await handshakeInit.exchange()

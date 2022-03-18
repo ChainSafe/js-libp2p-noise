@@ -1,9 +1,10 @@
+import { assert, expect } from 'chai'
 import { Buffer } from 'buffer'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { IK } from '../../src/handshakes/ik.js'
 import type { KeyPair } from '../../src/@types/libp2p.js'
-import { createHandshakePayload, generateKeypair, getHandshakePayload } from '../../src/utils.js'
-import { assert, expect } from 'chai'
+import { stablelib } from '../../src/crypto/stablelib.js'
+import { createHandshakePayload, getHandshakePayload } from '../../src/utils.js'
 import { generateEd25519Keys } from '../utils.js'
 
 describe('IK handshake', () => {
@@ -11,12 +12,12 @@ describe('IK handshake', () => {
 
   it('Test complete IK handshake', async () => {
     try {
-      const ikI = new IK()
-      const ikR = new IK()
+      const ikI = new IK(stablelib)
+      const ikR = new IK(stablelib)
 
       // Generate static noise keys
-      const kpInitiator: KeyPair = await generateKeypair()
-      const kpResponder: KeyPair = await generateKeypair()
+      const kpInitiator: KeyPair = stablelib.generateX25519KeyPair()
+      const kpResponder: KeyPair = stablelib.generateX25519KeyPair()
 
       // Generate libp2p keys
       const libp2pInitKeys = await generateEd25519Keys()
