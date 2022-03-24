@@ -1,8 +1,8 @@
-import type { CipherState, HandshakeState, MessageBuffer, NoiseSession } from '../@types/handshake.js'
 import type { bytes, bytes32 } from '../@types/basic.js'
-import { generateKeypair, isValidPublicKey } from '../utils.js'
-import { AbstractHandshake } from './abstract-handshake.js'
+import type { CipherState, HandshakeState, MessageBuffer, NoiseSession } from '../@types/handshake.js'
 import type { KeyPair } from '../@types/libp2p.js'
+import { isValidPublicKey } from '../utils.js'
+import { AbstractHandshake } from './abstract-handshake.js'
 
 export class IK extends AbstractHandshake {
   public initSession (initiator: boolean, prologue: bytes32, s: KeyPair, rs: bytes32): NoiseSession {
@@ -72,7 +72,7 @@ export class IK extends AbstractHandshake {
   }
 
   private writeMessageA (hs: HandshakeState, payload: bytes): MessageBuffer {
-    hs.e = generateKeypair()
+    hs.e = this.crypto.generateX25519KeyPair()
     const ne = hs.e.publicKey
     this.mixHash(hs.ss, ne)
     this.mixKey(hs.ss, this.dh(hs.e.privateKey, hs.rs))
@@ -86,7 +86,7 @@ export class IK extends AbstractHandshake {
   }
 
   private writeMessageB (hs: HandshakeState, payload: bytes): { messageBuffer: MessageBuffer, cs1: CipherState, cs2: CipherState, h: bytes} {
-    hs.e = generateKeypair()
+    hs.e = this.crypto.generateX25519KeyPair()
     const ne = hs.e.publicKey
     this.mixHash(hs.ss, ne)
 

@@ -1,6 +1,6 @@
 import type { bytes32, bytes } from '../@types/basic.js'
 import type { KeyPair } from '../@types/libp2p.js'
-import { generateKeypair, isValidPublicKey } from '../utils.js'
+import { isValidPublicKey } from '../utils.js'
 import type { CipherState, HandshakeState, MessageBuffer, NoiseSession } from '../@types/handshake.js'
 import { AbstractHandshake } from './abstract-handshake.js'
 
@@ -29,7 +29,7 @@ export class XX extends AbstractHandshake {
     if (e !== undefined) {
       hs.e = e
     } else {
-      hs.e = generateKeypair()
+      hs.e = this.crypto.generateX25519KeyPair()
     }
 
     const ne = hs.e.publicKey
@@ -41,7 +41,7 @@ export class XX extends AbstractHandshake {
   }
 
   private writeMessageB (hs: HandshakeState, payload: bytes): MessageBuffer {
-    hs.e = generateKeypair()
+    hs.e = this.crypto.generateX25519KeyPair()
     const ne = hs.e.publicKey
     this.mixHash(hs.ss, ne)
 

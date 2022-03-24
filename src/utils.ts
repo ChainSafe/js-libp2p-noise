@@ -1,26 +1,13 @@
-import { HKDF } from '@stablelib/hkdf'
-import { SHA256 } from '@stablelib/sha256'
-import * as x25519 from '@stablelib/x25519'
-import type { PeerId } from '@libp2p/interfaces/peer-id'
-import type { KeyPair } from './@types/libp2p.js'
-import type { bytes, bytes32 } from './@types/basic.js'
-import type { Hkdf, INoisePayload } from './@types/handshake.js'
-import { pb } from './proto/payload.js'
-import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
-import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
 import { unmarshalPublicKey, unmarshalPrivateKey } from '@libp2p/crypto/keys'
+import type { PeerId } from '@libp2p/interfaces/peer-id'
 import { peerIdFromKeys } from '@libp2p/peer-id'
+import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
+import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
+import type { bytes } from './@types/basic.js'
+import type { INoisePayload } from './@types/handshake.js'
+import { pb } from './proto/payload.js'
 
 const NoiseHandshakePayloadProto = pb.NoiseHandshakePayload
-
-export function generateKeypair (): KeyPair {
-  const keypair = x25519.generateKeyPair()
-
-  return {
-    publicKey: keypair.publicKey,
-    privateKey: keypair.secretKey
-  }
-}
 
 export async function getPayload (
   localPeer: PeerId,
@@ -123,18 +110,6 @@ export async function verifySignedPayload (
   }
 
   return peerId
-}
-
-export function getHkdf (ck: bytes32, ikm: Uint8Array): Hkdf {
-  const hkdf = new HKDF(SHA256, ikm, ck)
-  const okmU8Array = hkdf.expand(96)
-  const okm = okmU8Array
-
-  const k1 = okm.slice(0, 32)
-  const k2 = okm.slice(32, 64)
-  const k3 = okm.slice(64, 96)
-
-  return [k1, k2, k3]
 }
 
 export function isValidPublicKey (pk: bytes): boolean {

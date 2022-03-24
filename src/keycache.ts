@@ -1,6 +1,6 @@
-import type { bytes32 } from './@types/basic.js'
 import type { PeerId } from '@libp2p/interfaces/peer-id'
 import { PeerMap } from '@libp2p/peer-collections'
+import type { bytes32 } from './@types/basic.js'
 
 /**
  * Storage for static keys of previously connected peers.

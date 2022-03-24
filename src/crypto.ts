@@ -1,40 +1,16 @@
-import type { Transform } from 'it-stream-types'
-import type { IHandshake } from './@types/handshake-interface.js'
-import { NOISE_MSG_MAX_LENGTH_BYTES, NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG } from './constants.js'
+import type { bytes32, bytes } from './@types/basic.js'
+import type { Hkdf } from './@types/handshake.js'
+import type { KeyPair } from './@types/libp2p.js'
 
-// Returns generator that encrypts payload from the user
-export function encryptStream (handshake: IHandshake): Transform<Uint8Array> {
-  return async function * (source) {
-    for await (const chunk of source) {
-      for (let i = 0; i < chunk.length; i += NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG) {
-        let end = i + NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG
-        if (end > chunk.length) {
-          end = chunk.length
-        }
+export interface ICryptoInterface {
+  hashSHA256: (data: Uint8Array) => Uint8Array
 
-        const data = handshake.encrypt(chunk.slice(i, end), handshake.session)
-        yield data
-      }
-    }
-  }
-}
+  getHKDF: (ck: bytes32, ikm: Uint8Array) => Hkdf
 
-// Decrypt received payload to the user
-export function decryptStream (handshake: IHandshake): Transform<Uint8Array> {
-  return async function * (source) {
-    for await (const chunk of source) {
-      for (let i = 0; i < chunk.length; i += NOISE_MSG_MAX_LENGTH_BYTES) {
-        let end = i + NOISE_MSG_MAX_LENGTH_BYTES
-        if (end > chunk.length) {
-          end = chunk.length
-        }
+  generateX25519KeyPair: () => KeyPair
+  generateX25519KeyPairFromSeed: (seed: Uint8Array) => KeyPair
+  generateX25519SharedKey: (privateKey: Uint8Array, publicKey: Uint8Array) => Uint8Array
 
-        const { plaintext: decrypted, valid } = await handshake.decrypt(chunk.slice(i, end), handshake.session)
-        if (!valid) {
-          throw new Error('Failed to validate decrypted chunk')
-        }
-        yield decrypted
-      }
-    }
-  }
+  chaCha20Poly1305Encrypt: (plaintext: Uint8Array, nonce: Uint8Array, ad: Uint8Array, k: bytes32) => bytes
+  chaCha20Poly1305Decrypt: (ciphertext: Uint8Array, nonce: Uint8Array, ad: Uint8Array, k: bytes32) => bytes | null
 }

@@ -1,24 +1,25 @@
-import * as x25519 from '@stablelib/x25519'
+import type { PeerId } from '@libp2p/interfaces/peer-id'
+import type { SecuredConnection } from '@libp2p/interfaces/connection-encrypter'
 import { pbStream, ProtobufStream } from 'it-pb-stream'
 import { duplexPair } from 'it-pair/duplex'
 import { pipe } from 'it-pipe'
 import { encode, decode } from 'it-length-prefixed'
-import { XXHandshake } from './handshake-xx.js'
-import { IKHandshake } from './handshake-ik.js'
-import { XXFallbackHandshake } from './handshake-xx-fallback.js'
-import { generateKeypair, getPayload } from './utils.js'
-import { uint16BEDecode, uint16BEEncode } from './encoder.js'
-import { decryptStream, encryptStream } from './crypto.js'
+import type { Duplex } from 'it-stream-types'
 import type { bytes } from './@types/basic.js'
-import type { INoiseConnection, KeyPair } from './@types/libp2p.js'
 import type { IHandshake } from './@types/handshake-interface.js'
+import type { INoiseConnection, KeyPair } from './@types/libp2p.js'
+import { NOISE_MSG_MAX_LENGTH_BYTES } from './constants.js'
+import type { ICryptoInterface } from './crypto.js'
+import { stablelib } from './crypto/stablelib.js'
+import { decryptStream, encryptStream } from './crypto/streaming.js'
+import { uint16BEDecode, uint16BEEncode } from './encoder.js'
+import type { FailedIKError } from './errors.js'
+import { IKHandshake } from './handshake-ik.js'
+import { XXHandshake } from './handshake-xx.js'
+import { XXFallbackHandshake } from './handshake-xx-fallback.js'
 import { KeyCache } from './keycache.js'
 import { logger } from './logger.js'
-import type { PeerId } from '@libp2p/interfaces/peer-id'
-import { NOISE_MSG_MAX_LENGTH_BYTES } from './constants.js'
-import type { Duplex } from 'it-stream-types'
-import type { FailedIKError } from './errors.js'
-import type { SecuredConnection } from '@libp2p/interfaces/connection-encrypter'
+import { getPayload } from './utils.js'
 
 interface HandshakeParams {
   connection: ProtobufStream
@@ -29,6 +30,7 @@ interface HandshakeParams {
 
 export class Noise implements INoiseConnection {
   public protocol = '/noise'
+  public crypto: ICryptoInterface
 
   private readonly prologue = new Uint8Array(0)
   private readonly staticKeys: KeyPair
@@ -39,20 +41,17 @@ export class Noise implements INoiseConnection {
    * @param {bytes} staticNoiseKey - x25519 private key, reuse for faster handshakes
    * @param {bytes} earlyData
    */
-  constructor (staticNoiseKey?: bytes, earlyData?: bytes) {
+  constructor (staticNoiseKey?: bytes, earlyData?: bytes, crypto: ICryptoInterface = stablelib) {
     this.earlyData = earlyData ?? new Uint8Array(0)
     // disabled until properly specked
     this.useNoisePipes = false
+    this.crypto = crypto
 
     if (staticNoiseKey) {
       // accepts x25519 private key of length 32
-      const keyPair = x25519.generateKeyPairFromSeed(staticNoiseKey)
-      this.staticKeys = {
-        privateKey: keyPair.secretKey,
-        publicKey: keyPair.publicKey
-      }
+      this.staticKeys = this.crypto.generateX25519KeyPairFromSeed(staticNoiseKey)
     } else {
-      this.staticKeys = generateKeypair()
+      this.staticKeys = this.crypto.generateX25519KeyPair()
     }
   }
 
@@ -141,6 +140,7 @@ export class Noise implements INoiseConnection {
         isInitiator,
         payload,
         this.prologue,
+        this.crypto,
         this.staticKeys,
         connection,
         // safe to cast as we did checks
@@ -174,7 +174,17 @@ export class Noise implements INoiseConnection {
   ): Promise<XXFallbackHandshake> {
     const { isInitiator, remotePeer, connection } = params
     const handshake =
-      new XXFallbackHandshake(isInitiator, payload, this.prologue, this.staticKeys, connection, initialMsg, remotePeer, ephemeralKeys)
+      new XXFallbackHandshake(
+        isInitiator,
+        payload,
+        this.prologue,
+        this.crypto,
+        this.staticKeys,
+        connection,
+        initialMsg,
+        remotePeer,
+        ephemeralKeys
+      )
 
     try {
       await handshake.propose()
@@ -194,7 +204,15 @@ export class Noise implements INoiseConnection {
     payload: bytes
   ): Promise<XXHandshake> {
     const { isInitiator, remotePeer, connection } = params
-    const handshake = new XXHandshake(isInitiator, payload, this.prologue, this.staticKeys, connection, remotePeer)
+    const handshake = new XXHandshake(
+      isInitiator,
+      payload,
+      this.prologue,
+      this.crypto,
+      this.staticKeys,
+      connection,
+      remotePeer
+    )
 
     try {
       await handshake.propose()

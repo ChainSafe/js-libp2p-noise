@@ -50,6 +50,11 @@ This module exposes a crypto interface, as defined in the repository [js-interfa
 
 [» API Docs](https://github.com/libp2p/js-libp2p-interfaces/tree/master/packages/libp2p-interfaces/src/crypto#api)
 
+## Bring your own crypto
+
+You can provide a custom crypto implementation (instead of the default, based on [stablelib](https://www.stablelib.com/)) by passing a third argument to the `Noise` constructor.
+
+The implementation must conform to the `ICryptoInterface`, defined in https://github.com/ChainSafe/js-libp2p-noise/blob/master/src/crypto.ts
 
 ## Contribute
 

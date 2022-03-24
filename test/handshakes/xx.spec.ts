@@ -1,22 +1,22 @@
-import { expect, assert } from 'chai'
 import { Buffer } from 'buffer'
+import { expect, assert } from 'chai'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
-import { XX } from '../../src/handshakes/xx.js'
 import type { KeyPair } from '../../src/@types/libp2p.js'
-import { generateEd25519Keys } from '../utils.js'
-import { createHandshakePayload, generateKeypair, getHandshakePayload, getHkdf } from '../../src/utils.js'
 import type { NoiseSession } from '../../src/@types/handshake.js'
+import { stablelib } from '../../src/crypto/stablelib.js'
+import { XX } from '../../src/handshakes/xx.js'
+import { createHandshakePayload, getHandshakePayload } from '../../src/utils.js'
+import { generateEd25519Keys } from '../utils.js'
 
 describe('XX Handshake', () => {
   const prologue = Buffer.alloc(0)
 
   it('Test creating new XX session', async () => {
     try {
-      const xx = new XX()
+      const xx = new XX(stablelib)
 
-      const kpInitiator: KeyPair = await generateKeypair()
-      await generateKeypair()
+      const kpInitiator: KeyPair = stablelib.generateX25519KeyPair()
 
       await xx.initSession(true, prologue, kpInitiator)
     } catch (e) {
@@ -31,15 +31,15 @@ describe('XX Handshake', () => {
     const ck = Buffer.alloc(32)
     ckBytes.copy(ck)
 
-    const [k1, k2, k3] = getHkdf(ck, ikm)
+    const [k1, k2, k3] = stablelib.getHKDF(ck, ikm)
     expect(uint8ArrayToString(k1, 'hex')).to.equal('cc5659adff12714982f806e2477a8d5ddd071def4c29bb38777b7e37046f6914')
     expect(uint8ArrayToString(k2, 'hex')).to.equal('a16ada915e551ab623f38be674bb4ef15d428ae9d80688899c9ef9b62ef208fa')
     expect(uint8ArrayToString(k3, 'hex')).to.equal('ff67bf9727e31b06efc203907e6786667d2c7a74ac412b4d31a80ba3fd766f68')
   })
 
   async function doHandshake (xx: XX): Promise<{ nsInit: NoiseSession, nsResp: NoiseSession }> {
-    const kpInit = await generateKeypair()
-    const kpResp = await generateKeypair()
+    const kpInit = stablelib.generateX25519KeyPair()
+    const kpResp = stablelib.generateX25519KeyPair()
 
     // initiator setup
     const libp2pInitKeys = await generateEd25519Keys()
@@ -107,7 +107,7 @@ describe('XX Handshake', () => {
 
   it('Test handshake', async () => {
     try {
-      const xx = new XX()
+      const xx = new XX(stablelib)
       await doHandshake(xx)
     } catch (e) {
       const err = e as Error
@@ -117,7 +117,7 @@ describe('XX Handshake', () => {
 
   it('Test symmetric encrypt and decrypt', async () => {
     try {
-      const xx = new XX()
+      const xx = new XX(stablelib)
       const { nsInit, nsResp } = await doHandshake(xx)
       const ad = Buffer.from('authenticated')
       const message = Buffer.from('HelloCrypto')
@@ -139,7 +139,7 @@ describe('XX Handshake', () => {
   })
 
   it('Test multiple messages encryption and decryption', async () => {
-    const xx = new XX()
+    const xx = new XX(stablelib)
     const { nsInit, nsResp } = await doHandshake(xx)
     const ad = Buffer.from('authenticated')
     const message = Buffer.from('ethereum1')

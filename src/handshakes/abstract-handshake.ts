@@ -1,13 +1,9 @@
-import * as x25519 from '@stablelib/x25519'
-import * as SHA256 from '@stablelib/sha256'
-import { ChaCha20Poly1305 } from '@stablelib/chacha20poly1305'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
 import { fromString as uint8ArrayFromString } from 'uint8arrays'
-
 import type { bytes, bytes32, uint64 } from '../@types/basic.js'
 import type { CipherState, MessageBuffer, SymmetricState } from '../@types/handshake.js'
-import { getHkdf } from '../utils.js'
+import type { ICryptoInterface } from '../crypto.js'
 import { logger } from '../logger.js'
 
 export const MIN_NONCE = 0
@@ -21,6 +17,12 @@ export const MAX_NONCE = Number.MAX_SAFE_INTEGER
 const ERR_MAX_NONCE = 'Cipherstate has reached maximum n, a new handshake must be performed'
 
 export abstract class AbstractHandshake {
+  public crypto: ICryptoInterface
+
+  constructor (crypto: ICryptoInterface) {
+    this.crypto = crypto
+  }
+
   public encryptWithAd (cs: CipherState, ad: Uint8Array, plaintext: Uint8Array): bytes {
     const e = this.encrypt(cs.k, cs.n, ad, plaintext)
     this.setNonce(cs, this.incrementNonce(cs.n))
@@ -69,9 +71,10 @@ export abstract class AbstractHandshake {
     if (n > MAX_NONCE) {
       throw new Error(ERR_MAX_NONCE)
     }
+
     const nonce = this.nonceToBytes(n)
-    const ctx = new ChaCha20Poly1305(k)
-    return ctx.seal(nonce, plaintext, ad)
+
+    return this.crypto.chaCha20Poly1305Encrypt(plaintext, nonce, ad, k)
   }
 
   protected encryptAndHash (ss: SymmetricState, plaintext: bytes): bytes {
@@ -90,13 +93,10 @@ export abstract class AbstractHandshake {
     if (n > MAX_NONCE) {
       throw new Error(ERR_MAX_NONCE)
     }
+
     const nonce = this.nonceToBytes(n)
-    const ctx = new ChaCha20Poly1305(k)
-    const encryptedMessage = ctx.open(
-      nonce,
-      ciphertext,
-      ad
-    )
+    const encryptedMessage = this.crypto.chaCha20Poly1305Decrypt(ciphertext, nonce, ad, k)
+
     if (encryptedMessage) {
       return {
         plaintext: encryptedMessage,
@@ -124,7 +124,7 @@ export abstract class AbstractHandshake {
 
   protected dh (privateKey: bytes32, publicKey: bytes32): bytes32 {
     try {
-      const derivedU8 = x25519.sharedKey(privateKey, publicKey)
+      const derivedU8 = this.crypto.generateX25519SharedKey(privateKey, publicKey)
 
       if (derivedU8.length === 32) {
         return derivedU8
@@ -143,12 +143,12 @@ export abstract class AbstractHandshake {
   }
 
   protected getHash (a: Uint8Array, b: Uint8Array): bytes32 {
-    const u = SHA256.hash(uint8ArrayConcat([a, b], a.length + b.length))
+    const u = this.crypto.hashSHA256(uint8ArrayConcat([a, b], a.length + b.length))
     return u
   }
 
   protected mixKey (ss: SymmetricState, ikm: bytes32): void {
-    const [ck, tempK] = getHkdf(ss.ck, ikm)
+    const [ck, tempK] = this.crypto.getHKDF(ss.ck, ikm)
     ss.cs = this.initializeKey(tempK)
     ss.ck = ck
   }
@@ -182,7 +182,7 @@ export abstract class AbstractHandshake {
   }
 
   protected split (ss: SymmetricState): {cs1: CipherState, cs2: CipherState} {
-    const [tempk1, tempk2] = getHkdf(ss.ck, new Uint8Array(0))
+    const [tempk1, tempk2] = this.crypto.getHKDF(ss.ck, new Uint8Array(0))
     const cs1 = this.initializeKey(tempk1)
     const cs2 = this.initializeKey(tempk2)
 
