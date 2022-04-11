@@ -1,4 +1,4 @@
-import { expect } from 'chai'
+import { expect } from 'aegir/chai'
 import { Noise } from '../src/index.js'
 
 describe('Index', () => {
