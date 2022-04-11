@@ -1,6 +1,6 @@
 import type { PeerId } from '@libp2p/interfaces/peer-id'
 import { Buffer } from 'buffer'
-import { assert } from 'chai'
+import { assert } from 'aegir/chai'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { KeyCache } from '../src/keycache.js'
 import { createPeerIds, createPeerIdsFromFixtures } from './fixtures/peer.js'

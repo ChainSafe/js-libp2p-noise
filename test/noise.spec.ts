@@ -1,7 +1,7 @@
 import { randomBytes } from '@libp2p/crypto'
 import type { PeerId } from '@libp2p/interfaces/peer-id'
 import { Buffer } from 'buffer'
-import { assert, expect } from 'chai'
+import { assert, expect } from 'aegir/chai'
 import { duplexPair } from 'it-pair/duplex'
 import { pbStream } from 'it-pb-stream'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
