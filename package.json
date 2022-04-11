@@ -37,7 +37,7 @@
     "test:browser": "npm run test -- -t browser -t webworker",
     "test:electron-main": "npm run test -- -t electron-main",
     "docs": "aegir docs",
-    "proto:gen": "pbjs -t static-module -w es6 -r libp2p-noise -o ./src/proto/payload.js ./src/proto/payload.proto && pbts -o ./src/proto/payload.d.ts ./src/proto/payload.js"
+    "proto:gen": "protons ./src/proto/payload.proto"
   },
   "browser": {
     "./dist/src/alloc-unsafe.js": "./dist/src/alloc-unsafe-browser.js",
@@ -56,7 +56,7 @@
     "it-pair": "^2.0.2",
     "it-pb-stream": "^1.0.2",
     "it-pipe": "^2.0.3",
-    "protobufjs": "^6.11.2",
+    "protons-runtime": "^1.0.3",
     "uint8arraylist": "^1.4.0",
     "uint8arrays": "^3.0.0"
   },
@@ -67,6 +67,7 @@
     "benchmark": "^2.1.4",
     "events": "^3.3.0",
     "microtime": "^3.0.0",
+    "protons": "^3.0.3",
     "sinon": "^13.0.1",
     "util": "^0.12.4"
   },

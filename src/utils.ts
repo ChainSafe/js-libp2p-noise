@@ -4,7 +4,6 @@ import { peerIdFromKeys } from '@libp2p/peer-id'
 import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import type { bytes } from './@types/basic.js'
-import type { INoisePayload } from './@types/handshake.js'
 import { pb } from './proto/payload.js'
 
 const NoiseHandshakePayloadProto = pb.NoiseHandshakePayload
@@ -33,13 +32,11 @@ export function createHandshakePayload (
   signedPayload: Uint8Array,
   earlyData?: Uint8Array
 ): bytes {
-  const payloadInit = NoiseHandshakePayloadProto.create({
+  return NoiseHandshakePayloadProto.encode({
     identityKey: libp2pPublicKey,
     identitySig: signedPayload,
-    data: earlyData ?? null
+    data: earlyData ?? new Uint8Array(0)
   })
-
-  return NoiseHandshakePayloadProto.encode(payloadInit).finish()
 }
 
 export async function signPayload (peerId: PeerId, payload: bytes): Promise<bytes> {
@@ -52,14 +49,12 @@ export async function signPayload (peerId: PeerId, payload: bytes): Promise<byte
   return await privateKey.sign(payload)
 }
 
-export async function getPeerIdFromPayload (payload: pb.INoiseHandshakePayload): Promise<PeerId> {
+export async function getPeerIdFromPayload (payload: pb.NoiseHandshakePayload): Promise<PeerId> {
   return await peerIdFromKeys(payload.identityKey as Uint8Array)
 }
 
-export function decodePayload (payload: bytes|Uint8Array): pb.INoiseHandshakePayload {
-  return NoiseHandshakePayloadProto.toObject(
-    NoiseHandshakePayloadProto.decode(payload)
-  ) as INoisePayload
+export function decodePayload (payload: bytes|Uint8Array): pb.NoiseHandshakePayload {
+  return NoiseHandshakePayloadProto.decode(payload)
 }
 
 export function getHandshakePayload (publicKey: bytes): bytes {
@@ -82,7 +77,7 @@ async function isValidPeerId (peerId: PeerId, publicKeyProtobuf: bytes): Promise
  */
 export async function verifySignedPayload (
   noiseStaticKey: bytes,
-  payload: pb.INoiseHandshakePayload,
+  payload: pb.NoiseHandshakePayload,
   remotePeer: PeerId
 ): Promise<PeerId> {
   const identityKey = payload.identityKey as Uint8Array
