@@ -41,7 +41,7 @@ const libp2p = new Libp2p({
 Where parameters for Noise constructor are:
  - *static Noise key* - (optional) existing private Noise static key
  - *early data* - (optional) an early data payload to be sent in handshake messages
- 
+
 
 
 ## API
@@ -64,4 +64,7 @@ Feel free to join in. All welcome. Open an issue!
 
 ## License
 
-[MIT](LICENSE)
+Licensed under either of
+
+ * Apache 2.0, ([LICENSE-APACHE](LICENSE-APACHE) / http://www.apache.org/licenses/LICENSE-2.0)
+ * MIT ([LICENSE-MIT](LICENSE-MIT) / http://opensource.org/licenses/MIT)
