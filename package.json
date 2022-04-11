@@ -54,7 +54,7 @@
     "clean": "aegir clean",
     "dep-check": "aegir dep-check",
     "build": "aegir build",
-    "prebuild": "mkdir -p dist/src && cp -R src/proto dist/src",
+    "prebuild": "mkdirp dist/src && cp -R src/proto dist/src",
     "lint": "aegir lint",
     "lint:fix": "aegir lint --fix",
     "test": "aegir test -f \"./dist/test/**/*.spec.js\"",
@@ -88,6 +88,7 @@
     "benchmark": "^2.1.4",
     "events": "^3.3.0",
     "microtime": "^3.0.0",
+    "mkdirp": "^1.0.4",
     "sinon": "^13.0.1",
     "util": "^0.12.4"
   },
