@@ -62,6 +62,7 @@
     "test:browser": "npm run test -- -t browser -t webworker",
     "test:electron-main": "npm run test -- -t electron-main",
     "docs": "aegir docs",
+    "prepublish": "npm run build",
     "proto:gen": "pbjs -t static-module -w es6 -r libp2p-noise -o ./src/proto/payload.js ./src/proto/payload.proto && pbts -o ./src/proto/payload.d.ts ./src/proto/payload.js"
   },
   "dependencies": {

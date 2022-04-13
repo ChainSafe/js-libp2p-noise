@@ -135,18 +135,31 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/master' # with #262 - 'refs/heads/${{{ github.default_branch }}}'
     steps:
-      - uses: actions/checkout@v2
+      - uses: google-github-actions/release-please-action@v3
+        id: release
+        with:
+          release-type: node
+          package-name: release-please-action
+          changelog-types: '[{"type":"feat","section":"Features","hidden":false},{"type":"fix","section":"Bug Fixes","hidden":false},{"type":"chore","section":"Miscellaneous","hidden":false}]'
+      
+      - uses: actions/checkout@v3
+        if: ${{ steps.release.outputs.release_created }}
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v2
+        
+      - uses: actions/setup-node@v3
+        if: ${{ steps.release.outputs.release_created }}
         with:
-          node-version: lts/*
+          node-version: 16
+          registry-url: 'https://registry.npmjs.org'
+
       - uses: ipfs/aegir/actions/cache-node-modules@master
-      - uses: ipfs/aegir/actions/docker-login@master
-        with:
-          docker-token: ${{ secrets.DOCKER_TOKEN }}
-          docker-username: ${{ secrets.DOCKER_USERNAME }}
-      - run: npm run --if-present release
+        if: ${{ steps.release.outputs.release_created }}
+
+      - run: npm publish
+        if: ${{ steps.release.outputs.release_created }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+
