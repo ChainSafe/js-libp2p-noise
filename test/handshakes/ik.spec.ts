@@ -1,4 +1,4 @@
-import { assert, expect } from 'chai'
+import { assert, expect } from 'aegir/chai'
 import { Buffer } from 'buffer'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { IK } from '../../src/handshakes/ik.js'

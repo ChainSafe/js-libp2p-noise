@@ -1,5 +1,5 @@
 import { Buffer } from 'buffer'
-import { expect, assert } from 'chai'
+import { expect, assert } from 'aegir/chai'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import type { KeyPair } from '../../src/@types/libp2p.js'
