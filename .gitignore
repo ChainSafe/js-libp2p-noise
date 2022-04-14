@@ -16,3 +16,4 @@ yarn-error.log*
 lerna-debug.log*
 coverage/*
 package-lock.json
+yarn.lock
