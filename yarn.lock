@@ -773,10 +773,10 @@
     protons-runtime "^1.0.2"
     uint8arrays "^3.0.0"
 
-"@libp2p/interfaces@^1.3.0", "@libp2p/interfaces@^1.3.14":
-  version "1.3.20"
-  resolved "https://registry.yarnpkg.com/@libp2p/interfaces/-/interfaces-1.3.20.tgz#6d2061ce46c60688ed36ce3747b063380fa3759c"
-  integrity sha512-x11TxQQAPe7eDXdX6tjrhgzOCWG2GjzRi687DgucQbJ+Bo68urdTBmWGIyPzXUpwZpkMW7QTcMBIbXIGPPrA7g==
+"@libp2p/interfaces@^1.3.0", "@libp2p/interfaces@^1.3.21":
+  version "1.3.21"
+  resolved "https://registry.yarnpkg.com/@libp2p/interfaces/-/interfaces-1.3.21.tgz#d0805626d1a32519438c4fc36f1c85ee7755add5"
+  integrity sha512-5J1TozR5hhsY1ucuoQ7bMW8gWLsAG5R56iGVN9bjytsIT64F2mv426J1KDVv/NF1OEMShSoZKfvw1rTSQDJyiw==
   dependencies:
     "@multiformats/multiaddr" "^10.1.5"
     err-code "^3.0.1"
