@@ -50,7 +50,7 @@ export async function signPayload (peerId: PeerId, payload: bytes): Promise<byte
 }
 
 export async function getPeerIdFromPayload (payload: pb.NoiseHandshakePayload): Promise<PeerId> {
-  return await peerIdFromKeys(payload.identityKey as Uint8Array)
+  return await peerIdFromKeys(payload.identityKey)
 }
 
 export function decodePayload (payload: bytes|Uint8Array): pb.NoiseHandshakePayload {
@@ -80,7 +80,7 @@ export async function verifySignedPayload (
   payload: pb.NoiseHandshakePayload,
   remotePeer: PeerId
 ): Promise<PeerId> {
-  const identityKey = payload.identityKey as Uint8Array
+  const identityKey = payload.identityKey
   if (!(await isValidPeerId(remotePeer, identityKey))) {
     throw new Error("Peer ID doesn't match libp2p public key.")
   }
