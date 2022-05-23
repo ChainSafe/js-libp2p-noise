@@ -91,7 +91,7 @@
     "microtime": "^3.0.0",
     "protons": "^3.0.3",
     "mkdirp": "^1.0.4",
-    "sinon": "^13.0.1",
+    "sinon": "^14.0.0",
     "util": "^0.12.4"
   },
   "browser": {
