@@ -1,4 +1,5 @@
 import type { PeerId } from '@libp2p/interfaces/peer-id'
+import { InvalidCryptoExchangeError, UnexpectedPeerError } from '@libp2p/interfaces/connection-encrypter/errors'
 import type { ProtobufStream } from 'it-pb-stream'
 import type { bytes, bytes32 } from './@types/basic.js'
 import type { CipherState, NoiseSession } from './@types/handshake.js'
@@ -71,7 +72,7 @@ export class XXHandshake implements IHandshake {
       const receivedMessageBuffer = decode0((await this.connection.readLP()).slice())
       const { valid } = this.xx.recvMessage(this.session, receivedMessageBuffer)
       if (!valid) {
-        throw new Error('xx handshake stage 0 validation fail')
+        throw new InvalidCryptoExchangeError('xx handshake stage 0 validation fail')
       }
       logger('Stage 0 - Responder received first message.')
       logRemoteEphemeralKey(this.session.hs.re)
@@ -85,7 +86,7 @@ export class XXHandshake implements IHandshake {
       const receivedMessageBuffer = decode1((await this.connection.readLP()).slice())
       const { plaintext, valid } = this.xx.recvMessage(this.session, receivedMessageBuffer)
       if (!valid) {
-        throw new Error('xx handshake stage 1 validation fail')
+        throw new InvalidCryptoExchangeError('xx handshake stage 1 validation fail')
       }
       logger('Stage 1 - Initiator received the message.')
       logRemoteEphemeralKey(this.session.hs.re)
@@ -99,7 +100,7 @@ export class XXHandshake implements IHandshake {
         this.setRemoteEarlyData(decodedPayload.data)
       } catch (e) {
         const err = e as Error
-        throw new Error(`Error occurred while verifying signed payload: ${err.message}`)
+        throw new UnexpectedPeerError(`Error occurred while verifying signed payload: ${err.message}`)
       }
       logger('All good with the signature!')
     } else {
@@ -123,7 +124,7 @@ export class XXHandshake implements IHandshake {
       const receivedMessageBuffer = decode2((await this.connection.readLP()).slice())
       const { plaintext, valid } = this.xx.recvMessage(this.session, receivedMessageBuffer)
       if (!valid) {
-        throw new Error('xx handshake stage 2 validation fail')
+        throw new InvalidCryptoExchangeError('xx handshake stage 2 validation fail')
       }
       logger('Stage 2 - Responder received the message, finished handshake.')
 
@@ -134,7 +135,7 @@ export class XXHandshake implements IHandshake {
         this.setRemoteEarlyData(decodedPayload.data)
       } catch (e) {
         const err = e as Error
-        throw new Error(`Error occurred while verifying signed payload: ${err.message}`)
+        throw new UnexpectedPeerError(`Error occurred while verifying signed payload: ${err.message}`)
       }
     }
     logCipherState(this.session)
@@ -158,7 +159,7 @@ export class XXHandshake implements IHandshake {
 
   private getCS (session: NoiseSession, encryption = true): CipherState {
     if (!session.cs1 || !session.cs2) {
-      throw new Error('Handshake not completed properly, cipher state does not exist.')
+      throw new InvalidCryptoExchangeError('Handshake not completed properly, cipher state does not exist.')
     }
 
     if (this.isInitiator) {

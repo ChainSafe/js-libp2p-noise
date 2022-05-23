@@ -192,8 +192,9 @@ export class Noise implements INoiseConnection {
       await handshake.finish()
     } catch (e) {
       const err = e as Error
+      err.message = `Error occurred during XX Fallback handshake: ${err.message}`
       logger(err)
-      throw new Error(`Error occurred during XX Fallback handshake: ${err.message}`)
+      throw err
     }
 
     return handshake
@@ -222,9 +223,11 @@ export class Noise implements INoiseConnection {
       if (this.useNoisePipes && handshake.remotePeer) {
         KeyCache.store(handshake.remotePeer, handshake.getRemoteStaticKey())
       }
-    } catch (e) {
-      const err = e as Error
-      throw new Error(`Error occurred during XX handshake: ${err.message}`)
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        e.message = `Error occurred during XX handshake: ${e.message}`
+        throw e
+      }
     }
 
     return handshake
