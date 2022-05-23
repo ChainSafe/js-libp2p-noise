@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [6.1.2](https://github.com/ChainSafe/js-libp2p-noise/compare/v6.1.1...v6.1.2) (2022-05-23)
+
+
+### Miscellaneous
+
+* add libp2p/crypto to prod dep ([#149](https://github.com/ChainSafe/js-libp2p-noise/issues/149)) ([479eb8c](https://github.com/ChainSafe/js-libp2p-noise/commit/479eb8c7f943651e84397c558fe8cf10108233de))
+
 ### [6.1.1](https://github.com/ChainSafe/js-libp2p-noise/compare/v6.1.0...v6.1.1) (2022-04-14)
 
 
