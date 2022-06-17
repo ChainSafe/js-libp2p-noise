@@ -1,4 +1,4 @@
-import type { PeerId } from '@libp2p/interfaces/peer-id'
+import type { PeerId } from '@libp2p/interface-peer-id'
 import type { bytes } from './basic.js'
 import type { NoiseSession } from './handshake.js'
 

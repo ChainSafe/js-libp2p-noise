@@ -1,6 +1,6 @@
 import { keys } from '@libp2p/crypto'
-import type { PrivateKey } from '@libp2p/interfaces/keys'
-import type { PeerId } from '@libp2p/interfaces/peer-id'
+import type { PrivateKey } from '@libp2p/interface-keys'
+import type { PeerId } from '@libp2p/interface-peer-id'
 import { Buffer } from 'buffer'
 import type { KeyPair } from '../src/@types/libp2p.js'
 

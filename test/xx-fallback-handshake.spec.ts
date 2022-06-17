@@ -1,4 +1,4 @@
-import type { PeerId } from '@libp2p/interfaces/peer-id'
+import type { PeerId } from '@libp2p/interface-peer-id'
 import { Buffer } from 'buffer'
 import { assert } from 'aegir/chai'
 import { pbStream } from 'it-pb-stream'

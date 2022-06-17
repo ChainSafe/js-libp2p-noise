@@ -1,5 +1,5 @@
-import type { PeerId } from '@libp2p/interfaces/peer-id'
-import { InvalidCryptoExchangeError, UnexpectedPeerError } from '@libp2p/interfaces/connection-encrypter/errors'
+import type { PeerId } from '@libp2p/interface-peer-id'
+import { InvalidCryptoExchangeError, UnexpectedPeerError } from '@libp2p/interface-connection-encrypter/errors'
 import type { ProtobufStream } from 'it-pb-stream'
 import type { bytes, bytes32 } from './@types/basic.js'
 import type { CipherState, NoiseSession } from './@types/handshake.js'
