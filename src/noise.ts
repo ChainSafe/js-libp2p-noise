@@ -1,5 +1,5 @@
-import type { PeerId } from '@libp2p/interfaces/peer-id'
-import type { SecuredConnection } from '@libp2p/interfaces/connection-encrypter'
+import type { PeerId } from '@libp2p/interface-peer-id'
+import type { SecuredConnection } from '@libp2p/interface-connection-encrypter'
 import { pbStream, ProtobufStream } from 'it-pb-stream'
 import { duplexPair } from 'it-pair/duplex'
 import { pipe } from 'it-pipe'

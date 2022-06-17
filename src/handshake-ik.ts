@@ -1,4 +1,4 @@
-import type { PeerId } from '@libp2p/interfaces/peer-id'
+import type { PeerId } from '@libp2p/interface-peer-id'
 import type { ProtobufStream } from 'it-pb-stream'
 import type { CipherState, NoiseSession } from './@types/handshake.js'
 import type { bytes, bytes32 } from './@types/basic.js'

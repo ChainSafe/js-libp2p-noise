@@ -1,4 +1,4 @@
-import type { PeerId } from '@libp2p/interfaces/peer-id'
+import type { PeerId } from '@libp2p/interface-peer-id'
 import { PeerMap } from '@libp2p/peer-collections'
 import type { bytes32 } from './@types/basic.js'
 

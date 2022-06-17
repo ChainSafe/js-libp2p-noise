@@ -1,4 +1,4 @@
-import type { PeerId } from '@libp2p/interfaces/peer-id'
+import type { PeerId } from '@libp2p/interface-peer-id'
 import { createEd25519PeerId, createFromJSON } from '@libp2p/peer-id-factory'
 
 // ed25519 keys

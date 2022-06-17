@@ -1,4 +1,4 @@
-import type { ConnectionEncrypter } from '@libp2p/interfaces/connection-encrypter'
+import type { ConnectionEncrypter } from '@libp2p/interface-connection-encrypter'
 import type { bytes, bytes32 } from './basic.js'
 
 export interface KeyPair {
