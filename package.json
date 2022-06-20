@@ -50,7 +50,7 @@
     ]
   },
   "scripts": {
-    "bench": "node benchmarks/benchmark.js",
+    "bench": "node benchmarks/*.js",
     "clean": "aegir clean",
     "dep-check": "aegir dep-check",
     "build": "aegir build",
