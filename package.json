@@ -82,12 +82,14 @@
     "it-pb-stream": "^1.0.2",
     "it-pipe": "^2.0.3",
     "protons-runtime": "^1.0.3",
+    "sodium-native": "^3.3.0",
     "uint8arraylist": "^1.4.0",
     "uint8arrays": "^3.0.0"
   },
   "devDependencies": {
     "@libp2p/interface-connection-encrypter-compliance-tests": "^1.0.1",
     "@libp2p/peer-id-factory": "^1.0.8",
+    "@types/sodium-native": "2.3.5",
     "aegir": "^37.3.0",
     "benchmark": "^2.1.4",
     "events": "^3.3.0",
