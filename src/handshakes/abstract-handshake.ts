@@ -1,10 +1,11 @@
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
 import { fromString as uint8ArrayFromString } from 'uint8arrays'
-import type { bytes, bytes32, uint64 } from '../@types/basic.js'
+import type { bytes, bytes32 } from '../@types/basic.js'
 import type { CipherState, MessageBuffer, SymmetricState } from '../@types/handshake.js'
 import type { ICryptoInterface } from '../crypto.js'
 import { logger } from '../logger.js'
+import { Nonce } from '../@types/nonce.js'
 
 export const MIN_NONCE = 0
 // For performance reasons, the nonce is represented as a JS `number`
@@ -24,15 +25,15 @@ export abstract class AbstractHandshake {
   }
 
   public encryptWithAd (cs: CipherState, ad: Uint8Array, plaintext: Uint8Array): bytes {
-    const e = this.encrypt(cs.k, cs.n, ad, plaintext)
-    this.setNonce(cs, this.incrementNonce(cs.n))
+    const e = this.encrypt(cs, ad, plaintext)
+    cs.n.increase()
 
     return e
   }
 
   public decryptWithAd (cs: CipherState, ad: Uint8Array, ciphertext: Uint8Array): {plaintext: bytes, valid: boolean} {
-    const { plaintext, valid } = this.decrypt(cs.k, cs.n, ad, ciphertext)
-    this.setNonce(cs, this.incrementNonce(cs.n))
+    const { plaintext, valid } = this.decrypt(cs, ad, ciphertext)
+    cs.n.increase()
 
     return { plaintext, valid }
   }
@@ -40,10 +41,6 @@ export abstract class AbstractHandshake {
   // Cipher state related
   protected hasKey (cs: CipherState): boolean {
     return !this.isEmptyKey(cs.k)
-  }
-
-  protected setNonce (cs: CipherState, nonce: uint64): void {
-    cs.n = nonce
   }
 
   protected createEmptyKey (): bytes32 {
@@ -55,26 +52,13 @@ export abstract class AbstractHandshake {
     return uint8ArrayEquals(emptyKey, k)
   }
 
-  protected incrementNonce (n: uint64): uint64 {
-    return n + 1
-  }
-
-  protected nonceToBytes (n: uint64): bytes {
-    // Even though we're treating the nonce as 8 bytes, RFC7539 specifies 12 bytes for a nonce.
-    const nonce = new Uint8Array(12)
-    new DataView(nonce.buffer, nonce.byteOffset, nonce.byteLength).setUint32(4, n, true)
-
-    return nonce
-  }
-
-  protected encrypt (k: bytes32, n: uint64, ad: Uint8Array, plaintext: Uint8Array): bytes {
-    if (n > MAX_NONCE) {
+  protected encrypt (cs: CipherState, ad: Uint8Array, plaintext: Uint8Array): bytes {
+    const nonce = cs.n
+    if (nonce.getUint64() > MAX_NONCE) {
       throw new Error(ERR_MAX_NONCE)
     }
 
-    const nonce = this.nonceToBytes(n)
-
-    return this.crypto.chaCha20Poly1305Encrypt(plaintext, nonce, ad, k)
+    return this.crypto.chaCha20Poly1305Encrypt(plaintext, nonce.getBytes(), ad, cs.k)
   }
 
   protected encryptAndHash (ss: SymmetricState, plaintext: bytes): bytes {
@@ -89,13 +73,13 @@ export abstract class AbstractHandshake {
     return ciphertext
   }
 
-  protected decrypt (k: bytes32, n: uint64, ad: bytes, ciphertext: bytes): {plaintext: bytes, valid: boolean} {
-    if (n > MAX_NONCE) {
+  protected decrypt (cs: CipherState, ad: bytes, ciphertext: bytes): {plaintext: bytes, valid: boolean} {
+    const nonce = cs.n
+    if (nonce.getUint64() > MAX_NONCE) {
       throw new Error(ERR_MAX_NONCE)
     }
 
-    const nonce = this.nonceToBytes(n)
-    const encryptedMessage = this.crypto.chaCha20Poly1305Decrypt(ciphertext, nonce, ad, k)
+    const encryptedMessage = this.crypto.chaCha20Poly1305Decrypt(ciphertext, nonce.getBytes(), ad, cs.k)
 
     if (encryptedMessage) {
       return {
@@ -154,8 +138,7 @@ export abstract class AbstractHandshake {
   }
 
   protected initializeKey (k: bytes32): CipherState {
-    const n = MIN_NONCE
-    return { k, n }
+    return { k, n: new Nonce(MIN_NONCE) }
   }
 
   // Symmetric state related

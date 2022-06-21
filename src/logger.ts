@@ -43,8 +43,8 @@ export function logRemoteEphemeralKey (re: Uint8Array): void {
 
 export function logCipherState (session: NoiseSession): void {
   if (session.cs1 && session.cs2) {
-    keyLogger(`CIPHER_STATE_1 ${session.cs1.n} ${uint8ArrayToString(session.cs1.k, 'hex')}`)
-    keyLogger(`CIPHER_STATE_2 ${session.cs2.n} ${uint8ArrayToString(session.cs2.k, 'hex')}`)
+    keyLogger(`CIPHER_STATE_1 ${session.cs1.n.getUint64()} ${uint8ArrayToString(session.cs1.k, 'hex')}`)
+    keyLogger(`CIPHER_STATE_2 ${session.cs2.n.getUint64()} ${uint8ArrayToString(session.cs2.k, 'hex')}`)
   } else {
     keyLogger('Missing cipher state.')
   }
