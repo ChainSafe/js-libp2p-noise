@@ -1,6 +1,6 @@
 import type { bytes, bytes32, uint64 } from './basic.js'
 import type { KeyPair } from './libp2p.js'
-import type { Nonce } from './nonce.js'
+import type { Nonce } from '../nonce.js'
 
 export type Hkdf = [bytes, bytes, bytes]
 

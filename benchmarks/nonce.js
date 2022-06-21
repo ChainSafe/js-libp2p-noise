@@ -1,6 +1,6 @@
 /* eslint-disable */
 import benchmark from 'benchmark'
-import { Nonce } from '../dist/src/@types/nonce.js'
+import { Nonce } from '../dist/src/nonce.js'
 
 /**
  * Using Nonce class is 150x faster than nonceToBytes

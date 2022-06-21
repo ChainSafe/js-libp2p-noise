@@ -1,4 +1,4 @@
-import type { bytes, uint64 } from './basic'
+import type { bytes, uint64 } from './@types/basic'
 
 /**
  * The nonce is an uint that's increased over time.

@@ -5,7 +5,7 @@ import type { bytes, bytes32 } from '../@types/basic.js'
 import type { CipherState, MessageBuffer, SymmetricState } from '../@types/handshake.js'
 import type { ICryptoInterface } from '../crypto.js'
 import { logger } from '../logger.js'
-import { Nonce } from '../@types/nonce.js'
+import { Nonce } from '../nonce.js'
 
 export const MIN_NONCE = 0
 // For performance reasons, the nonce is represented as a JS `number`
@@ -25,14 +25,14 @@ export abstract class AbstractHandshake {
   }
 
   public encryptWithAd (cs: CipherState, ad: Uint8Array, plaintext: Uint8Array): bytes {
-    const e = this.encrypt(cs, ad, plaintext)
+    const e = this.encrypt(cs.k, cs.n, ad, plaintext)
     cs.n.increase()
 
     return e
   }
 
   public decryptWithAd (cs: CipherState, ad: Uint8Array, ciphertext: Uint8Array): {plaintext: bytes, valid: boolean} {
-    const { plaintext, valid } = this.decrypt(cs, ad, ciphertext)
+    const { plaintext, valid } = this.decrypt(cs.k, cs.n, ad, ciphertext)
     cs.n.increase()
 
     return { plaintext, valid }
@@ -52,13 +52,12 @@ export abstract class AbstractHandshake {
     return uint8ArrayEquals(emptyKey, k)
   }
 
-  protected encrypt (cs: CipherState, ad: Uint8Array, plaintext: Uint8Array): bytes {
-    const nonce = cs.n
-    if (nonce.getUint64() > MAX_NONCE) {
+  protected encrypt (k: bytes32, n: Nonce, ad: Uint8Array, plaintext: Uint8Array): bytes {
+    if (n.getUint64() > MAX_NONCE) {
       throw new Error(ERR_MAX_NONCE)
     }
 
-    return this.crypto.chaCha20Poly1305Encrypt(plaintext, nonce.getBytes(), ad, cs.k)
+    return this.crypto.chaCha20Poly1305Encrypt(plaintext, n.getBytes(), ad, k)
   }
 
   protected encryptAndHash (ss: SymmetricState, plaintext: bytes): bytes {
@@ -73,13 +72,12 @@ export abstract class AbstractHandshake {
     return ciphertext
   }
 
-  protected decrypt (cs: CipherState, ad: bytes, ciphertext: bytes): {plaintext: bytes, valid: boolean} {
-    const nonce = cs.n
-    if (nonce.getUint64() > MAX_NONCE) {
+  protected decrypt (k: bytes32, n: Nonce, ad: bytes, ciphertext: bytes): {plaintext: bytes, valid: boolean} {
+    if (n.getUint64() > MAX_NONCE) {
       throw new Error(ERR_MAX_NONCE)
     }
 
-    const encryptedMessage = this.crypto.chaCha20Poly1305Decrypt(ciphertext, nonce.getBytes(), ad, cs.k)
+    const encryptedMessage = this.crypto.chaCha20Poly1305Decrypt(ciphertext, n.getBytes(), ad, k)
 
     if (encryptedMessage) {
       return {
