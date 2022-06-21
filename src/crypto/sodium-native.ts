@@ -1,19 +1,18 @@
-import type { bytes, bytes32 } from "../@types/basic.js";
-import type { Hkdf } from "../@types/handshake.js";
-import type { KeyPair } from "../@types/libp2p.js";
-import type { ICryptoInterface } from "../crypto.js";
+/* eslint-disable @typescript-eslint/naming-convention */
+import type { bytes, bytes32 } from '../@types/basic.js'
+import type { Hkdf } from '../@types/handshake.js'
+import type { KeyPair } from '../@types/libp2p.js'
+import type { ICryptoInterface } from '../crypto.js'
 import sodium from 'sodium-native'
 
-/* eslint-enable camelcase */
-import { concat as uint8ArrayConcat } from 'uint8arrays/concat';
+import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
 
-// TODO: update type definitive
 const {
-  // @ts-ignore
+  /* @ts-expect-error */
   crypto_aead_chacha20poly1305_ietf_decrypt,
-  // @ts-ignore
+  /* @ts-expect-error */
   crypto_aead_chacha20poly1305_ietf_encrypt,
-  // @ts-ignore
+  /* @ts-expect-error */
   crypto_aead_chacha20poly1305_ietf_ABYTES,
   crypto_box_keypair,
   crypto_box_PUBLICKEYBYTES,
@@ -37,7 +36,7 @@ const hmacOuterKeyPad = hmacBuffer.subarray(hkdfBlockLen, hkdfBlockLen * 2)
 const hmacInnerKeyPad = hmacBuffer.subarray(hkdfBlockLen * 2, hkdfBlockLen * 3)
 
 /* c8 ignore start */
-function hmac(out: Buffer, data: Uint8Array, key: bytes32) {
+function hmac (out: Buffer, data: Uint8Array, key: bytes32): void {
   if (key.byteLength > hkdfBlockLen) {
     crypto_hash_sha256(hmacKey.subarray(0, hkdfHashLen), Buffer.from(key))
     sodium_memzero(hmacKey.subarray(hkdfHashLen))
@@ -107,15 +106,13 @@ export const sodiumNative: ICryptoInterface = {
     return shared
   },
   chaCha20Poly1305Encrypt (plaintext: Uint8Array, nonce: Uint8Array, ad: Uint8Array, k: bytes32): bytes {
-    // eslint-disable-next-line camelcase
-    const out = sodium_malloc(plaintext.length + crypto_aead_chacha20poly1305_ietf_ABYTES)
+    const out = sodium_malloc(plaintext.length + (crypto_aead_chacha20poly1305_ietf_ABYTES as number))
 
     crypto_aead_chacha20poly1305_ietf_encrypt(out, plaintext, ad, null, nonce, k)
 
     return out
   },
   chaCha20Poly1305Decrypt (ciphertext: Uint8Array, nonce: Uint8Array, ad: Uint8Array, k: bytes32): bytes | null {
-    // eslint-disable-next-line camelcase
     const out = sodium_malloc(ciphertext.length - crypto_aead_chacha20poly1305_ietf_ABYTES)
 
     try {
@@ -130,4 +127,4 @@ export const sodiumNative: ICryptoInterface = {
 
     return out
   }
-};
+}
