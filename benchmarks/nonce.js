@@ -31,7 +31,7 @@ const main = function () {
     fn: function () {
       const nonce = new Nonce(1e6)
       for (let i = 1e6; i < 2 * 1e6; i++) {
-        nonce.increase()
+        nonce.increment()
       }
     }
   })

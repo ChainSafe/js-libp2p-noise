@@ -7,16 +7,6 @@ import type { ICryptoInterface } from '../crypto.js'
 import { logger } from '../logger.js'
 import { Nonce } from '../nonce.js'
 
-export const MIN_NONCE = 0
-// For performance reasons, the nonce is represented as a JS `number`
-// JS `number` can only safely represent integers up to 2 ** 53 - 1
-// This is a slight deviation from the noise spec, which describes the max nonce as 2 ** 64 - 2
-// The effect is that this implementation will need a new handshake to be performed after fewer messages are exchanged than other implementations with full uint64 nonces.
-// 2 ** 53 - 1 is still a large number of messages, so the practical effect of this is negligible.
-export const MAX_NONCE = Number.MAX_SAFE_INTEGER
-
-const ERR_MAX_NONCE = 'Cipherstate has reached maximum n, a new handshake must be performed'
-
 export abstract class AbstractHandshake {
   public crypto: ICryptoInterface
 
@@ -26,14 +16,14 @@ export abstract class AbstractHandshake {
 
   public encryptWithAd (cs: CipherState, ad: Uint8Array, plaintext: Uint8Array): bytes {
     const e = this.encrypt(cs.k, cs.n, ad, plaintext)
-    cs.n.increase()
+    cs.n.increment()
 
     return e
   }
 
   public decryptWithAd (cs: CipherState, ad: Uint8Array, ciphertext: Uint8Array): {plaintext: bytes, valid: boolean} {
     const { plaintext, valid } = this.decrypt(cs.k, cs.n, ad, ciphertext)
-    cs.n.increase()
+    cs.n.increment()
 
     return { plaintext, valid }
   }
@@ -53,9 +43,7 @@ export abstract class AbstractHandshake {
   }
 
   protected encrypt (k: bytes32, n: Nonce, ad: Uint8Array, plaintext: Uint8Array): bytes {
-    if (n.getUint64() > MAX_NONCE) {
-      throw new Error(ERR_MAX_NONCE)
-    }
+    n.assertValue()
 
     return this.crypto.chaCha20Poly1305Encrypt(plaintext, n.getBytes(), ad, k)
   }
@@ -73,9 +61,7 @@ export abstract class AbstractHandshake {
   }
 
   protected decrypt (k: bytes32, n: Nonce, ad: bytes, ciphertext: bytes): {plaintext: bytes, valid: boolean} {
-    if (n.getUint64() > MAX_NONCE) {
-      throw new Error(ERR_MAX_NONCE)
-    }
+    n.assertValue()
 
     const encryptedMessage = this.crypto.chaCha20Poly1305Decrypt(ciphertext, n.getBytes(), ad, k)
 
@@ -136,7 +122,7 @@ export abstract class AbstractHandshake {
   }
 
   protected initializeKey (k: bytes32): CipherState {
-    return { k, n: new Nonce(MIN_NONCE) }
+    return { k, n: new Nonce() }
   }
 
   // Symmetric state related
