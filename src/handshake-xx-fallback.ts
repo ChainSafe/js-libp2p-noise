@@ -69,7 +69,7 @@ export class XXFallbackHandshake extends XXHandshake {
 
       logger("Initiator going to check remote's signature...")
       try {
-        const decodedPayload = await decodePayload(plaintext)
+        const decodedPayload = decodePayload(plaintext)
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload)
         await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer)
         this.setRemoteEarlyData(decodedPayload.data)
