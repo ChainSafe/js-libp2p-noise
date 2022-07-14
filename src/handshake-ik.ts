@@ -73,7 +73,7 @@ export class IKHandshake implements IHandshake {
           throw new Error('ik handshake stage 0 decryption validation fail')
         }
         logger('IK Stage 0 - Responder got message, going to verify payload.')
-        const decodedPayload = await decodePayload(plaintext)
+        const decodedPayload = decodePayload(plaintext)
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload)
         await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer)
         this.setRemoteEarlyData(decodedPayload.data)
@@ -99,7 +99,7 @@ export class IKHandshake implements IHandshake {
         if (!valid) {
           throw new Error('ik stage 1 decryption validation fail')
         }
-        const decodedPayload = await decodePayload(plaintext)
+        const decodedPayload = decodePayload(plaintext)
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload)
         await verifySignedPayload(receivedMessageBuffer.ns.slice(0, 32), decodedPayload, this.remotePeer)
         this.setRemoteEarlyData(decodedPayload.data)

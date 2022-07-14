@@ -108,7 +108,7 @@ export class IK extends AbstractHandshake {
     this.mixHash(hs.ss, hs.re)
     this.mixKey(hs.ss, this.dh(hs.s.privateKey, hs.re))
     const { plaintext: ns, valid: valid1 } = this.decryptAndHash(hs.ss, message.ns)
-    if (valid1 && ns.length === 32 && isValidPublicKey(ns)) {
+    if (valid1 && isValidPublicKey(ns)) {
       hs.rs = ns
     }
     this.mixKey(hs.ss, this.dh(hs.s.privateKey, hs.rs))

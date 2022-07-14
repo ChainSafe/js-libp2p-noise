@@ -94,9 +94,9 @@ export class XXHandshake implements IHandshake {
 
       logger("Initiator going to check remote's signature...")
       try {
-        const decodedPayload = await decodePayload(plaintext)
+        const decodedPayload = decodePayload(plaintext)
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload)
-        this.remotePeer = await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer)
+        await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer)
         this.setRemoteEarlyData(decodedPayload.data)
       } catch (e) {
         const err = e as Error
@@ -129,7 +129,7 @@ export class XXHandshake implements IHandshake {
       logger('Stage 2 - Responder received the message, finished handshake.')
 
       try {
-        const decodedPayload = await decodePayload(plaintext)
+        const decodedPayload = decodePayload(plaintext)
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload)
         await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer)
         this.setRemoteEarlyData(decodedPayload.data)

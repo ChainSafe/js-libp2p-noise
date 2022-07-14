@@ -62,11 +62,6 @@ export function getHandshakePayload (publicKey: bytes): bytes {
   return uint8ArrayConcat([prefix, publicKey], prefix.length + publicKey.length)
 }
 
-async function isValidPeerId (peerId: PeerId, publicKeyProtobuf: bytes): Promise<boolean> {
-  const generatedPeerId = await peerIdFromKeys(publicKeyProtobuf)
-  return generatedPeerId.equals(peerId)
-}
-
 /**
  * Verifies signed payload, throws on any irregularities.
  *
@@ -80,15 +75,14 @@ export async function verifySignedPayload (
   payload: pb.NoiseHandshakePayload,
   remotePeer: PeerId
 ): Promise<PeerId> {
-  const identityKey = payload.identityKey
-  if (!(await isValidPeerId(remotePeer, identityKey))) {
+  // Unmarshaling from PublicKey protobuf
+  const payloadPeerId = await peerIdFromKeys(payload.identityKey)
+  if (!payloadPeerId.equals(remotePeer)) {
     throw new Error("Peer ID doesn't match libp2p public key.")
   }
   const generatedPayload = getHandshakePayload(noiseStaticKey)
-  // Unmarshaling from PublicKey protobuf
-  const peerId = await peerIdFromKeys(identityKey)
 
-  if (peerId.publicKey == null) {
+  if (payloadPeerId.publicKey == null) {
     throw new Error('PublicKey was missing from PeerId')
   }
 
@@ -96,7 +90,7 @@ export async function verifySignedPayload (
     throw new Error('Signature was missing from message')
   }
 
-  const publicKey = unmarshalPublicKey(peerId.publicKey)
+  const publicKey = unmarshalPublicKey(payloadPeerId.publicKey)
 
   const valid = await publicKey.verify(generatedPayload, payload.identitySig)
 
@@ -104,7 +98,7 @@ export async function verifySignedPayload (
     throw new Error("Static key doesn't match to peer that signed payload!")
   }
 
-  return peerId
+  return payloadPeerId
 }
 
 export function isValidPublicKey (pk: bytes): boolean {
