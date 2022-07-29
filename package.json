@@ -71,7 +71,7 @@
     "@libp2p/interface-keys": "^1.0.2",
     "@libp2p/interface-peer-id": "^1.0.2",
     "@libp2p/logger": "^2.0.0",
-    "@libp2p/peer-collections": "^1.0.0",
+    "@libp2p/peer-collections": "^2.0.0",
     "@libp2p/peer-id": "^1.1.8",
     "@stablelib/chacha20poly1305": "^1.0.1",
     "@stablelib/hkdf": "^1.0.1",
@@ -81,8 +81,8 @@
     "it-pair": "^2.0.2",
     "it-pb-stream": "^1.0.2",
     "it-pipe": "^2.0.3",
-    "protons-runtime": "^1.0.3",
-    "uint8arraylist": "^1.4.0",
+    "protons-runtime": "^2.0.1",
+    "uint8arraylist": "^2.0.0",
     "uint8arrays": "^3.0.0"
   },
   "devDependencies": {
@@ -93,7 +93,7 @@
     "events": "^3.3.0",
     "microtime": "^3.0.0",
     "mkdirp": "^1.0.4",
-    "protons": "^3.0.3",
+    "protons": "^4.0.0",
     "sinon": "^14.0.0",
     "util": "^0.12.4"
   },

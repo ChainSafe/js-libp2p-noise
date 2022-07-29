@@ -3,6 +3,7 @@
 
 import { encodeMessage, decodeMessage, message, bytes } from 'protons-runtime'
 import type { Codec } from 'protons-runtime'
+import type { Uint8ArrayList } from 'uint8arraylist'
 
 export namespace pb {
   export interface NoiseHandshakePayload {
@@ -20,11 +21,11 @@ export namespace pb {
       })
     }
 
-    export const encode = (obj: NoiseHandshakePayload): Uint8Array => {
+    export const encode = (obj: NoiseHandshakePayload): Uint8ArrayList => {
       return encodeMessage(obj, NoiseHandshakePayload.codec())
     }
 
-    export const decode = (buf: Uint8Array): NoiseHandshakePayload => {
+    export const decode = (buf: Uint8Array | Uint8ArrayList): NoiseHandshakePayload => {
       return decodeMessage(buf, NoiseHandshakePayload.codec())
     }
   }

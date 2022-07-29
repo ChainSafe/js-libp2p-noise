@@ -97,7 +97,7 @@ describe('Noise', () => {
 
     try {
       const wrappedOutbound = pbStream(outbound.conn)
-      wrappedOutbound.write(new Uint8ArrayList(Buffer.from('test')))
+      wrappedOutbound.write(new Uint8ArrayList(Buffer.from('test')).slice())
 
       // Check that noise message is prefixed with 16-bit big-endian unsigned integer
       const receivedEncryptedPayload = (await wrapped.read()).slice()
