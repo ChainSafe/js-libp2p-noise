@@ -7,7 +7,7 @@
 ![](https://img.shields.io/github/issues-raw/ChainSafe/js-libp2p-noise)
 ![](https://img.shields.io/github/license/ChainSafe/js-libp2p-noise)
 ![](https://img.shields.io/badge/yarn-%3E%3D1.17.0-orange.svg?style=flat-square)
-![](https://img.shields.io/badge/Node.js-%3E%3D10.19.0-orange.svg?style=flat-square)
+![](https://img.shields.io/badge/Node.js-%3E%3D16.0.0-orange.svg?style=flat-square)
 ![](https://img.shields.io/badge/browsers-last%202%20versions%2C%20not%20ie%20%3C%3D11-orange)
 [![Discourse posts](https://img.shields.io/discourse/https/discuss.libp2p.io/posts.svg)](https://discuss.libp2p.io)
 
