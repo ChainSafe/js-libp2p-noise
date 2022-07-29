@@ -81,7 +81,7 @@
     "it-pair": "^2.0.2",
     "it-pb-stream": "^1.0.2",
     "it-pipe": "^2.0.3",
-    "protons-runtime": "^1.0.3",
+    "protons-runtime": "^2.0.1",
     "uint8arraylist": "^1.4.0",
     "uint8arrays": "^3.0.0"
   },
