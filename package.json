@@ -77,7 +77,7 @@
     "@stablelib/hkdf": "^1.0.1",
     "@stablelib/sha256": "^1.0.1",
     "@stablelib/x25519": "^1.0.1",
-    "it-length-prefixed": "^7.0.1",
+    "it-length-prefixed": "^8.0.2",
     "it-pair": "^2.0.2",
     "it-pb-stream": "^1.0.2",
     "it-pipe": "^2.0.3",
