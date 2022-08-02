@@ -120,11 +120,11 @@ export class Noise implements INoiseConnection {
    */
   private async performHandshake (params: HandshakeParams): Promise<IHandshake> {
     const payload = await getPayload(params.localPeer, this.staticKeys.publicKey, this.earlyData)
-    
+
     // run XX handshake
     return await this.performXXHandshake(params, payload)
   }
- 
+
   private async performXXHandshake (
     params: HandshakeParams,
     payload: bytes
