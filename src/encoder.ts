@@ -2,6 +2,7 @@ import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
 import type { Uint8ArrayList } from 'uint8arraylist'
 import type { bytes } from './@types/basic.js'
 import type { MessageBuffer } from './@types/handshake.js'
+import type { LengthDecoderFunction, LengthEncoderFunction } from 'it-length-prefixed'
 
 const allocUnsafe = (len: number): Uint8Array => {
   if (globalThis.Buffer) {
@@ -11,14 +12,14 @@ const allocUnsafe = (len: number): Uint8Array => {
   return new Uint8Array(len)
 }
 
-export const uint16BEEncode = (value: number, target?: Uint8Array, offset?: number): Uint8Array => {
-  target = target ?? allocUnsafe(2)
-  new DataView(target.buffer, target.byteOffset, target.byteLength).setUint16(offset ?? 0, value, false)
+export const uint16BEEncode: LengthEncoderFunction = (value: number) => {
+  const target = allocUnsafe(2)
+  new DataView(target.buffer, target.byteOffset, target.byteLength).setUint16(0, value, false)
   return target
 }
 uint16BEEncode.bytes = 2
 
-export const uint16BEDecode = (data: Uint8Array | Uint8ArrayList): number => {
+export const uint16BEDecode: LengthDecoderFunction = (data: Uint8Array | Uint8ArrayList): number => {
   if (data.length < 2) throw RangeError('Could not decode int16BE')
 
   if (data instanceof Uint8Array) {
