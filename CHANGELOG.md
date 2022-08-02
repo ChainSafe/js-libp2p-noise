@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.0.2](https://github.com/ChainSafe/js-libp2p-noise/compare/v7.0.1...v7.0.2) (2022-08-02)
+
+
+### Miscellaneous
+
+* bump @libp2p/peer-collections from 1.0.3 to 2.0.0 ([#164](https://github.com/ChainSafe/js-libp2p-noise/issues/164)) ([7ffb5bd](https://github.com/ChainSafe/js-libp2p-noise/commit/7ffb5bddbc25c17339821fce26c4a11a43ccfe6e))
+* clean up logic ([#165](https://github.com/ChainSafe/js-libp2p-noise/issues/165)) ([7a0d8c0](https://github.com/ChainSafe/js-libp2p-noise/commit/7a0d8c00c8099f1d88deee033a0d967b098c9b5e))
+* update node.js badge version in readme ([#167](https://github.com/ChainSafe/js-libp2p-noise/issues/167)) ([16caa6d](https://github.com/ChainSafe/js-libp2p-noise/commit/16caa6d59a562d96446a88cb882d149fe395b1dd))
+* update protons and peer collections ([#172](https://github.com/ChainSafe/js-libp2p-noise/issues/172)) ([3ea9f33](https://github.com/ChainSafe/js-libp2p-noise/commit/3ea9f33cc198d07acb2e06fcd11aa4847f1de61d))
+
 ## [7.0.1](https://github.com/ChainSafe/js-libp2p-noise/compare/v7.0.0...v7.0.1) (2022-06-23)
 
 
