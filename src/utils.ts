@@ -36,7 +36,7 @@ export function createHandshakePayload (
     identityKey: libp2pPublicKey,
     identitySig: signedPayload,
     data: earlyData ?? new Uint8Array(0)
-  }).slice()
+  }).subarray()
 }
 
 export async function signPayload (peerId: PeerId, payload: bytes): Promise<bytes> {

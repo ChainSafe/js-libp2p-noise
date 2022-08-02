@@ -13,7 +13,7 @@ export function encryptStream (handshake: IHandshake): Transform<Uint8Array> {
           end = chunk.length
         }
 
-        const data = handshake.encrypt(chunk.slice(i, end), handshake.session)
+        const data = handshake.encrypt(chunk.subarray(i, end), handshake.session)
         yield data
       }
     }
@@ -30,7 +30,7 @@ export function decryptStream (handshake: IHandshake): Transform<Uint8Array|Uint
           end = chunk.length
         }
 
-        const { plaintext: decrypted, valid } = await handshake.decrypt(chunk.slice(i, end), handshake.session)
+        const { plaintext: decrypted, valid } = await handshake.decrypt(chunk.subarray(i, end), handshake.session)
         if (!valid) {
           throw new Error('Failed to validate decrypted chunk')
         }
