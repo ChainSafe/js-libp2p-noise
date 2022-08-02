@@ -1,7 +1,6 @@
 import { keys } from '@libp2p/crypto'
 import type { PrivateKey } from '@libp2p/interface-keys'
 import type { PeerId } from '@libp2p/interface-peer-id'
-import { Buffer } from 'buffer'
 import type { KeyPair } from '../src/@types/libp2p.js'
 
 export async function generateEd25519Keys (): Promise<PrivateKey> {
@@ -14,7 +13,7 @@ export function getKeyPairFromPeerId (peerId: PeerId): KeyPair {
   }
 
   return {
-    privateKey: Buffer.from(peerId.privateKey.slice(0, 32)),
-    publicKey: Buffer.from(peerId.publicKey)
+    privateKey: peerId.privateKey.subarray(0, 32),
+    publicKey: peerId.publicKey
   }
 }

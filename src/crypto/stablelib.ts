@@ -17,9 +17,9 @@ export const stablelib: ICryptoInterface = {
     const okmU8Array = hkdf.expand(96)
     const okm = okmU8Array
 
-    const k1 = okm.slice(0, 32)
-    const k2 = okm.slice(32, 64)
-    const k3 = okm.slice(64, 96)
+    const k1 = okm.subarray(0, 32)
+    const k2 = okm.subarray(32, 64)
+    const k3 = okm.subarray(64, 96)
 
     return [k1, k2, k3]
   },

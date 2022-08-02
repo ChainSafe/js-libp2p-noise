@@ -98,7 +98,7 @@ export abstract class AbstractHandshake {
         return derivedU8
       }
 
-      return derivedU8.slice(0, 32)
+      return derivedU8.subarray(0, 32)
     } catch (e) {
       const err = e as Error
       logger(err.message)

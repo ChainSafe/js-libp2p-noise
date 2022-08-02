@@ -69,7 +69,7 @@ export class XXHandshake implements IHandshake {
       logLocalEphemeralKeys(this.session.hs.e)
     } else {
       logger('Stage 0 - Responder waiting to receive first message...')
-      const receivedMessageBuffer = decode0((await this.connection.readLP()).slice())
+      const receivedMessageBuffer = decode0((await this.connection.readLP()).subarray())
       const { valid } = this.xx.recvMessage(this.session, receivedMessageBuffer)
       if (!valid) {
         throw new InvalidCryptoExchangeError('xx handshake stage 0 validation fail')
@@ -83,7 +83,7 @@ export class XXHandshake implements IHandshake {
   public async exchange (): Promise<void> {
     if (this.isInitiator) {
       logger('Stage 1 - Initiator waiting to receive first message from responder...')
-      const receivedMessageBuffer = decode1((await this.connection.readLP()).slice())
+      const receivedMessageBuffer = decode1((await this.connection.readLP()).subarray())
       const { plaintext, valid } = this.xx.recvMessage(this.session, receivedMessageBuffer)
       if (!valid) {
         throw new InvalidCryptoExchangeError('xx handshake stage 1 validation fail')
@@ -121,7 +121,7 @@ export class XXHandshake implements IHandshake {
       logger('Stage 2 - Initiator sent message with signed payload.')
     } else {
       logger('Stage 2 - Responder waiting for third handshake message...')
-      const receivedMessageBuffer = decode2((await this.connection.readLP()).slice())
+      const receivedMessageBuffer = decode2((await this.connection.readLP()).subarray())
       const { plaintext, valid } = this.xx.recvMessage(this.session, receivedMessageBuffer)
       if (!valid) {
         throw new InvalidCryptoExchangeError('xx handshake stage 2 validation fail')

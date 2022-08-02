@@ -50,8 +50,8 @@ export function decode0 (input: bytes): MessageBuffer {
   }
 
   return {
-    ne: input.slice(0, 32),
-    ciphertext: input.slice(32, input.length),
+    ne: input.subarray(0, 32),
+    ciphertext: input.subarray(32, input.length),
     ns: new Uint8Array(0)
   }
 }
@@ -62,9 +62,9 @@ export function decode1 (input: bytes): MessageBuffer {
   }
 
   return {
-    ne: input.slice(0, 32),
-    ns: input.slice(32, 80),
-    ciphertext: input.slice(80, input.length)
+    ne: input.subarray(0, 32),
+    ns: input.subarray(32, 80),
+    ciphertext: input.subarray(80, input.length)
   }
 }
 
@@ -75,7 +75,7 @@ export function decode2 (input: bytes): MessageBuffer {
 
   return {
     ne: new Uint8Array(0),
-    ns: input.slice(0, 48),
-    ciphertext: input.slice(48, input.length)
+    ns: input.subarray(0, 48),
+    ciphertext: input.subarray(48, input.length)
   }
 }
