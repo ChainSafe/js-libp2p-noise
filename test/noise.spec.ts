@@ -6,7 +6,7 @@ import { duplexPair } from 'it-pair/duplex'
 import { pbStream } from 'it-pb-stream'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
-import { Uint8ArrayList } from 'uint8arraylist'
+import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import sinon from 'sinon'
 import { NOISE_MSG_MAX_LENGTH_BYTES } from '../src/constants.js'
 import { stablelib } from '../src/crypto/stablelib.js'
@@ -95,23 +95,15 @@ describe('Noise', () => {
       })()
     ])
 
-    try {
-      const wrappedOutbound = pbStream(outbound.conn)
-      wrappedOutbound.write(new Uint8ArrayList(Buffer.from('test')))
+    const wrappedOutbound = pbStream(outbound.conn)
+    wrappedOutbound.write(uint8ArrayFromString('test'))
 
-      // Check that noise message is prefixed with 16-bit big-endian unsigned integer
-      const receivedEncryptedPayload = (await wrapped.read()).slice()
-      const view = new DataView(receivedEncryptedPayload.buffer, receivedEncryptedPayload.byteOffset, receivedEncryptedPayload.byteLength)
-      const dataLength = view.getInt16(0)
-      const data = receivedEncryptedPayload.slice(2, dataLength + 2)
-      const { plaintext: decrypted, valid } = handshake.decrypt(data, handshake.session)
-      // Decrypted data should match
-      assert(uint8ArrayEquals(decrypted, Buffer.from('test')))
-      assert(valid)
-    } catch (e) {
-      const err = e as Error
-      assert(false, err.message)
-    }
+    // Check that noise message is prefixed with 16-bit big-endian unsigned integer
+    const data = await (await wrapped.readLP()).slice()
+    const { plaintext: decrypted, valid } = handshake.decrypt(data, handshake.session)
+    // Decrypted data should match
+    expect(uint8ArrayEquals(decrypted, uint8ArrayFromString('test'))).to.be.true()
+    expect(valid).to.be.true()
   })
 
   it('should test large payloads', async function () {

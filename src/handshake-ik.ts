@@ -83,7 +83,7 @@ export class IKHandshake implements IHandshake {
         const err = e as Error
         logger('Responder breaking up with IK handshake in stage 0.')
 
-        throw new FailedIKError(receivedMsg, `Error occurred while verifying initiator's signed payload: ${err.message}`)
+        throw new FailedIKError(receivedMsg.slice(), `Error occurred while verifying initiator's signed payload: ${err.message}`)
       }
     }
   }
