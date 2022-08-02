@@ -81,6 +81,7 @@
     "it-pair": "^2.0.2",
     "it-pb-stream": "^2.0.1",
     "it-pipe": "^2.0.3",
+    "it-stream-types": "^1.0.4",
     "protons-runtime": "^2.0.1",
     "uint8arraylist": "^2.0.0",
     "uint8arrays": "^3.0.0"
@@ -90,12 +91,9 @@
     "@libp2p/peer-id-factory": "^1.0.8",
     "aegir": "^37.3.0",
     "benchmark": "^2.1.4",
-    "events": "^3.3.0",
-    "microtime": "^3.0.0",
     "mkdirp": "^1.0.4",
     "protons": "^4.0.0",
-    "sinon": "^14.0.0",
-    "util": "^0.12.4"
+    "sinon": "^14.0.0"
   },
   "browser": {
     "./dist/src/alloc-unsafe.js": "./dist/src/alloc-unsafe-browser.js",
