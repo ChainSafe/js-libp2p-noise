@@ -21,7 +21,7 @@ export function encryptStream (handshake: IHandshake): Transform<Uint8Array> {
 }
 
 // Decrypt received payload to the user
-export function decryptStream (handshake: IHandshake): Transform<Uint8Array|Uint8ArrayList> {
+export function decryptStream (handshake: IHandshake): Transform<Uint8ArrayList, Uint8Array> {
   return async function * (source) {
     for await (const chunk of source) {
       for (let i = 0; i < chunk.length; i += NOISE_MSG_MAX_LENGTH_BYTES) {
