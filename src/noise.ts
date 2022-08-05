@@ -32,7 +32,7 @@ export class Noise implements INoiseConnection {
   public protocol = '/noise'
   public crypto: ICryptoInterface
 
-  private readonly prologue: Uint8Array;
+  private readonly prologue: Uint8Array
   private readonly staticKeys: KeyPair
   private readonly earlyData?: bytes
   private readonly useNoisePipes: boolean
@@ -53,11 +53,7 @@ export class Noise implements INoiseConnection {
     } else {
       this.staticKeys = this.crypto.generateX25519KeyPair()
     }
-    if (prologueBytes) {
-      this.prologue = prologueBytes;
-    } else {
-      this.prologue = new Uint8Array(0);
-    }
+    this.prologue = prologueBytes ?? new Uint8Array(0);
   }
 
   /**
