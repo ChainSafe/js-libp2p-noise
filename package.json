@@ -93,7 +93,8 @@
     "benchmark": "^2.1.4",
     "mkdirp": "^1.0.4",
     "protons": "^4.0.0",
-    "sinon": "^14.0.0"
+    "sinon": "^14.0.0",
+    "typescript": "^4.7.4"
   },
   "browser": {
     "./dist/src/alloc-unsafe.js": "./dist/src/alloc-unsafe-browser.js",
