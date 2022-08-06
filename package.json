@@ -91,6 +91,7 @@
     "@libp2p/peer-id-factory": "^1.0.8",
     "aegir": "^37.3.0",
     "benchmark": "^2.1.4",
+    "iso-random-stream": "^2.0.2",
     "mkdirp": "^1.0.4",
     "protons": "^4.0.0",
     "sinon": "^14.0.0"
