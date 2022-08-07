@@ -1,4 +1,4 @@
-import { randomBytes } from '@libp2p/crypto'
+import { randomBytes } from 'iso-random-stream'
 import type { PeerId } from '@libp2p/interface-peer-id'
 import { Buffer } from 'buffer'
 import { assert, expect } from 'aegir/chai'
