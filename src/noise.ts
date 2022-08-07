@@ -14,7 +14,6 @@ import { stablelib } from './crypto/stablelib.js'
 import { decryptStream, encryptStream } from './crypto/streaming.js'
 import { uint16BEDecode, uint16BEEncode } from './encoder.js'
 import { XXHandshake } from './handshake-xx.js'
-import { KeyCache } from './keycache.js'
 import { getPayload } from './utils.js'
 
 interface HandshakeParams {
@@ -144,10 +143,6 @@ export class Noise implements INoiseConnection {
       await handshake.propose()
       await handshake.exchange()
       await handshake.finish()
-
-      if (handshake.remotePeer) {
-        KeyCache.store(handshake.remotePeer, handshake.getRemoteStaticKey())
-      }
     } catch (e: unknown) {
       if (e instanceof Error) {
         e.message = `Error occurred during XX handshake: ${e.message}`

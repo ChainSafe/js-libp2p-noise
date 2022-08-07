@@ -11,7 +11,6 @@ import sinon from 'sinon'
 import { NOISE_MSG_MAX_LENGTH_BYTES } from '../src/constants.js'
 import { stablelib } from '../src/crypto/stablelib.js'
 import { decode0, decode2, encode1, uint16BEDecode, uint16BEEncode } from '../src/encoder.js'
-import { KeyCache } from '../src/keycache.js'
 import { XX } from '../src/handshakes/xx.js'
 import { XXHandshake } from '../src/handshake-xx.js'
 import { Noise } from '../src/index.js'
@@ -138,10 +137,6 @@ describe('Noise', () => {
       const staticKeysResponder = stablelib.generateX25519KeyPair()
       const noiseResp = new Noise(staticKeysResponder.privateKey)
 
-      // Prepare key cache for noise pipes
-      KeyCache.store(localPeer, staticKeysInitiator.publicKey)
-      KeyCache.store(remotePeer, staticKeysResponder.publicKey)
-
       const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
       const [outbound, inbound] = await Promise.all([
         noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
@@ -174,10 +169,6 @@ describe('Noise', () => {
       const noiseInit = new Noise(staticKeysInitiator.privateKey, localPeerEarlyData)
       const staticKeysResponder = stablelib.generateX25519KeyPair()
       const noiseResp = new Noise(staticKeysResponder.privateKey)
-
-      // Prepare key cache for noise pipes
-      KeyCache.store(localPeer, staticKeysInitiator.publicKey)
-      KeyCache.store(remotePeer, staticKeysResponder.publicKey)
 
       const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
       const [outbound, inbound] = await Promise.all([
