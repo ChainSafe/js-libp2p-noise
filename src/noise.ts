@@ -53,7 +53,7 @@ export class Noise implements INoiseConnection {
     } else {
       this.staticKeys = this.crypto.generateX25519KeyPair()
     }
-    this.prologue = prologueBytes ?? new Uint8Array(0);
+    this.prologue = prologueBytes ?? new Uint8Array(0)
   }
 
   /**

@@ -374,6 +374,7 @@ describe('Noise', () => {
       assert(false, err.message)
     }
   })
+
   it('should accept a prologue', async () => {
     try {
       const noiseInit = new Noise(undefined, undefined, stablelib, Buffer.from('Some prologue'))
@@ -395,5 +396,4 @@ describe('Noise', () => {
       assert(false, err.message)
     }
   })
-
 })
