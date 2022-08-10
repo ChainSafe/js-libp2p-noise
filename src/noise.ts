@@ -27,7 +27,7 @@ export class Noise implements INoiseConnection {
   public protocol = '/noise'
   public crypto: ICryptoInterface
 
-  private readonly prologue = new Uint8Array(0)
+  private readonly prologue: Uint8Array
   private readonly staticKeys: KeyPair
   private readonly earlyData?: bytes
 
@@ -35,7 +35,7 @@ export class Noise implements INoiseConnection {
    * @param {bytes} staticNoiseKey - x25519 private key, reuse for faster handshakes
    * @param {bytes} earlyData
    */
-  constructor (staticNoiseKey?: bytes, earlyData?: bytes, crypto: ICryptoInterface = stablelib) {
+  constructor (staticNoiseKey?: bytes, earlyData?: bytes, crypto: ICryptoInterface = stablelib, prologueBytes?: Uint8Array) {
     this.earlyData = earlyData ?? new Uint8Array(0)
     this.crypto = crypto
 
@@ -45,6 +45,7 @@ export class Noise implements INoiseConnection {
     } else {
       this.staticKeys = this.crypto.generateX25519KeyPair()
     }
+    this.prologue = prologueBytes ?? new Uint8Array(0)
   }
 
   /**

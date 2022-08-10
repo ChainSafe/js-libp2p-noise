@@ -119,9 +119,9 @@ describe('Noise', () => {
       const wrappedInbound = pbStream(inbound.conn)
       const wrappedOutbound = pbStream(outbound.conn)
 
-      const largePlaintext = randomBytes(100000)
+      const largePlaintext = randomBytes(60000)
       wrappedOutbound.writeLP(Buffer.from(largePlaintext))
-      const response = await wrappedInbound.read(100000)
+      const response = await wrappedInbound.read(60000)
 
       expect(response.length).equals(largePlaintext.length)
     } catch (e) {
@@ -178,6 +178,28 @@ describe('Noise', () => {
 
       assert(uint8ArrayEquals(inbound.remoteEarlyData, localPeerEarlyData))
       assert(uint8ArrayEquals(outbound.remoteEarlyData, Buffer.alloc(0)))
+    } catch (e) {
+      const err = e as Error
+      assert(false, err.message)
+    }
+  })
+
+  it('should accept a prologue', async () => {
+    try {
+      const noiseInit = new Noise(undefined, undefined, stablelib, Buffer.from('Some prologue'))
+      const noiseResp = new Noise(undefined, undefined, stablelib, Buffer.from('Some prologue'))
+
+      const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
+      const [outbound, inbound] = await Promise.all([
+        noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
+        noiseResp.secureInbound(remotePeer, inboundConnection, localPeer)
+      ])
+      const wrappedInbound = pbStream(inbound.conn)
+      const wrappedOutbound = pbStream(outbound.conn)
+
+      wrappedOutbound.writeLP(Buffer.from('test'))
+      const response = await wrappedInbound.readLP()
+      expect(uint8ArrayToString(response.slice())).equal('test')
     } catch (e) {
       const err = e as Error
       assert(false, err.message)
