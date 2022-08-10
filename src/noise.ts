@@ -52,11 +52,11 @@ export class Noise implements INoiseConnection {
    * Encrypt outgoing data to the remote party (handshake as initiator)
    *
    * @param {PeerId} localPeer - PeerId of the receiving peer
-   * @param {any} connection - streaming iterable duplex that will be encrypted
+   * @param {Duplex<Uint8Array>} connection - streaming iterable duplex that will be encrypted
    * @param {PeerId} remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer.
    * @returns {Promise<SecuredConnection>}
    */
-  public async secureOutbound (localPeer: PeerId, connection: any, remotePeer: PeerId): Promise<SecuredConnection> {
+  public async secureOutbound (localPeer: PeerId, connection: Duplex<Uint8Array>, remotePeer: PeerId): Promise<SecuredConnection> {
     const wrappedConnection = pbStream(
       connection,
       {
@@ -84,11 +84,11 @@ export class Noise implements INoiseConnection {
    * Decrypt incoming data (handshake as responder).
    *
    * @param {PeerId} localPeer - PeerId of the receiving peer.
-   * @param {any} connection - streaming iterable duplex that will be encryption.
+   * @param {Duplex<Uint8Array>} connection - streaming iterable duplex that will be encryption.
    * @param {PeerId} remotePeer - optional PeerId of the initiating peer, if known. This may only exist during transport upgrades.
    * @returns {Promise<SecuredConnection>}
    */
-  public async secureInbound (localPeer: PeerId, connection: any, remotePeer?: PeerId): Promise<SecuredConnection> {
+  public async secureInbound (localPeer: PeerId, connection: Duplex<Uint8Array>, remotePeer?: PeerId): Promise<SecuredConnection> {
     const wrappedConnection = pbStream(
       connection,
       {
