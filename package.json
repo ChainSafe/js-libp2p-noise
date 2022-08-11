@@ -67,7 +67,7 @@
   },
   "dependencies": {
     "@libp2p/crypto": "^1.0.0",
-    "@libp2p/interface-connection-encrypter": "^1.0.2",
+    "@libp2p/interface-connection-encrypter": "^2.0.1",
     "@libp2p/interface-keys": "^1.0.2",
     "@libp2p/interface-peer-id": "^1.0.2",
     "@libp2p/logger": "^2.0.0",
@@ -78,22 +78,23 @@
     "@stablelib/x25519": "^1.0.1",
     "it-length-prefixed": "^8.0.2",
     "it-pair": "^2.0.2",
-    "it-pb-stream": "^2.0.1",
-    "it-pipe": "^2.0.3",
     "it-stream-types": "^1.0.4",
-    "protons-runtime": "^2.0.1",
-    "uint8arraylist": "^2.0.0",
-    "uint8arrays": "^3.0.0"
+    "it-pb-stream": "^2.0.2",
+    "it-pipe": "^2.0.3",
+    "protons-runtime": "^3.1.0",
+    "uint8arraylist": "^2.3.2",
+    "uint8arrays": "^3.1.0"
   },
   "devDependencies": {
-    "@libp2p/interface-connection-encrypter-compliance-tests": "^1.0.1",
+    "@libp2p/interface-connection-encrypter-compliance-tests": "^2.0.1",
     "@libp2p/peer-id-factory": "^1.0.8",
     "aegir": "^37.3.0",
     "benchmark": "^2.1.4",
     "iso-random-stream": "^2.0.2",
     "mkdirp": "^1.0.4",
-    "protons": "^4.0.0",
-    "sinon": "^14.0.0"
+    "protons": "^5.1.0",
+    "sinon": "^14.0.0",
+    "util": "^0.12.4"
   },
   "browser": {
     "./dist/src/alloc-unsafe.js": "./dist/src/alloc-unsafe-browser.js",
