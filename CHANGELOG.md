@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.0.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v7.0.3...v8.0.0) (2022-08-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* update protons and connection encryption interface (#193)
+* remove noise pipes option (#177)
+* remove default instance (#188)
+
+### Features
+
+* remove default instance ([#188](https://github.com/ChainSafe/js-libp2p-noise/issues/188)) ([1358409](https://github.com/ChainSafe/js-libp2p-noise/commit/13584098db2b5021bb5b979881f5fdf98ddf1100))
+
+
+### Bug Fixes
+
+* Allow the caller to set the prologue ([#181](https://github.com/ChainSafe/js-libp2p-noise/issues/181)) ([#182](https://github.com/ChainSafe/js-libp2p-noise/issues/182)) ([15f7a6e](https://github.com/ChainSafe/js-libp2p-noise/commit/15f7a6e700a69c9a40abb82d989a55032d5cf687))
+
+
+### Miscellaneous
+
+* fix tests ([#184](https://github.com/ChainSafe/js-libp2p-noise/issues/184)) ([c2e6b64](https://github.com/ChainSafe/js-libp2p-noise/commit/c2e6b640088562043ab0d93ca304fcd0186a1b89))
+* remove noise pipes option ([#177](https://github.com/ChainSafe/js-libp2p-noise/issues/177)) ([a43cba9](https://github.com/ChainSafe/js-libp2p-noise/commit/a43cba92f7dec3367273ca97c63d04690dc378e3))
+* update protons and connection encryption interface ([#193](https://github.com/ChainSafe/js-libp2p-noise/issues/193)) ([9d5a07f](https://github.com/ChainSafe/js-libp2p-noise/commit/9d5a07f13610fd6e6e80dbd81e24d46fc084584f))
+
 ## [7.0.3](https://github.com/ChainSafe/js-libp2p-noise/compare/v7.0.2...v7.0.3) (2022-08-03)
 
 
