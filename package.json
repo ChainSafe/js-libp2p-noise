@@ -79,9 +79,9 @@
     "it-length-prefixed": "^8.0.2",
     "it-pair": "^2.0.2",
     "it-stream-types": "^1.0.4",
-    "it-pb-stream": "^2.0.1",
+    "it-pb-stream": "^2.0.2",
     "it-pipe": "^2.0.3",
-    "protons-runtime": "^3.0.1",
+    "protons-runtime": "^3.1.0",
     "uint8arraylist": "^2.3.2",
     "uint8arrays": "^3.1.0"
   },
@@ -92,7 +92,7 @@
     "benchmark": "^2.1.4",
     "iso-random-stream": "^2.0.2",
     "mkdirp": "^1.0.4",
-    "protons": "^5.0.0",
+    "protons": "^5.1.0",
     "sinon": "^14.0.0",
     "util": "^0.12.4"
   },

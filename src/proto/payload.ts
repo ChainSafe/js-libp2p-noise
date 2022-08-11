@@ -47,7 +47,11 @@ export namespace pb {
             writer.ldelim()
           }
         }, (reader, length) => {
-          const obj: any = {}
+          const obj: any = {
+            identityKey: new Uint8Array(0),
+            identitySig: new Uint8Array(0),
+            data: new Uint8Array(0)
+          }
 
           const end = length == null ? reader.len : reader.pos + length
 
