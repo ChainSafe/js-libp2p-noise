@@ -87,7 +87,7 @@
     "uint8arrays": "^3.1.0"
   },
   "devDependencies": {
-    "@libp2p/daemon-client": "2.0.3",
+    "@libp2p/daemon-client": "2.0.4",
     "@libp2p/daemon-server": "^2.0.4",
     "@libp2p/interface-connection-encrypter-compliance-tests": "^2.0.1",
     "@libp2p/interop": "^2.1.0",
