@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.0.1](https://github.com/ChainSafe/js-libp2p-noise/compare/v8.0.0...v8.0.1) (2022-08-19)
+
+
+### Bug Fixes
+
+* only increment nonce in valid decrypted msg ([#200](https://github.com/ChainSafe/js-libp2p-noise/issues/200)) ([393c169](https://github.com/ChainSafe/js-libp2p-noise/commit/393c1693ec21440432f33c3f27144ad5bb2f714f))
+
+
+### Miscellaneous
+
+* add interop tests ([#194](https://github.com/ChainSafe/js-libp2p-noise/issues/194)) ([78921b9](https://github.com/ChainSafe/js-libp2p-noise/commit/78921b9f352b63c29d8a4b720adadba3940acb09))
+* bump @libp2p/daemon-client from 2.0.3 to 2.0.4 ([#197](https://github.com/ChainSafe/js-libp2p-noise/issues/197)) ([5a16844](https://github.com/ChainSafe/js-libp2p-noise/commit/5a168444ade13d50ee6a517aa121caa4729d87f6))
+* bump libp2p from 0.37.3-f439d9b to 0.38.0 ([#201](https://github.com/ChainSafe/js-libp2p-noise/issues/201)) ([ff869e7](https://github.com/ChainSafe/js-libp2p-noise/commit/ff869e7086b0e9ef55d928fa4d1353e21ae6f7b7))
+
 ## [8.0.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v7.0.3...v8.0.0) (2022-08-11)
 
 
