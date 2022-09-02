@@ -1,4 +1,5 @@
 import type { bytes, uint64 } from './@types/basic'
+import { allocUnsafe } from './utils.js'
 
 export const MIN_NONCE = 0
 // For performance reasons, the nonce is represented as a JS `number`
@@ -22,7 +23,8 @@ export class Nonce {
 
   constructor (n = MIN_NONCE) {
     this.n = n
-    this.bytes = new Uint8Array(12)
+    this.bytes = allocUnsafe(12)
+    this.bytes.fill(0)
     this.view = new DataView(this.bytes.buffer, this.bytes.byteOffset, this.bytes.byteLength)
     this.view.setUint32(4, n, true)
   }

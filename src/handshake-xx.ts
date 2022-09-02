@@ -17,6 +17,7 @@ import {
   logCipherState
 } from './logger.js'
 import {
+  allocUnsafe,
   decodePayload,
   getPeerIdFromPayload,
   verifySignedPayload
@@ -55,7 +56,7 @@ export class XXHandshake implements IHandshake {
     }
     this.xx = handshake ?? new XX(crypto)
     this.session = this.xx.initSession(this.isInitiator, this.prologue, this.staticKeypair)
-    this.remoteEarlyData = new Uint8Array(0)
+    this.remoteEarlyData = allocUnsafe(0)
   }
 
   // stage 0
@@ -63,7 +64,7 @@ export class XXHandshake implements IHandshake {
     logLocalStaticKeys(this.session.hs.s)
     if (this.isInitiator) {
       logger('Stage 0 - Initiator starting to send first message.')
-      const messageBuffer = this.xx.sendMessage(this.session, new Uint8Array(0))
+      const messageBuffer = this.xx.sendMessage(this.session, allocUnsafe(0))
       this.connection.writeLP(encode0(messageBuffer))
       logger('Stage 0 - Initiator finished sending first message.')
       logLocalEphemeralKeys(this.session.hs.e)
@@ -144,13 +145,13 @@ export class XXHandshake implements IHandshake {
   public encrypt (plaintext: Uint8Array, session: NoiseSession): bytes {
     const cs = this.getCS(session)
 
-    return this.xx.encryptWithAd(cs, new Uint8Array(0), plaintext)
+    return this.xx.encryptWithAd(cs, allocUnsafe(0), plaintext)
   }
 
   public decrypt (ciphertext: Uint8Array, session: NoiseSession): {plaintext: bytes, valid: boolean} {
     const cs = this.getCS(session, false)
 
-    return this.xx.decryptWithAd(cs, new Uint8Array(0), ciphertext)
+    return this.xx.decryptWithAd(cs, allocUnsafe(0), ciphertext)
   }
 
   public getRemoteStaticKey (): bytes {

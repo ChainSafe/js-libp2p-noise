@@ -6,6 +6,7 @@ import type { CipherState, MessageBuffer, SymmetricState } from '../@types/hands
 import type { ICryptoInterface } from '../crypto.js'
 import { logger } from '../logger.js'
 import { Nonce } from '../nonce.js'
+import { alloc, allocUnsafe } from '../utils.js'
 
 export abstract class AbstractHandshake {
   public crypto: ICryptoInterface
@@ -34,7 +35,7 @@ export abstract class AbstractHandshake {
   }
 
   protected createEmptyKey (): bytes32 {
-    return new Uint8Array(32)
+    return alloc(32)
   }
 
   protected isEmptyKey (k: bytes32): boolean {
@@ -72,7 +73,7 @@ export abstract class AbstractHandshake {
       }
     } else {
       return {
-        plaintext: new Uint8Array(0),
+        plaintext: allocUnsafe(0),
         valid: false
       }
     }
@@ -102,7 +103,7 @@ export abstract class AbstractHandshake {
     } catch (e) {
       const err = e as Error
       logger(err.message)
-      return new Uint8Array(32)
+      return alloc(32)
     }
   }
 
@@ -140,16 +141,16 @@ export abstract class AbstractHandshake {
 
   protected hashProtocolName (protocolName: Uint8Array): bytes32 {
     if (protocolName.length <= 32) {
-      const h = new Uint8Array(32)
+      const h = alloc(32)
       h.set(protocolName)
       return h
     } else {
-      return this.getHash(protocolName, new Uint8Array(0))
+      return this.getHash(protocolName, allocUnsafe(0))
     }
   }
 
   protected split (ss: SymmetricState): {cs1: CipherState, cs2: CipherState} {
-    const [tempk1, tempk2] = this.crypto.getHKDF(ss.ck, new Uint8Array(0))
+    const [tempk1, tempk2] = this.crypto.getHKDF(ss.ck, allocUnsafe(0))
     const cs1 = this.initializeKey(tempk1)
     const cs2 = this.initializeKey(tempk2)
 
@@ -157,14 +158,14 @@ export abstract class AbstractHandshake {
   }
 
   protected writeMessageRegular (cs: CipherState, payload: bytes): MessageBuffer {
-    const ciphertext = this.encryptWithAd(cs, new Uint8Array(0), payload)
+    const ciphertext = this.encryptWithAd(cs, allocUnsafe(0), payload)
     const ne = this.createEmptyKey()
-    const ns = new Uint8Array(0)
+    const ns = allocUnsafe(0)
 
     return { ne, ns, ciphertext }
   }
 
   protected readMessageRegular (cs: CipherState, message: MessageBuffer): {plaintext: bytes, valid: boolean} {
-    return this.decryptWithAd(cs, new Uint8Array(0), message.ciphertext)
+    return this.decryptWithAd(cs, allocUnsafe(0), message.ciphertext)
   }
 }

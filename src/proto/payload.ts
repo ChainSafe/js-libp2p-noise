@@ -4,6 +4,7 @@
 import { encodeMessage, decodeMessage, message } from 'protons-runtime'
 import type { Uint8ArrayList } from 'uint8arraylist'
 import type { Codec } from 'protons-runtime'
+import { allocUnsafe } from '../utils.js'
 
 export namespace pb {
   export interface NoiseHandshakePayload {
@@ -48,9 +49,9 @@ export namespace pb {
           }
         }, (reader, length) => {
           const obj: any = {
-            identityKey: new Uint8Array(0),
-            identitySig: new Uint8Array(0),
-            data: new Uint8Array(0)
+            identityKey: allocUnsafe(0),
+            identitySig: allocUnsafe(0),
+            data: allocUnsafe(0)
           }
 
           const end = length == null ? reader.len : reader.pos + length

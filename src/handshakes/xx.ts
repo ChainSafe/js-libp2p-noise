@@ -1,6 +1,6 @@
 import type { bytes32, bytes } from '../@types/basic.js'
 import type { KeyPair } from '../@types/libp2p.js'
-import { isValidPublicKey } from '../utils.js'
+import { allocUnsafe, isValidPublicKey, alloc } from '../utils.js'
 import type { CipherState, HandshakeState, MessageBuffer, NoiseSession } from '../@types/handshake.js'
 import { AbstractHandshake } from './abstract-handshake.js'
 
@@ -9,7 +9,7 @@ export class XX extends AbstractHandshake {
     const name = 'Noise_XX_25519_ChaChaPoly_SHA256'
     const ss = this.initializeSymmetric(name)
     this.mixHash(ss, prologue)
-    const re = new Uint8Array(32)
+    const re = alloc(32)
 
     return { ss, s, rs, psk, re }
   }
@@ -18,13 +18,13 @@ export class XX extends AbstractHandshake {
     const name = 'Noise_XX_25519_ChaChaPoly_SHA256'
     const ss = this.initializeSymmetric(name)
     this.mixHash(ss, prologue)
-    const re = new Uint8Array(32)
+    const re = alloc(32)
 
     return { ss, s, rs, psk, re }
   }
 
   private writeMessageA (hs: HandshakeState, payload: bytes, e?: KeyPair): MessageBuffer {
-    const ns = new Uint8Array(0)
+    const ns = allocUnsafe(0)
 
     if (e !== undefined) {
       hs.e = e
@@ -113,7 +113,7 @@ export class XX extends AbstractHandshake {
 
   public initSession (initiator: boolean, prologue: bytes32, s: KeyPair): NoiseSession {
     const psk = this.createEmptyKey()
-    const rs = new Uint8Array(32) // no static key yet
+    const rs = alloc(32) // no static key yet
     let hs
 
     if (initiator) {
@@ -164,7 +164,7 @@ export class XX extends AbstractHandshake {
   }
 
   public recvMessage (session: NoiseSession, message: MessageBuffer): {plaintext: bytes, valid: boolean} {
-    let plaintext: bytes = new Uint8Array(0)
+    let plaintext: bytes = allocUnsafe(0)
     let valid = false
     if (session.mc === 0) {
       ({ plaintext, valid } = this.readMessageA(session.hs, message))

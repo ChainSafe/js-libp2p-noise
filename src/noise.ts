@@ -14,7 +14,7 @@ import { stablelib } from './crypto/stablelib.js'
 import { decryptStream, encryptStream } from './crypto/streaming.js'
 import { uint16BEDecode, uint16BEEncode } from './encoder.js'
 import { XXHandshake } from './handshake-xx.js'
-import { getPayload } from './utils.js'
+import { allocUnsafe, getPayload } from './utils.js'
 
 interface HandshakeParams {
   connection: ProtobufStream
@@ -36,7 +36,7 @@ export class Noise implements INoiseConnection {
    * @param {bytes} earlyData
    */
   constructor (staticNoiseKey?: bytes, earlyData?: bytes, crypto: ICryptoInterface = stablelib, prologueBytes?: Uint8Array) {
-    this.earlyData = earlyData ?? new Uint8Array(0)
+    this.earlyData = earlyData ?? allocUnsafe(0)
     this.crypto = crypto
 
     if (staticNoiseKey) {
@@ -45,7 +45,7 @@ export class Noise implements INoiseConnection {
     } else {
       this.staticKeys = this.crypto.generateX25519KeyPair()
     }
-    this.prologue = prologueBytes ?? new Uint8Array(0)
+    this.prologue = prologueBytes ?? allocUnsafe(0)
   }
 
   /**

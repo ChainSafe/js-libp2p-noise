@@ -3,14 +3,7 @@ import type { Uint8ArrayList } from 'uint8arraylist'
 import type { bytes } from './@types/basic.js'
 import type { MessageBuffer } from './@types/handshake.js'
 import type { LengthDecoderFunction, LengthEncoderFunction } from 'it-length-prefixed'
-
-const allocUnsafe = (len: number): Uint8Array => {
-  if (globalThis.Buffer) {
-    return globalThis.Buffer.allocUnsafe(len)
-  }
-
-  return new Uint8Array(len)
-}
+import { allocUnsafe } from './utils.js'
 
 export const uint16BEEncode: LengthEncoderFunction = (value: number) => {
   const target = allocUnsafe(2)
@@ -52,7 +45,7 @@ export function decode0 (input: bytes): MessageBuffer {
   return {
     ne: input.subarray(0, 32),
     ciphertext: input.subarray(32, input.length),
-    ns: new Uint8Array(0)
+    ns: allocUnsafe(0)
   }
 }
 
@@ -74,7 +67,7 @@ export function decode2 (input: bytes): MessageBuffer {
   }
 
   return {
-    ne: new Uint8Array(0),
+    ne: allocUnsafe(0),
     ns: input.subarray(0, 48),
     ciphertext: input.subarray(48, input.length)
   }
