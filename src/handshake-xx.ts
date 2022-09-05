@@ -16,8 +16,8 @@ import {
   logRemoteStaticKey,
   logCipherState
 } from './logger.js'
+import { allocUnsafe } from 'uint8arrays/alloc'
 import {
-  allocUnsafe,
   decodePayload,
   getPeerIdFromPayload,
   verifySignedPayload

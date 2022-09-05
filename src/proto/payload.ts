@@ -4,7 +4,7 @@
 import { encodeMessage, decodeMessage, message } from 'protons-runtime'
 import type { Uint8ArrayList } from 'uint8arraylist'
 import type { Codec } from 'protons-runtime'
-import { allocUnsafe } from '../utils.js'
+import { allocUnsafe } from 'uint8arrays/alloc'
 
 export namespace pb {
   export interface NoiseHandshakePayload {

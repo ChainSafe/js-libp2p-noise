@@ -14,7 +14,8 @@ import { stablelib } from './crypto/stablelib.js'
 import { decryptStream, encryptStream } from './crypto/streaming.js'
 import { uint16BEDecode, uint16BEEncode } from './encoder.js'
 import { XXHandshake } from './handshake-xx.js'
-import { allocUnsafe, getPayload } from './utils.js'
+import { allocUnsafe } from 'uint8arrays/alloc'
+import { getPayload } from './utils.js'
 
 interface HandshakeParams {
   connection: ProtobufStream

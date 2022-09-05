@@ -1,9 +1,9 @@
 import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
+import { allocUnsafe } from 'uint8arrays/alloc'
 import type { Uint8ArrayList } from 'uint8arraylist'
 import type { bytes } from './@types/basic.js'
 import type { MessageBuffer } from './@types/handshake.js'
 import type { LengthDecoderFunction, LengthEncoderFunction } from 'it-length-prefixed'
-import { allocUnsafe } from './utils.js'
 
 export const uint16BEEncode: LengthEncoderFunction = (value: number) => {
   const target = allocUnsafe(2)

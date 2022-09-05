@@ -1,6 +1,7 @@
 import { unmarshalPublicKey, unmarshalPrivateKey } from '@libp2p/crypto/keys'
 import type { PeerId } from '@libp2p/interface-peer-id'
 import { peerIdFromKeys } from '@libp2p/peer-id'
+import { allocUnsafe } from 'uint8arrays/alloc'
 import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import type { bytes } from './@types/basic.js'
@@ -111,29 +112,4 @@ export function isValidPublicKey (pk: bytes): boolean {
   }
 
   return true
-}
-
-/**
- * Returns a `Uint8Array` of the requested size. Referenced memory will
- * be initialized to 0.
- */
-export function alloc (size = 0): Uint8Array {
-  if (globalThis.Buffer) {
-    return globalThis.Buffer.alloc(size)
-  }
-
-  return new Uint8Array(size)
-}
-
-/**
- * Where possible returns a Uint8Array of the requested size that references
- * uninitialized memory. Only use if you are certain you will immediately
- * overwrite every value in the returned `Uint8Array`.
- */
-export function allocUnsafe (len: number): Uint8Array {
-  if (globalThis.Buffer) {
-    return globalThis.Buffer.allocUnsafe(len)
-  }
-
-  return new Uint8Array(len)
 }

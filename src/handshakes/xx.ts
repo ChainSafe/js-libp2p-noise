@@ -1,6 +1,8 @@
 import type { bytes32, bytes } from '../@types/basic.js'
 import type { KeyPair } from '../@types/libp2p.js'
-import { allocUnsafe, isValidPublicKey, alloc } from '../utils.js'
+import { isValidPublicKey } from '../utils.js'
+import { allocUnsafe, alloc } from 'uint8arrays/alloc'
+
 import type { CipherState, HandshakeState, MessageBuffer, NoiseSession } from '../@types/handshake.js'
 import { AbstractHandshake } from './abstract-handshake.js'
 

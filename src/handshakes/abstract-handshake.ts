@@ -6,7 +6,7 @@ import type { CipherState, MessageBuffer, SymmetricState } from '../@types/hands
 import type { ICryptoInterface } from '../crypto.js'
 import { logger } from '../logger.js'
 import { Nonce } from '../nonce.js'
-import { alloc, allocUnsafe } from '../utils.js'
+import { allocUnsafe, alloc } from 'uint8arrays/alloc'
 
 export abstract class AbstractHandshake {
   public crypto: ICryptoInterface
