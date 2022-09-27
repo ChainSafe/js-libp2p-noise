@@ -21,12 +21,14 @@ import {
   getPeerIdFromPayload,
   verifySignedPayload
 } from './utils.js'
+import type { NoiseExtensions } from './proto/payload.js'
 
 export class XXHandshake implements IHandshake {
   public isInitiator: boolean
   public session: NoiseSession
   public remotePeer!: PeerId
   public remoteEarlyData: bytes
+  public remoteExtensions: NoiseExtensions = { webtransportCerthashes: [] }
 
   protected payload: bytes
   protected connection: ProtobufStream
@@ -98,6 +100,7 @@ export class XXHandshake implements IHandshake {
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload)
         await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer)
         this.setRemoteEarlyData(decodedPayload.data)
+        this.setRemoteNoiseExtension(decodedPayload.extensions)
       } catch (e) {
         const err = e as Error
         throw new UnexpectedPeerError(`Error occurred while verifying signed payload: ${err.message}`)
@@ -133,6 +136,7 @@ export class XXHandshake implements IHandshake {
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload)
         await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer)
         this.setRemoteEarlyData(decodedPayload.data)
+        this.setRemoteNoiseExtension(decodedPayload.extensions)
       } catch (e) {
         const err = e as Error
         throw new UnexpectedPeerError(`Error occurred while verifying signed payload: ${err.message}`)
@@ -172,6 +176,12 @@ export class XXHandshake implements IHandshake {
   protected setRemoteEarlyData (data: Uint8Array|null|undefined): void {
     if (data) {
       this.remoteEarlyData = data
+    }
+  }
+
+  protected setRemoteNoiseExtension(e: NoiseExtensions | null | undefined): void {
+    if (e) {
+      this.remoteExtensions = e
     }
   }
 }

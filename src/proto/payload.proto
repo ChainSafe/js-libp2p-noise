@@ -1,8 +1,12 @@
-syntax = "proto3";
-package pb;
+syntax = "proto2";
+
+message NoiseExtensions {
+    repeated bytes webtransport_certhashes = 1;
+}
 
 message NoiseHandshakePayload {
-	bytes identity_key = 1;
-	bytes identity_sig = 2;
-	bytes data = 3;
+  optional bytes identity_key = 1;
+  optional bytes identity_sig = 2;
+  optional bytes data         = 3;
+  optional NoiseExtensions extensions = 4;
 }

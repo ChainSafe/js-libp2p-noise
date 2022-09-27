@@ -4,17 +4,14 @@ import { peerIdFromKeys } from '@libp2p/peer-id'
 import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import type { bytes } from './@types/basic.js'
-import { pb } from './proto/payload.js'
+import { NoiseExtensions, NoiseHandshakePayload } from './proto/payload.js'
 
-const NoiseHandshakePayloadProto = pb.NoiseHandshakePayload
-
-export async function getPayload (
+export async function getPayload(
   localPeer: PeerId,
   staticPublicKey: bytes,
-  earlyData?: bytes
+  extensions?: NoiseExtensions
 ): Promise<bytes> {
   const signedPayload = await signPayload(localPeer, getHandshakePayload(staticPublicKey))
-  const earlyDataPayload = earlyData ?? new Uint8Array(0)
 
   if (localPeer.publicKey == null) {
     throw new Error('PublicKey was missing from local PeerId')
@@ -23,23 +20,24 @@ export async function getPayload (
   return createHandshakePayload(
     localPeer.publicKey,
     signedPayload,
-    earlyDataPayload
+    extensions
   )
 }
 
-export function createHandshakePayload (
+export function createHandshakePayload(
   libp2pPublicKey: Uint8Array,
   signedPayload: Uint8Array,
-  earlyData?: Uint8Array
+  extensions?: NoiseExtensions
 ): bytes {
-  return NoiseHandshakePayloadProto.encode({
+  return NoiseHandshakePayload.encode({
     identityKey: libp2pPublicKey,
     identitySig: signedPayload,
-    data: earlyData ?? new Uint8Array(0)
+    data: new Uint8Array(0),
+    extensions: extensions ?? { webtransportCerthashes: [] },
   }).subarray()
 }
 
-export async function signPayload (peerId: PeerId, payload: bytes): Promise<bytes> {
+export async function signPayload(peerId: PeerId, payload: bytes): Promise<bytes> {
   if (peerId.privateKey == null) {
     throw new Error('PrivateKey was missing from PeerId')
   }
@@ -49,15 +47,15 @@ export async function signPayload (peerId: PeerId, payload: bytes): Promise<byte
   return await privateKey.sign(payload)
 }
 
-export async function getPeerIdFromPayload (payload: pb.NoiseHandshakePayload): Promise<PeerId> {
+export async function getPeerIdFromPayload(payload: NoiseHandshakePayload): Promise<PeerId> {
   return await peerIdFromKeys(payload.identityKey)
 }
 
-export function decodePayload (payload: bytes|Uint8Array): pb.NoiseHandshakePayload {
-  return NoiseHandshakePayloadProto.decode(payload)
+export function decodePayload(payload: bytes | Uint8Array): NoiseHandshakePayload {
+  return NoiseHandshakePayload.decode(payload)
 }
 
-export function getHandshakePayload (publicKey: bytes): bytes {
+export function getHandshakePayload(publicKey: bytes): bytes {
   const prefix = uint8ArrayFromString('noise-libp2p-static-key:')
   return uint8ArrayConcat([prefix, publicKey], prefix.length + publicKey.length)
 }
@@ -70,9 +68,9 @@ export function getHandshakePayload (publicKey: bytes): bytes {
  * @param {PeerId} remotePeer - owner's libp2p peer ID
  * @returns {Promise<PeerId>} - peer ID of payload owner
  */
-export async function verifySignedPayload (
+export async function verifySignedPayload(
   noiseStaticKey: bytes,
-  payload: pb.NoiseHandshakePayload,
+  payload: NoiseHandshakePayload,
   remotePeer: PeerId
 ): Promise<PeerId> {
   // Unmarshaling from PublicKey protobuf
@@ -101,7 +99,7 @@ export async function verifySignedPayload (
   return payloadPeerId
 }
 
-export function isValidPublicKey (pk: bytes): boolean {
+export function isValidPublicKey(pk: bytes): boolean {
   if (!(pk instanceof Uint8Array)) {
     return false
   }

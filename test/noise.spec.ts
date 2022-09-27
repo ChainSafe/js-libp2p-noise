@@ -162,13 +162,14 @@ describe('Noise', () => {
     }
   })
 
-  it('should accept and return early data from remote peer', async () => {
+  it('should accept and return Noise extension from remote peer', async () => {
     try {
-      const localPeerEarlyData = Buffer.from('early data')
+      const certhashInit = Buffer.from('certhash data from init')
       const staticKeysInitiator = stablelib.generateX25519KeyPair()
-      const noiseInit = new Noise(staticKeysInitiator.privateKey, localPeerEarlyData)
+      const noiseInit = new Noise(staticKeysInitiator.privateKey, { webtransportCerthashes: [certhashInit] })
       const staticKeysResponder = stablelib.generateX25519KeyPair()
-      const noiseResp = new Noise(staticKeysResponder.privateKey)
+      const certhashResp = Buffer.from('certhash data from respon')
+      const noiseResp = new Noise(staticKeysResponder.privateKey, { webtransportCerthashes: [certhashResp] })
 
       const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
       const [outbound, inbound] = await Promise.all([
@@ -176,8 +177,10 @@ describe('Noise', () => {
         noiseResp.secureInbound(remotePeer, inboundConnection)
       ])
 
-      assert(uint8ArrayEquals(inbound.remoteEarlyData, localPeerEarlyData))
-      assert(uint8ArrayEquals(outbound.remoteEarlyData, Buffer.alloc(0)))
+      // @ts-ignore https://github.com/libp2p/js-libp2p-interfaces/issues/291
+      assert(uint8ArrayEquals(inbound.remoteExtensions.webtransportCerthashes[0], certhashInit))
+      // @ts-ignore https://github.com/libp2p/js-libp2p-interfaces/issues/291
+      assert(uint8ArrayEquals(outbound.remoteExtensions.webtransportCerthashes[0], certhashResp))
     } catch (e) {
       const err = e as Error
       assert(false, err.message)
