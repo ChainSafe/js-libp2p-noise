@@ -94,7 +94,7 @@
     "@libp2p/mplex": "^5.0.0",
     "@libp2p/peer-id-factory": "^1.0.8",
     "@libp2p/tcp": "^3.0.3",
-    "@multiformats/multiaddr": "^10.3.3",
+    "@multiformats/multiaddr": "^11.0.3",
     "aegir": "^37.3.0",
     "benchmark": "^2.1.4",
     "execa": "^6.1.0",
