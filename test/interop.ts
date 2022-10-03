@@ -4,7 +4,7 @@ import { createServer } from '@libp2p/daemon-server'
 import { createClient } from '@libp2p/daemon-client'
 import { createLibp2p, Libp2pOptions } from 'libp2p'
 import { TCP } from '@libp2p/tcp'
-import { Multiaddr } from '@multiformats/multiaddr'
+import { multiaddr } from '@multiformats/multiaddr'
 import { path as p2pd } from 'go-libp2p'
 import { execa } from 'execa'
 import pDefer from 'p-defer'
@@ -18,7 +18,7 @@ import { Noise } from '../src/index.js'
 
 async function createGoPeer (options: SpawnOptions): Promise<Daemon> {
   const controlPort = Math.floor(Math.random() * (50000 - 10000 + 1)) + 10000
-  const apiAddr = new Multiaddr(`/ip4/0.0.0.0/tcp/${controlPort}`)
+  const apiAddr = multiaddr(`/ip4/0.0.0.0/tcp/${controlPort}`)
 
   const log = logger(`go-libp2p:${controlPort}`)
 
@@ -82,7 +82,7 @@ async function createJsPeer (options: SpawnOptions): Promise<Daemon> {
   }
 
   const node = await createLibp2p(opts)
-  const server = await createServer(new Multiaddr('/ip4/0.0.0.0/tcp/0'), node as any)
+  const server = await createServer(multiaddr('/ip4/0.0.0.0/tcp/0'), node as any)
   await server.start()
 
   return {

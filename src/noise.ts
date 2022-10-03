@@ -56,7 +56,7 @@ export class Noise implements INoiseConnection {
    * @param {PeerId} remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer.
    * @returns {Promise<SecuredConnection>}
    */
-  public async secureOutbound (localPeer: PeerId, connection: Duplex<Uint8Array>, remotePeer: PeerId): Promise<SecuredConnection> {
+  public async secureOutbound (localPeer: PeerId, connection: Duplex<Uint8Array>, remotePeer?: PeerId): Promise<SecuredConnection> {
     const wrappedConnection = pbStream(
       connection,
       {
