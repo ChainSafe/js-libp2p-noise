@@ -34,9 +34,9 @@ export class Noise implements INoiseConnection {
 
   /**
    * @param {bytes} staticNoiseKey - x25519 private key, reuse for faster handshakes
-   * @param {bytes} earlyData
+   * @param {NoiseExtensions} extensions
    */
-  constructor(staticNoiseKey?: bytes, extensions?: NoiseExtensions, crypto: ICryptoInterface = stablelib, prologueBytes?: Uint8Array) {
+  constructor (staticNoiseKey?: bytes, extensions?: NoiseExtensions, crypto: ICryptoInterface = stablelib, prologueBytes?: Uint8Array) {
     this.crypto = crypto
     this.extensions = extensions
 
@@ -76,8 +76,7 @@ export class Noise implements INoiseConnection {
 
     return {
       conn,
-      remoteEarlyData: handshake.remoteEarlyData,
-      // @ts-ignore this isn't part of the interface yet. Fix me when https://github.com/libp2p/js-libp2p-interfaces/issues/291 is fixed
+      // @ts-expect-error this isn't part of the interface yet. Fix me when https://github.com/libp2p/js-libp2p-interfaces/issues/291 is fixed
       remoteExtensions: handshake.remoteExtensions,
       remotePeer: handshake.remotePeer
     }
@@ -91,7 +90,7 @@ export class Noise implements INoiseConnection {
    * @param {PeerId} remotePeer - optional PeerId of the initiating peer, if known. This may only exist during transport upgrades.
    * @returns {Promise<SecuredConnection>}
    */
-  public async secureInbound(localPeer: PeerId, connection: Duplex<Uint8Array>, remotePeer?: PeerId): Promise<SecuredConnection> {
+  public async secureInbound (localPeer: PeerId, connection: Duplex<Uint8Array>, remotePeer?: PeerId): Promise<SecuredConnection> {
     const wrappedConnection = pbStream(
       connection,
       {
@@ -110,10 +109,9 @@ export class Noise implements INoiseConnection {
 
     return {
       conn,
-      remoteEarlyData: handshake.remoteEarlyData,
       remotePeer: handshake.remotePeer,
-      // @ts-ignore this isn't part of the interface yet. Fix me when https://github.com/libp2p/js-libp2p-interfaces/issues/291 is fixed
-      remoteExtensions: handshake.remoteExtensions,
+      // @ts-expect-error this isn't part of the interface yet. Fix me when https://github.com/libp2p/js-libp2p-interfaces/issues/291 is fixed
+      remoteExtensions: handshake.remoteExtensions
     }
   }
 
@@ -124,7 +122,7 @@ export class Noise implements INoiseConnection {
    * @param {HandshakeParams} params
    */
   private async performHandshake (params: HandshakeParams): Promise<IHandshake> {
-    const payload = await getPayload(params.localPeer, this.staticKeys.publicKey, this.earlyData)
+    const payload = await getPayload(params.localPeer, this.staticKeys.publicKey, this.extensions)
 
     // run XX handshake
     return await this.performXXHandshake(params, payload)

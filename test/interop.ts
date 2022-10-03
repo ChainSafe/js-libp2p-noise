@@ -16,7 +16,7 @@ import type { PeerId } from '@libp2p/interface-peer-id'
 import { peerIdFromKeys } from '@libp2p/peer-id'
 import { Noise } from '../src/index.js'
 
-async function createGoPeer(options: SpawnOptions): Promise<Daemon> {
+async function createGoPeer (options: SpawnOptions): Promise<Daemon> {
   const controlPort = Math.floor(Math.random() * (50000 - 10000 + 1)) + 10000
   const apiAddr = multiaddr(`/ip4/0.0.0.0/tcp/${controlPort}`)
 
@@ -62,7 +62,7 @@ async function createGoPeer(options: SpawnOptions): Promise<Daemon> {
   }
 }
 
-async function createJsPeer(options: SpawnOptions): Promise<Daemon> {
+async function createJsPeer (options: SpawnOptions): Promise<Daemon> {
   let peerId: PeerId | undefined
 
   if (options.key != null) {
@@ -94,9 +94,9 @@ async function createJsPeer(options: SpawnOptions): Promise<Daemon> {
   }
 }
 
-async function main(): Promise<void> {
+async function main (): Promise<void> {
   const factory: DaemonFactory = {
-    async spawn(options: SpawnOptions) {
+    async spawn (options: SpawnOptions) {
       if (options.type === 'go') {
         return await createGoPeer(options)
       }

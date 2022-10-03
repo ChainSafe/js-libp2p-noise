@@ -7,6 +7,5 @@ message NoiseExtensions {
 message NoiseHandshakePayload {
   optional bytes identity_key = 1;
   optional bytes identity_sig = 2;
-  optional bytes data         = 3;
   optional NoiseExtensions extensions = 4;
 }

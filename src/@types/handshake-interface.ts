@@ -6,7 +6,6 @@ import type { NoiseExtensions } from '../proto/payload.js'
 export interface IHandshake {
   session: NoiseSession
   remotePeer: PeerId
-  remoteEarlyData: bytes
   remoteExtensions: NoiseExtensions
   encrypt: (plaintext: bytes, session: NoiseSession) => bytes
   decrypt: (ciphertext: bytes, session: NoiseSession) => { plaintext: bytes, valid: boolean }

@@ -70,7 +70,6 @@ export namespace NoiseExtensions {
 export interface NoiseHandshakePayload {
   identityKey: Uint8Array
   identitySig: Uint8Array
-  data: Uint8Array
   extensions: NoiseExtensions
 }
 
@@ -98,13 +97,6 @@ export namespace NoiseHandshakePayload {
           throw new Error('Protocol error: required field "identitySig" was not found in object')
         }
 
-        if (obj.data != null) {
-          writer.uint32(26)
-          writer.bytes(obj.data)
-        } else {
-          throw new Error('Protocol error: required field "data" was not found in object')
-        }
-
         if (obj.extensions != null) {
           writer.uint32(34)
           NoiseExtensions.codec().encode(obj.extensions, writer)
@@ -119,7 +111,6 @@ export namespace NoiseHandshakePayload {
         const obj: any = {
           identityKey: new Uint8Array(0),
           identitySig: new Uint8Array(0),
-          data: new Uint8Array(0),
           extensions: undefined
         }
 
@@ -134,9 +125,6 @@ export namespace NoiseHandshakePayload {
               break
             case 2:
               obj.identitySig = reader.bytes()
-              break
-            case 3:
-              obj.data = reader.bytes()
               break
             case 4:
               obj.extensions = NoiseExtensions.codec().decode(reader, reader.uint32())
@@ -153,10 +141,6 @@ export namespace NoiseHandshakePayload {
 
         if (obj.identitySig == null) {
           throw new Error('Protocol error: value for required field "identitySig" was not found in protobuf')
-        }
-
-        if (obj.data == null) {
-          throw new Error('Protocol error: value for required field "data" was not found in protobuf')
         }
 
         if (obj.extensions == null) {

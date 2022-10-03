@@ -6,7 +6,7 @@ import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import type { bytes } from './@types/basic.js'
 import { NoiseExtensions, NoiseHandshakePayload } from './proto/payload.js'
 
-export async function getPayload(
+export async function getPayload (
   localPeer: PeerId,
   staticPublicKey: bytes,
   extensions?: NoiseExtensions
@@ -24,7 +24,7 @@ export async function getPayload(
   )
 }
 
-export function createHandshakePayload(
+export function createHandshakePayload (
   libp2pPublicKey: Uint8Array,
   signedPayload: Uint8Array,
   extensions?: NoiseExtensions
@@ -33,11 +33,11 @@ export function createHandshakePayload(
     identityKey: libp2pPublicKey,
     identitySig: signedPayload,
     data: new Uint8Array(0),
-    extensions: extensions ?? { webtransportCerthashes: [] },
+    extensions: extensions ?? { webtransportCerthashes: [] }
   }).subarray()
 }
 
-export async function signPayload(peerId: PeerId, payload: bytes): Promise<bytes> {
+export async function signPayload (peerId: PeerId, payload: bytes): Promise<bytes> {
   if (peerId.privateKey == null) {
     throw new Error('PrivateKey was missing from PeerId')
   }
@@ -47,15 +47,15 @@ export async function signPayload(peerId: PeerId, payload: bytes): Promise<bytes
   return await privateKey.sign(payload)
 }
 
-export async function getPeerIdFromPayload(payload: NoiseHandshakePayload): Promise<PeerId> {
+export async function getPeerIdFromPayload (payload: NoiseHandshakePayload): Promise<PeerId> {
   return await peerIdFromKeys(payload.identityKey)
 }
 
-export function decodePayload(payload: bytes | Uint8Array): NoiseHandshakePayload {
+export function decodePayload (payload: bytes | Uint8Array): NoiseHandshakePayload {
   return NoiseHandshakePayload.decode(payload)
 }
 
-export function getHandshakePayload(publicKey: bytes): bytes {
+export function getHandshakePayload (publicKey: bytes): bytes {
   const prefix = uint8ArrayFromString('noise-libp2p-static-key:')
   return uint8ArrayConcat([prefix, publicKey], prefix.length + publicKey.length)
 }
@@ -68,7 +68,7 @@ export function getHandshakePayload(publicKey: bytes): bytes {
  * @param {PeerId} remotePeer - owner's libp2p peer ID
  * @returns {Promise<PeerId>} - peer ID of payload owner
  */
-export async function verifySignedPayload(
+export async function verifySignedPayload (
   noiseStaticKey: bytes,
   payload: NoiseHandshakePayload,
   remotePeer: PeerId
@@ -99,7 +99,7 @@ export async function verifySignedPayload(
   return payloadPeerId
 }
 
-export function isValidPublicKey(pk: bytes): boolean {
+export function isValidPublicKey (pk: bytes): boolean {
   if (!(pk instanceof Uint8Array)) {
     return false
   }

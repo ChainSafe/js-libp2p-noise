@@ -27,7 +27,6 @@ export class XXHandshake implements IHandshake {
   public isInitiator: boolean
   public session: NoiseSession
   public remotePeer!: PeerId
-  public remoteEarlyData: bytes
   public remoteExtensions: NoiseExtensions = { webtransportCerthashes: [] }
 
   protected payload: bytes
@@ -57,7 +56,6 @@ export class XXHandshake implements IHandshake {
     }
     this.xx = handshake ?? new XX(crypto)
     this.session = this.xx.initSession(this.isInitiator, this.prologue, this.staticKeypair)
-    this.remoteEarlyData = new Uint8Array(0)
   }
 
   // stage 0
@@ -99,7 +97,6 @@ export class XXHandshake implements IHandshake {
         const decodedPayload = decodePayload(plaintext)
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload)
         await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer)
-        this.setRemoteEarlyData(decodedPayload.data)
         this.setRemoteNoiseExtension(decodedPayload.extensions)
       } catch (e) {
         const err = e as Error
@@ -135,7 +132,6 @@ export class XXHandshake implements IHandshake {
         const decodedPayload = decodePayload(plaintext)
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload)
         await verifySignedPayload(this.session.hs.rs, decodedPayload, this.remotePeer)
-        this.setRemoteEarlyData(decodedPayload.data)
         this.setRemoteNoiseExtension(decodedPayload.extensions)
       } catch (e) {
         const err = e as Error
@@ -151,7 +147,7 @@ export class XXHandshake implements IHandshake {
     return this.xx.encryptWithAd(cs, new Uint8Array(0), plaintext)
   }
 
-  public decrypt (ciphertext: Uint8Array, session: NoiseSession): {plaintext: bytes, valid: boolean} {
+  public decrypt (ciphertext: Uint8Array, session: NoiseSession): { plaintext: bytes, valid: boolean } {
     const cs = this.getCS(session, false)
 
     return this.xx.decryptWithAd(cs, new Uint8Array(0), ciphertext)
@@ -173,13 +169,7 @@ export class XXHandshake implements IHandshake {
     }
   }
 
-  protected setRemoteEarlyData (data: Uint8Array|null|undefined): void {
-    if (data) {
-      this.remoteEarlyData = data
-    }
-  }
-
-  protected setRemoteNoiseExtension(e: NoiseExtensions | null | undefined): void {
+  protected setRemoteNoiseExtension (e: NoiseExtensions | null | undefined): void {
     if (e) {
       this.remoteExtensions = e
     }
