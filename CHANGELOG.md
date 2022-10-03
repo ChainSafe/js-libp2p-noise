@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.0.2](https://github.com/ChainSafe/js-libp2p-noise/compare/v8.0.1...v8.0.2) (2022-10-03)
+
+
+### Bug Fixes
+
+* readme docs ([77a95fd](https://github.com/ChainSafe/js-libp2p-noise/commit/77a95fdafd861470c5ba763ffec277ba8456ac19)), closes [#203](https://github.com/ChainSafe/js-libp2p-noise/issues/203)
+* update to new interfaces ([#218](https://github.com/ChainSafe/js-libp2p-noise/issues/218)) ([2a04b51](https://github.com/ChainSafe/js-libp2p-noise/commit/2a04b5168da8c9733a61c236922a967da123b28b))
+
+
+### Miscellaneous
+
+* bump libp2p from 0.38.0 to 0.39.1 ([#208](https://github.com/ChainSafe/js-libp2p-noise/issues/208)) ([fef1af2](https://github.com/ChainSafe/js-libp2p-noise/commit/fef1af2ed4296d9303d44752862bcdee4a0e1abc))
+
 ## [8.0.1](https://github.com/ChainSafe/js-libp2p-noise/compare/v8.0.0...v8.0.1) (2022-08-19)
 
 
