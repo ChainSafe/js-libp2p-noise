@@ -177,10 +177,8 @@ describe('Noise', () => {
         noiseResp.secureInbound(remotePeer, inboundConnection)
       ])
 
-      // @ts-expect-error https://github.com/libp2p/js-libp2p-interfaces/issues/291
-      assert(uint8ArrayEquals(inbound.remoteExtensions.webtransportCerthashes[0], certhashInit))
-      // @ts-expect-error https://github.com/libp2p/js-libp2p-interfaces/issues/291
-      assert(uint8ArrayEquals(outbound.remoteExtensions.webtransportCerthashes[0], certhashResp))
+      assert(uint8ArrayEquals(inbound.remoteExtensions?.webtransportCerthashes[0] || new Uint8Array(), certhashInit))
+      assert(uint8ArrayEquals(outbound.remoteExtensions?.webtransportCerthashes[0] || new Uint8Array(), certhashResp))
     } catch (e) {
       const err = e as Error
       assert(false, err.message)

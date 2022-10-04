@@ -57,7 +57,7 @@ export class Noise implements INoiseConnection {
    * @param {PeerId} remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer.
    * @returns {Promise<SecuredConnection>}
    */
-  public async secureOutbound (localPeer: PeerId, connection: Duplex<Uint8Array>, remotePeer?: PeerId): Promise<SecuredConnection> {
+  public async secureOutbound (localPeer: PeerId, connection: Duplex<Uint8Array>, remotePeer?: PeerId): Promise<SecuredConnection<NoiseExtensions>> {
     const wrappedConnection = pbStream(
       connection,
       {
@@ -76,7 +76,6 @@ export class Noise implements INoiseConnection {
 
     return {
       conn,
-      // @ts-expect-error this isn't part of the interface yet. Fix me when https://github.com/libp2p/js-libp2p-interfaces/issues/291 is fixed
       remoteExtensions: handshake.remoteExtensions,
       remotePeer: handshake.remotePeer
     }
@@ -90,7 +89,7 @@ export class Noise implements INoiseConnection {
    * @param {PeerId} remotePeer - optional PeerId of the initiating peer, if known. This may only exist during transport upgrades.
    * @returns {Promise<SecuredConnection>}
    */
-  public async secureInbound (localPeer: PeerId, connection: Duplex<Uint8Array>, remotePeer?: PeerId): Promise<SecuredConnection> {
+  public async secureInbound (localPeer: PeerId, connection: Duplex<Uint8Array>, remotePeer?: PeerId): Promise<SecuredConnection<NoiseExtensions>> {
     const wrappedConnection = pbStream(
       connection,
       {
@@ -110,7 +109,6 @@ export class Noise implements INoiseConnection {
     return {
       conn,
       remotePeer: handshake.remotePeer,
-      // @ts-expect-error this isn't part of the interface yet. Fix me when https://github.com/libp2p/js-libp2p-interfaces/issues/291 is fixed
       remoteExtensions: handshake.remoteExtensions
     }
   }

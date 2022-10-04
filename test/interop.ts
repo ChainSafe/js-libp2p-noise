@@ -78,6 +78,7 @@ async function createJsPeer (options: SpawnOptions): Promise<Daemon> {
     },
     transports: [new TCP()],
     streamMuxers: [new Mplex()],
+    // @ts-expect-error libp2p options is still referencing the old connection encrypter interface https://github.com/libp2p/js-libp2p/pull/1402
     connectionEncryption: [new Noise()]
   }
 

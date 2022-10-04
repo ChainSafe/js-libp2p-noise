@@ -32,7 +32,6 @@ export function createHandshakePayload (
   return NoiseHandshakePayload.encode({
     identityKey: libp2pPublicKey,
     identitySig: signedPayload,
-    data: new Uint8Array(0),
     extensions: extensions ?? { webtransportCerthashes: [] }
   }).subarray()
 }

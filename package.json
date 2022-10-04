@@ -68,7 +68,7 @@
   },
   "dependencies": {
     "@libp2p/crypto": "^1.0.0",
-    "@libp2p/interface-connection-encrypter": "^2.0.1",
+    "@libp2p/interface-connection-encrypter": "^3.0.0",
     "@libp2p/interface-keys": "^1.0.2",
     "@libp2p/interface-peer-id": "^1.0.2",
     "@libp2p/logger": "^2.0.0",
@@ -89,7 +89,7 @@
   "devDependencies": {
     "@libp2p/daemon-client": "^3.0.1",
     "@libp2p/daemon-server": "^3.0.0",
-    "@libp2p/interface-connection-encrypter-compliance-tests": "^2.0.1",
+    "@libp2p/interface-connection-encrypter-compliance-tests": "^2.0.3",
     "@libp2p/interop": "^3.0.1",
     "@libp2p/mplex": "^5.0.0",
     "@libp2p/peer-id-factory": "^1.0.8",
@@ -100,7 +100,7 @@
     "execa": "^6.1.0",
     "go-libp2p": "^0.0.6",
     "iso-random-stream": "^2.0.2",
-    "libp2p": "0.39.2",
+    "libp2p": "0.39.4",
     "mkdirp": "^1.0.4",
     "p-defer": "^4.0.0",
     "protons": "^5.1.0",
