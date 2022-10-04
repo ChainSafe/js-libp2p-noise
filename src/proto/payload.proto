@@ -1,11 +1,11 @@
-syntax = "proto2";
+syntax = "proto3";
 
 message NoiseExtensions {
     repeated bytes webtransport_certhashes = 1;
 }
 
 message NoiseHandshakePayload {
-  optional bytes identity_key = 1;
-  optional bytes identity_sig = 2;
-  optional NoiseExtensions extensions = 4;
+  bytes identity_key = 1;
+  bytes identity_sig = 2;
+  NoiseExtensions extensions = 4;
 }
