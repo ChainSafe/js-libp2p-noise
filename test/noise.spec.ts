@@ -177,8 +177,8 @@ describe('Noise', () => {
         noiseResp.secureInbound(remotePeer, inboundConnection)
       ])
 
-      assert(uint8ArrayEquals(inbound.remoteExtensions?.webtransportCerthashes[0] || new Uint8Array(), certhashInit))
-      assert(uint8ArrayEquals(outbound.remoteExtensions?.webtransportCerthashes[0] || new Uint8Array(), certhashResp))
+      assert(uint8ArrayEquals(inbound.remoteExtensions?.webtransportCerthashes[0] ?? new Uint8Array(), certhashInit))
+      assert(uint8ArrayEquals(outbound.remoteExtensions?.webtransportCerthashes[0] ?? new Uint8Array(), certhashResp))
     } catch (e) {
       const err = e as Error
       assert(false, err.message)
