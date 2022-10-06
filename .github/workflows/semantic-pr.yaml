@@ -17,9 +17,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           requireScope: false
-          validateSingleCommit: true
-          validateSingleCommitMatchesPrTitle: false
           types: |
             fix
             feat
             chore
+            docs
