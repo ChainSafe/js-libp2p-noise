@@ -15,6 +15,7 @@ import { decryptStream, encryptStream } from './crypto/streaming.js'
 import { uint16BEDecode, uint16BEEncode } from './encoder.js'
 import { XXHandshake } from './handshake-xx.js'
 import { getPayload } from './utils.js'
+import type { NoiseExtensions } from './proto/payload.js'
 
 interface HandshakeParams {
   connection: ProtobufStream
@@ -29,15 +30,15 @@ export class Noise implements INoiseConnection {
 
   private readonly prologue: Uint8Array
   private readonly staticKeys: KeyPair
-  private readonly earlyData?: bytes
+  private readonly extensions?: NoiseExtensions
 
   /**
    * @param {bytes} staticNoiseKey - x25519 private key, reuse for faster handshakes
-   * @param {bytes} earlyData
+   * @param {NoiseExtensions} extensions
    */
-  constructor (staticNoiseKey?: bytes, earlyData?: bytes, crypto: ICryptoInterface = stablelib, prologueBytes?: Uint8Array) {
-    this.earlyData = earlyData ?? new Uint8Array(0)
+  constructor (staticNoiseKey?: bytes, extensions?: NoiseExtensions, crypto: ICryptoInterface = stablelib, prologueBytes?: Uint8Array) {
     this.crypto = crypto
+    this.extensions = extensions
 
     if (staticNoiseKey) {
       // accepts x25519 private key of length 32
@@ -56,7 +57,7 @@ export class Noise implements INoiseConnection {
    * @param {PeerId} remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer.
    * @returns {Promise<SecuredConnection>}
    */
-  public async secureOutbound (localPeer: PeerId, connection: Duplex<Uint8Array>, remotePeer?: PeerId): Promise<SecuredConnection> {
+  public async secureOutbound (localPeer: PeerId, connection: Duplex<Uint8Array>, remotePeer?: PeerId): Promise<SecuredConnection<NoiseExtensions>> {
     const wrappedConnection = pbStream(
       connection,
       {
@@ -75,7 +76,7 @@ export class Noise implements INoiseConnection {
 
     return {
       conn,
-      remoteEarlyData: handshake.remoteEarlyData,
+      remoteExtensions: handshake.remoteExtensions,
       remotePeer: handshake.remotePeer
     }
   }
@@ -88,7 +89,7 @@ export class Noise implements INoiseConnection {
    * @param {PeerId} remotePeer - optional PeerId of the initiating peer, if known. This may only exist during transport upgrades.
    * @returns {Promise<SecuredConnection>}
    */
-  public async secureInbound (localPeer: PeerId, connection: Duplex<Uint8Array>, remotePeer?: PeerId): Promise<SecuredConnection> {
+  public async secureInbound (localPeer: PeerId, connection: Duplex<Uint8Array>, remotePeer?: PeerId): Promise<SecuredConnection<NoiseExtensions>> {
     const wrappedConnection = pbStream(
       connection,
       {
@@ -107,8 +108,8 @@ export class Noise implements INoiseConnection {
 
     return {
       conn,
-      remoteEarlyData: handshake.remoteEarlyData,
-      remotePeer: handshake.remotePeer
+      remotePeer: handshake.remotePeer,
+      remoteExtensions: handshake.remoteExtensions
     }
   }
 
@@ -119,7 +120,7 @@ export class Noise implements INoiseConnection {
    * @param {HandshakeParams} params
    */
   private async performHandshake (params: HandshakeParams): Promise<IHandshake> {
-    const payload = await getPayload(params.localPeer, this.staticKeys.publicKey, this.earlyData)
+    const payload = await getPayload(params.localPeer, this.staticKeys.publicKey, this.extensions)
 
     // run XX handshake
     return await this.performXXHandshake(params, payload)

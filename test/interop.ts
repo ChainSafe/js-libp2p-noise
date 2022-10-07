@@ -23,8 +23,8 @@ async function createGoPeer (options: SpawnOptions): Promise<Daemon> {
   const log = logger(`go-libp2p:${controlPort}`)
 
   const opts = [
-      `-listen=${apiAddr.toString()}`,
-      '-hostAddrs=/ip4/0.0.0.0/tcp/0'
+    `-listen=${apiAddr.toString()}`,
+    '-hostAddrs=/ip4/0.0.0.0/tcp/0'
   ]
 
   if (options.noise === true) {
@@ -78,6 +78,7 @@ async function createJsPeer (options: SpawnOptions): Promise<Daemon> {
     },
     transports: [new TCP()],
     streamMuxers: [new Mplex()],
+    // @ts-expect-error libp2p options is still referencing the old connection encrypter interface https://github.com/libp2p/js-libp2p/pull/1402
     connectionEncryption: [new Noise()]
   }
 
