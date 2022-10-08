@@ -16,6 +16,7 @@ import { uint16BEDecode, uint16BEEncode } from './encoder.js'
 import { XXHandshake } from './handshake-xx.js'
 import { getPayload } from './utils.js'
 import type { NoiseExtensions } from './proto/payload.js'
+import type { Metrics } from './metrics.js'
 
 interface HandshakeParams {
   connection: ProtobufStream
@@ -32,6 +33,7 @@ export interface NoiseInit {
   extensions?: NoiseExtensions
   crypto?: ICryptoInterface
   prologueBytes?: Uint8Array
+  metrics?: Metrics | null
 }
 
 export class Noise implements INoiseConnection {
@@ -41,12 +43,14 @@ export class Noise implements INoiseConnection {
   private readonly prologue: Uint8Array
   private readonly staticKeys: KeyPair
   private readonly extensions?: NoiseExtensions
+  private readonly metrics: Metrics | null
 
   constructor (init: NoiseInit = {}) {
     const { staticNoiseKey, extensions, crypto, prologueBytes } = init
 
     this.crypto = crypto ?? stablelib
     this.extensions = extensions
+    this.metrics = 
 
     if (staticNoiseKey) {
       // accepts x25519 private key of length 32
@@ -153,7 +157,9 @@ export class Noise implements INoiseConnection {
       await handshake.propose()
       await handshake.exchange()
       await handshake.finish()
+      this.metrics?.xxHandshakeSuccesses.inc()
     } catch (e: unknown) {
+      this.metrics?.xxHandshakeErrors.inc()
       if (e instanceof Error) {
         e.message = `Error occurred during XX handshake: ${e.message}`
         throw e
@@ -173,11 +179,11 @@ export class Noise implements INoiseConnection {
 
     await pipe(
       secure, // write to wrapper
-      encryptStream(handshake), // data is encrypted
+      encryptStream(handshake, this.metrics), // data is encrypted
       encode({ lengthEncoder: uint16BEEncode }), // prefix with message length
       network, // send to the remote peer
       decode({ lengthDecoder: uint16BEDecode }), // read message length prefix
-      decryptStream(handshake), // decrypt the incoming data
+      decryptStream(handshake, this.metrics), // decrypt the incoming data
       secure // pipe to the wrapper
     )
 
