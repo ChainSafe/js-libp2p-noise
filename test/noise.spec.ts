@@ -13,7 +13,7 @@ import { stablelib } from '../src/crypto/stablelib.js'
 import { decode0, decode2, encode1, uint16BEDecode, uint16BEEncode } from '../src/encoder.js'
 import { XX } from '../src/handshakes/xx.js'
 import { XXHandshake } from '../src/handshake-xx.js'
-import { Noise } from '../src/index.js'
+import { Noise } from '../src/noise.js'
 import { createHandshakePayload, getHandshakePayload, getPayload, signPayload } from '../src/utils.js'
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
 import { getKeyPairFromPeerId } from './utils.js'
@@ -32,8 +32,8 @@ describe('Noise', () => {
 
   it('should communicate through encrypted streams without noise pipes', async () => {
     try {
-      const noiseInit = new Noise(undefined, undefined)
-      const noiseResp = new Noise(undefined, undefined)
+      const noiseInit = new Noise({ staticNoiseKey: undefined, extensions: undefined })
+      const noiseResp = new Noise({ staticNoiseKey: undefined, extensions: undefined })
 
       const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
       const [outbound, inbound] = await Promise.all([
@@ -53,7 +53,7 @@ describe('Noise', () => {
   })
 
   it('should test that secureOutbound is spec compliant', async () => {
-    const noiseInit = new Noise(undefined, undefined)
+    const noiseInit = new Noise({ staticNoiseKey: undefined })
     const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
 
     const [outbound, { wrapped, handshake }] = await Promise.all([
@@ -108,8 +108,8 @@ describe('Noise', () => {
   it('should test large payloads', async function () {
     this.timeout(10000)
     try {
-      const noiseInit = new Noise(undefined, undefined)
-      const noiseResp = new Noise(undefined, undefined)
+      const noiseInit = new Noise({ staticNoiseKey: undefined })
+      const noiseResp = new Noise({ staticNoiseKey: undefined })
 
       const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
       const [outbound, inbound] = await Promise.all([
@@ -133,9 +133,9 @@ describe('Noise', () => {
   it('should working without remote peer provided in incoming connection', async () => {
     try {
       const staticKeysInitiator = stablelib.generateX25519KeyPair()
-      const noiseInit = new Noise(staticKeysInitiator.privateKey)
+      const noiseInit = new Noise({ staticNoiseKey: staticKeysInitiator.privateKey })
       const staticKeysResponder = stablelib.generateX25519KeyPair()
-      const noiseResp = new Noise(staticKeysResponder.privateKey)
+      const noiseResp = new Noise({ staticNoiseKey: staticKeysResponder.privateKey })
 
       const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
       const [outbound, inbound] = await Promise.all([
@@ -166,10 +166,10 @@ describe('Noise', () => {
     try {
       const certhashInit = Buffer.from('certhash data from init')
       const staticKeysInitiator = stablelib.generateX25519KeyPair()
-      const noiseInit = new Noise(staticKeysInitiator.privateKey, { webtransportCerthashes: [certhashInit] })
+      const noiseInit = new Noise({ staticNoiseKey: staticKeysInitiator.privateKey, extensions: { webtransportCerthashes: [certhashInit] } })
       const staticKeysResponder = stablelib.generateX25519KeyPair()
       const certhashResp = Buffer.from('certhash data from respon')
-      const noiseResp = new Noise(staticKeysResponder.privateKey, { webtransportCerthashes: [certhashResp] })
+      const noiseResp = new Noise({ staticNoiseKey: staticKeysResponder.privateKey, extensions: { webtransportCerthashes: [certhashResp] } })
 
       const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
       const [outbound, inbound] = await Promise.all([
@@ -187,8 +187,8 @@ describe('Noise', () => {
 
   it('should accept a prologue', async () => {
     try {
-      const noiseInit = new Noise(undefined, undefined, stablelib, Buffer.from('Some prologue'))
-      const noiseResp = new Noise(undefined, undefined, stablelib, Buffer.from('Some prologue'))
+      const noiseInit = new Noise({ staticNoiseKey: undefined, crypto: stablelib, prologueBytes: Buffer.from('Some prologue') })
+      const noiseResp = new Noise({ staticNoiseKey: undefined, crypto: stablelib, prologueBytes: Buffer.from('Some prologue') })
 
       const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
       const [outbound, inbound] = await Promise.all([

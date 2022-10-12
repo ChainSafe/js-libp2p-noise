@@ -14,7 +14,7 @@ import fs from 'fs'
 import { unmarshalPrivateKey } from '@libp2p/crypto/keys'
 import type { PeerId } from '@libp2p/interface-peer-id'
 import { peerIdFromKeys } from '@libp2p/peer-id'
-import { Noise } from '../src/index.js'
+import { Noise } from '../src/noise.js'
 
 async function createGoPeer (options: SpawnOptions): Promise<Daemon> {
   const controlPort = Math.floor(Math.random() * (50000 - 10000 + 1)) + 10000
@@ -77,6 +77,7 @@ async function createJsPeer (options: SpawnOptions): Promise<Daemon> {
       listen: ['/ip4/0.0.0.0/tcp/0']
     },
     transports: [new TCP()],
+    // @ts-expect-error libp2p options is still referencing the old stream muxer interface https://github.com/libp2p/js-libp2p/pull/1402
     streamMuxers: [new Mplex()],
     // @ts-expect-error libp2p options is still referencing the old connection encrypter interface https://github.com/libp2p/js-libp2p/pull/1402
     connectionEncryption: [new Noise()]
