@@ -93,7 +93,7 @@
     "@libp2p/interop": "^3.0.1",
     "@libp2p/mplex": "^5.0.0",
     "@libp2p/peer-id-factory": "^1.0.8",
-    "@libp2p/tcp": "^4.1.0",
+    "@libp2p/tcp": "^5.0.0",
     "@multiformats/multiaddr": "^11.0.3",
     "aegir": "^37.3.0",
     "benchmark": "^2.1.4",
