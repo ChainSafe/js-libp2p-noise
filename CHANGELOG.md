@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v9.0.0...v10.0.0) (2022-10-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* modules no longer implement `Initializable` instead switching to constructor injection
+
+### Bug Fixes
+
+* remove @libp2p/components ([#229](https://github.com/ChainSafe/js-libp2p-noise/issues/229)) ([dd47517](https://github.com/ChainSafe/js-libp2p-noise/commit/dd4751764d348a3e16f5e1690702392b3df132bf))
+
+
+### Miscellaneous
+
+* bump @libp2p/tcp from 3.1.2 to 4.1.0 ([#227](https://github.com/ChainSafe/js-libp2p-noise/issues/227)) ([3bc8ed4](https://github.com/ChainSafe/js-libp2p-noise/commit/3bc8ed4379c2c856ea1a8cc2977702355b5a851c))
+
 ## [9.0.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v8.0.2...v9.0.0) (2022-10-06)
 
 
