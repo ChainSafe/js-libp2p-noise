@@ -1,5 +1,7 @@
 /* eslint-disable import/export */
+/* eslint-disable complexity */
 /* eslint-disable @typescript-eslint/no-namespace */
+/* eslint-disable @typescript-eslint/no-unnecessary-boolean-literal-compare */
 
 import { encodeMessage, decodeMessage, message } from 'protons-runtime'
 import type { Uint8ArrayList } from 'uint8arraylist'
@@ -14,22 +16,20 @@ export namespace NoiseExtensions {
 
   export const codec = (): Codec<NoiseExtensions> => {
     if (_codec == null) {
-      _codec = message<NoiseExtensions>((obj, writer, opts = {}) => {
+      _codec = message<NoiseExtensions>((obj, w, opts = {}) => {
         if (opts.lengthDelimited !== false) {
-          writer.fork()
+          w.fork()
         }
 
         if (obj.webtransportCerthashes != null) {
           for (const value of obj.webtransportCerthashes) {
-            writer.uint32(10)
-            writer.bytes(value)
+            w.uint32(10)
+            w.bytes(value)
           }
-        } else {
-          throw new Error('Protocol error: required field "webtransportCerthashes" was not found in object')
         }
 
         if (opts.lengthDelimited !== false) {
-          writer.ldelim()
+          w.ldelim()
         }
       }, (reader, length) => {
         const obj: any = {
@@ -78,32 +78,30 @@ export namespace NoiseHandshakePayload {
 
   export const codec = (): Codec<NoiseHandshakePayload> => {
     if (_codec == null) {
-      _codec = message<NoiseHandshakePayload>((obj, writer, opts = {}) => {
+      _codec = message<NoiseHandshakePayload>((obj, w, opts = {}) => {
         if (opts.lengthDelimited !== false) {
-          writer.fork()
+          w.fork()
         }
 
-        if (obj.identityKey != null) {
-          writer.uint32(10)
-          writer.bytes(obj.identityKey)
-        } else {
-          throw new Error('Protocol error: required field "identityKey" was not found in object')
+        if (opts.writeDefaults === true || (obj.identityKey != null && obj.identityKey.byteLength > 0)) {
+          w.uint32(10)
+          w.bytes(obj.identityKey)
         }
 
-        if (obj.identitySig != null) {
-          writer.uint32(18)
-          writer.bytes(obj.identitySig)
-        } else {
-          throw new Error('Protocol error: required field "identitySig" was not found in object')
+        if (opts.writeDefaults === true || (obj.identitySig != null && obj.identitySig.byteLength > 0)) {
+          w.uint32(18)
+          w.bytes(obj.identitySig)
         }
 
         if (obj.extensions != null) {
-          writer.uint32(34)
-          NoiseExtensions.codec().encode(obj.extensions, writer)
+          w.uint32(34)
+          NoiseExtensions.codec().encode(obj.extensions, w, {
+            writeDefaults: false
+          })
         }
 
         if (opts.lengthDelimited !== false) {
-          writer.ldelim()
+          w.ldelim()
         }
       }, (reader, length) => {
         const obj: any = {
@@ -130,14 +128,6 @@ export namespace NoiseHandshakePayload {
               reader.skipType(tag & 7)
               break
           }
-        }
-
-        if (obj.identityKey == null) {
-          throw new Error('Protocol error: value for required field "identityKey" was not found in protobuf')
-        }
-
-        if (obj.identitySig == null) {
-          throw new Error('Protocol error: value for required field "identitySig" was not found in protobuf')
         }
 
         return obj

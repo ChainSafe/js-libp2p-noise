@@ -24,6 +24,16 @@ interface HandshakeParams {
   remotePeer?: PeerId
 }
 
+export interface NoiseInit {
+  /**
+   * x25519 private key, reuse for faster handshakes
+   */
+  staticNoiseKey?: bytes
+  extensions?: NoiseExtensions
+  crypto?: ICryptoInterface
+  prologueBytes?: Uint8Array
+}
+
 export class Noise implements INoiseConnection {
   public protocol = '/noise'
   public crypto: ICryptoInterface
@@ -32,12 +42,10 @@ export class Noise implements INoiseConnection {
   private readonly staticKeys: KeyPair
   private readonly extensions?: NoiseExtensions
 
-  /**
-   * @param {bytes} staticNoiseKey - x25519 private key, reuse for faster handshakes
-   * @param {NoiseExtensions} extensions
-   */
-  constructor (staticNoiseKey?: bytes, extensions?: NoiseExtensions, crypto: ICryptoInterface = stablelib, prologueBytes?: Uint8Array) {
-    this.crypto = crypto
+  constructor (init: NoiseInit = {}) {
+    const { staticNoiseKey, extensions, crypto, prologueBytes } = init
+
+    this.crypto = crypto ?? stablelib
     this.extensions = extensions
 
     if (staticNoiseKey) {

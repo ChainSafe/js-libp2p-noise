@@ -1,5 +1,5 @@
 import { expect } from 'aegir/chai'
-import { Noise } from '../src/index.js'
+import { Noise } from '../src/noise.js'
 
 describe('Index', () => {
   it('should expose class with tag and required functions', () => {

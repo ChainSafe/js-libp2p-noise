@@ -3,18 +3,18 @@ import type { SpawnOptions, Daemon, DaemonFactory } from '@libp2p/interop'
 import { createServer } from '@libp2p/daemon-server'
 import { createClient } from '@libp2p/daemon-client'
 import { createLibp2p, Libp2pOptions } from 'libp2p'
-import { TCP } from '@libp2p/tcp'
+import { tcp } from '@libp2p/tcp'
 import { multiaddr } from '@multiformats/multiaddr'
 import { path as p2pd } from 'go-libp2p'
 import { execa } from 'execa'
 import pDefer from 'p-defer'
 import { logger } from '@libp2p/logger'
-import { Mplex } from '@libp2p/mplex'
+import { mplex } from '@libp2p/mplex'
 import fs from 'fs'
 import { unmarshalPrivateKey } from '@libp2p/crypto/keys'
 import type { PeerId } from '@libp2p/interface-peer-id'
 import { peerIdFromKeys } from '@libp2p/peer-id'
-import { Noise } from '../src/index.js'
+import { noise } from '../src/index.js'
 
 async function createGoPeer (options: SpawnOptions): Promise<Daemon> {
   const controlPort = Math.floor(Math.random() * (50000 - 10000 + 1)) + 10000
@@ -76,10 +76,9 @@ async function createJsPeer (options: SpawnOptions): Promise<Daemon> {
     addresses: {
       listen: ['/ip4/0.0.0.0/tcp/0']
     },
-    transports: [new TCP()],
-    streamMuxers: [new Mplex()],
-    // @ts-expect-error libp2p options is still referencing the old connection encrypter interface https://github.com/libp2p/js-libp2p/pull/1402
-    connectionEncryption: [new Noise()]
+    transports: [tcp()],
+    streamMuxers: [mplex()],
+    connectionEncryption: [noise()]
   }
 
   const node = await createLibp2p(opts)
