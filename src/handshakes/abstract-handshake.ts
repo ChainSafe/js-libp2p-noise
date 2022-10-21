@@ -23,7 +23,9 @@ export abstract class AbstractHandshake {
 
   public decryptWithAd (cs: CipherState, ad: Uint8Array, ciphertext: Uint8Array): {plaintext: bytes, valid: boolean} {
     const { plaintext, valid } = this.decrypt(cs.k, cs.n, ad, ciphertext)
-    cs.n.increment()
+    if (valid) {
+      cs.n.increment()
+    }
 
     return { plaintext, valid }
   }
