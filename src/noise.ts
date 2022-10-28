@@ -16,7 +16,7 @@ import { uint16BEDecode, uint16BEEncode } from './encoder.js'
 import { XXHandshake } from './handshake-xx.js'
 import { getPayload } from './utils.js'
 import type { NoiseExtensions } from './proto/payload.js'
-import type { Metrics } from './metrics.js'
+import { Metrics, getMetrics, MetricsRegister } from './metrics.js'
 
 interface HandshakeParams {
   connection: ProtobufStream
@@ -33,7 +33,7 @@ export interface NoiseInit {
   extensions?: NoiseExtensions
   crypto?: ICryptoInterface
   prologueBytes?: Uint8Array
-  metrics?: Metrics | null
+  metricsRegistry?: MetricsRegister | null
 }
 
 export class Noise implements INoiseConnection {
@@ -46,11 +46,11 @@ export class Noise implements INoiseConnection {
   private readonly metrics: Metrics | null
 
   constructor (init: NoiseInit = {}) {
-    const { staticNoiseKey, extensions, crypto, prologueBytes } = init
+    const { staticNoiseKey, extensions, crypto, prologueBytes, metricsRegistry } = init
 
     this.crypto = crypto ?? stablelib
     this.extensions = extensions
-    this.metrics = 
+    this.metrics = metricsRegistry ? getMetrics(metricsRegistry) : null
 
     if (staticNoiseKey) {
       // accepts x25519 private key of length 32
