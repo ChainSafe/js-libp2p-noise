@@ -15,7 +15,7 @@ export function encryptStream (handshake: IHandshake): Transform<Uint8Array> {
         }
 
         const data = handshake.encrypt(chunk.subarray(i, end), handshake.session)
-        
+
         yield uint16BEEncode(data.byteLength)
         yield data
       }
