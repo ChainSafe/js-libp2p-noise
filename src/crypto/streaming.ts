@@ -2,6 +2,7 @@ import type { Transform } from 'it-stream-types'
 import type { Uint8ArrayList } from 'uint8arraylist'
 import type { IHandshake } from '../@types/handshake-interface.js'
 import { NOISE_MSG_MAX_LENGTH_BYTES, NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG } from '../constants.js'
+import { uint16BEEncode } from '../encoder.js'
 
 // Returns generator that encrypts payload from the user
 export function encryptStream (handshake: IHandshake): Transform<Uint8Array> {
@@ -14,6 +15,8 @@ export function encryptStream (handshake: IHandshake): Transform<Uint8Array> {
         }
 
         const data = handshake.encrypt(chunk.subarray(i, end), handshake.session)
+
+        yield uint16BEEncode(data.byteLength)
         yield data
       }
     }

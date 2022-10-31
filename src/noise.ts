@@ -3,7 +3,7 @@ import type { SecuredConnection } from '@libp2p/interface-connection-encrypter'
 import { pbStream, ProtobufStream } from 'it-pb-stream'
 import { duplexPair } from 'it-pair/duplex'
 import { pipe } from 'it-pipe'
-import { encode, decode } from 'it-length-prefixed'
+import { decode } from 'it-length-prefixed'
 import type { Duplex } from 'it-stream-types'
 import type { bytes } from './@types/basic.js'
 import type { IHandshake } from './@types/handshake-interface.js'
@@ -173,8 +173,7 @@ export class Noise implements INoiseConnection {
 
     await pipe(
       secure, // write to wrapper
-      encryptStream(handshake), // data is encrypted
-      encode({ lengthEncoder: uint16BEEncode }), // prefix with message length
+      encryptStream(handshake), // encrypt data + prefix with message length
       network, // send to the remote peer
       decode({ lengthDecoder: uint16BEDecode }), // read message length prefix
       decryptStream(handshake), // decrypt the incoming data
