@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.1.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v10.0.1...v10.1.0) (2022-11-15)
+
+
+### Features
+
+* add metrics ([#246](https://github.com/ChainSafe/js-libp2p-noise/issues/246)) ([df740a1](https://github.com/ChainSafe/js-libp2p-noise/commit/df740a1a39a20b95d0a2806d14428f3fa3ba91e6))
+
 ## [10.0.1](https://github.com/ChainSafe/js-libp2p-noise/compare/v10.0.0...v10.0.1) (2022-10-31)
 
 
