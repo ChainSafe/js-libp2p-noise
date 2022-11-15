@@ -70,6 +70,7 @@
     "@libp2p/crypto": "^1.0.0",
     "@libp2p/interface-connection-encrypter": "^3.0.0",
     "@libp2p/interface-keys": "^1.0.2",
+    "@libp2p/interface-metrics": "^4.0.2",
     "@libp2p/interface-peer-id": "^1.0.2",
     "@libp2p/logger": "^2.0.0",
     "@libp2p/peer-id": "^1.1.8",
