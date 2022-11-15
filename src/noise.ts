@@ -16,7 +16,8 @@ import { uint16BEDecode, uint16BEEncode } from './encoder.js'
 import { XXHandshake } from './handshake-xx.js'
 import { getPayload } from './utils.js'
 import type { NoiseExtensions } from './proto/payload.js'
-import { Metrics, getMetrics, MetricsRegister } from './metrics.js'
+import type { Metrics } from '@libp2p/interface-metrics'
+import { MetricsRegistry, registerMetrics } from './metrics.js'
 
 interface HandshakeParams {
   connection: ProtobufStream
@@ -33,7 +34,7 @@ export interface NoiseInit {
   extensions?: NoiseExtensions
   crypto?: ICryptoInterface
   prologueBytes?: Uint8Array
-  metricsRegistry?: MetricsRegister | null
+  metrics?: Metrics
 }
 
 export class Noise implements INoiseConnection {
@@ -43,14 +44,14 @@ export class Noise implements INoiseConnection {
   private readonly prologue: Uint8Array
   private readonly staticKeys: KeyPair
   private readonly extensions?: NoiseExtensions
-  private readonly metrics: Metrics | null
+  private readonly metrics?: MetricsRegistry
 
   constructor (init: NoiseInit = {}) {
-    const { staticNoiseKey, extensions, crypto, prologueBytes, metricsRegistry } = init
+    const { staticNoiseKey, extensions, crypto, prologueBytes, metrics } = init
 
     this.crypto = crypto ?? stablelib
     this.extensions = extensions
-    this.metrics = metricsRegistry ? getMetrics(metricsRegistry) : null
+    this.metrics = metrics ? registerMetrics(metrics) : undefined
 
     if (staticNoiseKey) {
       // accepts x25519 private key of length 32
@@ -157,9 +158,9 @@ export class Noise implements INoiseConnection {
       await handshake.propose()
       await handshake.exchange()
       await handshake.finish()
-      this.metrics?.xxHandshakeSuccesses.inc()
+      this.metrics?.xxHandshakeSuccesses.increment()
     } catch (e: unknown) {
-      this.metrics?.xxHandshakeErrors.inc()
+      this.metrics?.xxHandshakeErrors.increment()
       if (e instanceof Error) {
         e.message = `Error occurred during XX handshake: ${e.message}`
         throw e
