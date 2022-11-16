@@ -8,5 +8,5 @@ export interface IHandshake {
   remotePeer: PeerId
   remoteExtensions: NoiseExtensions
   encrypt: (plaintext: bytes, session: NoiseSession) => bytes
-  decrypt: (ciphertext: bytes, session: NoiseSession) => { plaintext: bytes, valid: boolean }
+  decrypt: (ciphertext: bytes, session: NoiseSession, dst?: Uint8Array) => { plaintext: bytes, valid: boolean }
 }

@@ -147,10 +147,10 @@ export class XXHandshake implements IHandshake {
     return this.xx.encryptWithAd(cs, new Uint8Array(0), plaintext)
   }
 
-  public decrypt (ciphertext: Uint8Array, session: NoiseSession): { plaintext: bytes, valid: boolean } {
+  public decrypt (ciphertext: Uint8Array, session: NoiseSession, dst?: Uint8Array): { plaintext: bytes, valid: boolean } {
     const cs = this.getCS(session, false)
 
-    return this.xx.decryptWithAd(cs, new Uint8Array(0), ciphertext)
+    return this.xx.decryptWithAd(cs, new Uint8Array(0), ciphertext, dst)
   }
 
   public getRemoteStaticKey (): bytes {

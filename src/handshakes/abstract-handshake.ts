@@ -21,8 +21,8 @@ export abstract class AbstractHandshake {
     return e
   }
 
-  public decryptWithAd (cs: CipherState, ad: Uint8Array, ciphertext: Uint8Array): {plaintext: bytes, valid: boolean} {
-    const { plaintext, valid } = this.decrypt(cs.k, cs.n, ad, ciphertext)
+  public decryptWithAd (cs: CipherState, ad: Uint8Array, ciphertext: Uint8Array, dst?: Uint8Array): {plaintext: bytes, valid: boolean} {
+    const { plaintext, valid } = this.decrypt(cs.k, cs.n, ad, ciphertext, dst)
     if (valid) cs.n.increment()
 
     return { plaintext, valid }
@@ -60,10 +60,10 @@ export abstract class AbstractHandshake {
     return ciphertext
   }
 
-  protected decrypt (k: bytes32, n: Nonce, ad: bytes, ciphertext: bytes): {plaintext: bytes, valid: boolean} {
+  protected decrypt (k: bytes32, n: Nonce, ad: bytes, ciphertext: bytes, dst?: Uint8Array): {plaintext: bytes, valid: boolean} {
     n.assertValue()
 
-    const encryptedMessage = this.crypto.chaCha20Poly1305Decrypt(ciphertext, n.getBytes(), ad, k)
+    const encryptedMessage = this.crypto.chaCha20Poly1305Decrypt(ciphertext, n.getBytes(), ad, k, dst)
 
     if (encryptedMessage) {
       return {
