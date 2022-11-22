@@ -52,9 +52,9 @@ export const stablelib: ICryptoInterface = {
     return ctx.seal(nonce, plaintext, ad)
   },
 
-  chaCha20Poly1305Decrypt (ciphertext: Uint8Array, nonce: Uint8Array, ad: Uint8Array, k: bytes32): bytes | null {
+  chaCha20Poly1305Decrypt (ciphertext: Uint8Array, nonce: Uint8Array, ad: Uint8Array, k: bytes32, dst?: Uint8Array): bytes | null {
     const ctx = new ChaCha20Poly1305(k)
 
-    return ctx.open(nonce, ciphertext, ad)
+    return ctx.open(nonce, ciphertext, ad, dst)
   }
 }

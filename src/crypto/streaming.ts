@@ -1,3 +1,4 @@
+import { TAG_LENGTH } from '@stablelib/chacha20poly1305'
 import type { Transform } from 'it-stream-types'
 import type { Uint8ArrayList } from 'uint8arraylist'
 import type { IHandshake } from '../@types/handshake-interface.js'
@@ -35,7 +36,16 @@ export function decryptStream (handshake: IHandshake, metrics?: MetricsRegistry)
           end = chunk.length
         }
 
-        const { plaintext: decrypted, valid } = handshake.decrypt(chunk.subarray(i, end), handshake.session)
+        if (end - TAG_LENGTH < i) {
+          throw new Error('Invalid chunk')
+        }
+        const encrypted = chunk.subarray(i, end)
+        // memory allocation is not cheap so reuse the encrypted Uint8Array
+        // see https://github.com/ChainSafe/js-libp2p-noise/pull/242#issue-1422126164
+        // this is ok because chacha20 reads bytes one by one and don't reread after that
+        // it's also tested in https://github.com/ChainSafe/as-chacha20poly1305/pull/1/files#diff-25252846b58979dcaf4e41d47b3eadd7e4f335e7fb98da6c049b1f9cd011f381R48
+        const dst = chunk.subarray(i, end - TAG_LENGTH)
+        const { plaintext: decrypted, valid } = handshake.decrypt(encrypted, handshake.session, dst)
         if (!valid) {
           metrics?.decryptErrors.increment()
           throw new Error('Failed to validate decrypted chunk')
