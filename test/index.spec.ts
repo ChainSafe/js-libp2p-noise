@@ -3,6 +3,7 @@ import { expect } from 'aegir/chai'
 import { duplexPair } from 'it-pair/duplex'
 import { pbStream } from 'it-pb-stream'
 import sinon from 'sinon'
+import { noise } from '../src/index.js'
 import { Noise } from '../src/noise.js'
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
 
@@ -15,10 +16,10 @@ function createCounterSpy () {
 
 describe('Index', () => {
   it('should expose class with tag and required functions', () => {
-    const noise = new Noise()
-    expect(noise.protocol).to.equal('/noise')
-    expect(typeof (noise.secureInbound)).to.equal('function')
-    expect(typeof (noise.secureOutbound)).to.equal('function')
+    const noiseInstance = noise()()
+    expect(noiseInstance.protocol).to.equal('/noise')
+    expect(typeof (noiseInstance.secureInbound)).to.equal('function')
+    expect(typeof (noiseInstance.secureOutbound)).to.equal('function')
   })
 
   it('should collect metrics', async () => {
