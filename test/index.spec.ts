@@ -4,7 +4,9 @@ import { duplexPair } from 'it-pair/duplex'
 import { pbStream } from 'it-pb-stream'
 import sinon from 'sinon'
 import { Noise } from '../src/noise.js'
+import { noise } from '../src/index.js'
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
+import { stablelib } from '../src/crypto/stablelib.js'
 
 function createCounterSpy () {
   return sinon.spy({
@@ -14,6 +16,12 @@ function createCounterSpy () {
 }
 
 describe('Index', () => {
+  it('should run the readme.md example', () => {
+    const staticNoiseKey = stablelib.generateX25519KeyPair().privateKey;
+    noise({staticNoiseKey});
+    noise();
+  })
+
   it('should expose class with tag and required functions', () => {
     const noise = new Noise()
     expect(noise.protocol).to.equal('/noise')

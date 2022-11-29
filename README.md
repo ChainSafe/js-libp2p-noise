@@ -25,14 +25,15 @@ Install with `yarn add @chainsafe/libp2p-noise` or `npm i @chainsafe/libp2p-nois
 Example of using default noise configuration and passing it to the libp2p config:
 
 ```js
-import {Noise} from "@chainsafe/libp2p-noise"
+import {noise} from "@chainsafe/libp2p-noise"
 
 //custom noise configuration, pass it instead of `new Noise()`
-const noise = new Noise(privateKey, Buffer.alloc(x));
+//x25519 private key
+const n = noise(privateKey);
 
 const libp2p = new Libp2p({
    modules: {
-     connEncryption: [new Noise()],
+     connEncryption: [noise()],
    },
 });
 ```
