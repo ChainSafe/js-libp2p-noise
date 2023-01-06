@@ -6,6 +6,7 @@ import sinon from 'sinon'
 import { noise } from '../src/index.js'
 import { Noise } from '../src/noise.js'
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
+import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 
 function createCounterSpy () {
   return sinon.spy({
@@ -43,7 +44,7 @@ describe('Index', () => {
     const wrappedInbound = pbStream(inbound.conn)
     const wrappedOutbound = pbStream(outbound.conn)
 
-    wrappedOutbound.writeLP(Buffer.from('test'))
+    wrappedOutbound.writeLP(uint8ArrayFromString('test'))
     await wrappedInbound.readLP()
     expect(metricsRegistry.get('libp2p_noise_xxhandshake_successes_total')?.increment.callCount).to.equal(1)
     expect(metricsRegistry.get('libp2p_noise_xxhandshake_error_total')?.increment.callCount).to.equal(0)
