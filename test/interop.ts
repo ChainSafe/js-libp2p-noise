@@ -72,6 +72,7 @@ async function createJsPeer (options: SpawnOptions): Promise<Daemon> {
   }
 
   const opts: Libp2pOptions = {
+    // @ts-expect-error @libp2p/interface-peer-id types are not aligned
     peerId,
     addresses: {
       listen: ['/ip4/0.0.0.0/tcp/0']
