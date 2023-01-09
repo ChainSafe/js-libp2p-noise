@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [11.0.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v10.2.0...v11.0.0) (2023-01-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* update multiformats and related dependencies ([#257](https://github.com/ChainSafe/js-libp2p-noise/issues/257))
+
+### Bug Fixes
+
+* readme usage example ([#253](https://github.com/ChainSafe/js-libp2p-noise/issues/253)) ([7eca3a4](https://github.com/ChainSafe/js-libp2p-noise/commit/7eca3a4bcb12c223b0eee6ca975e2648bb0d48a6))
+* update multiformats and related dependencies ([#257](https://github.com/ChainSafe/js-libp2p-noise/issues/257)) ([a2914a0](https://github.com/ChainSafe/js-libp2p-noise/commit/a2914a0b5edeead5094fb9b288ef3a11a872c5cf))
+
+
+### Miscellaneous
+
+* bump libp2p from 0.40.0 to 0.41.0 ([#256](https://github.com/ChainSafe/js-libp2p-noise/issues/256)) ([2d89edc](https://github.com/ChainSafe/js-libp2p-noise/commit/2d89edc648b8605019fff511a6356c63ba3f5574))
+* bump sinon from 14.0.2 to 15.0.0 ([#251](https://github.com/ChainSafe/js-libp2p-noise/issues/251)) ([625794e](https://github.com/ChainSafe/js-libp2p-noise/commit/625794e3f924a7ff2699991c416d9ae66fc5ae85))
+
 ## [10.2.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v10.1.0...v10.2.0) (2022-11-22)
 
 
