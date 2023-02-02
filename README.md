@@ -1,15 +1,16 @@
 # js-libp2p-noise
 
 ![npm](https://img.shields.io/npm/v/libp2p-noise)
-[![CI](https://github.com/ChainSafe/js-libp2p-noise/actions/workflows/ci.yml/badge.svg?branch=master&event=push)](https://github.com/ChainSafe/js-libp2p-noise/actions/workflows/ci.yml)
-
+[![](https://img.shields.io/github/actions/workflow/status/ChainSafe/js-libp2p-noise/js-test-and-release.yml?branch=master)](https://github.com/ChainSafe/js-libp2p-noise/actions)
 [![](https://img.shields.io/badge/project-libp2p-yellow.svg?style=flat-square)](https://libp2p.io/)
 ![](https://img.shields.io/github/issues-raw/ChainSafe/js-libp2p-noise)
-![](https://img.shields.io/github/license/ChainSafe/js-libp2p-noise)
+[![License Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![](https://img.shields.io/badge/yarn-%3E%3D1.17.0-orange.svg?style=flat-square)
 ![](https://img.shields.io/badge/Node.js-%3E%3D16.0.0-orange.svg?style=flat-square)
 ![](https://img.shields.io/badge/browsers-last%202%20versions%2C%20not%20ie%20%3C%3D11-orange)
-[![Discourse posts](https://img.shields.io/discourse/https/discuss.libp2p.io/posts.svg)](https://discuss.libp2p.io)
+[![Twitter](https://img.shields.io/twitter/follow/ChainSafeth.svg?label=Twitter)](https://twitter.com/ChainSafeth)
+[![Discord](https://img.shields.io/discord/593655374469660673.svg?label=Discord&logo=discord)](https://discord.gg/Q6A3YA2)
 
 > Noise libp2p handshake for js-libp2p
 
