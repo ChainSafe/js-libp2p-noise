@@ -75,7 +75,7 @@ export async function verifySignedPayload (
   // Unmarshaling from PublicKey protobuf
   const payloadPeerId = await peerIdFromKeys(payload.identityKey)
   if (!payloadPeerId.equals(remotePeer)) {
-    throw new Error("Peer ID doesn't match libp2p public key.")
+    throw new Error(`Payload identity key ${payloadPeerId.toString()} does not match expected remote peer ${remotePeer.toString()}`)
   }
   const generatedPayload = getHandshakePayload(noiseStaticKey)
 

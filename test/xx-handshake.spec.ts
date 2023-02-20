@@ -88,7 +88,7 @@ describe('XX Handshake', () => {
       assert(false, 'Should throw exception')
     } catch (e) {
       const err = e as Error
-      expect(err.message).equals("Error occurred while verifying signed payload: Peer ID doesn't match libp2p public key.")
+      expect(err.message).equals(`Error occurred while verifying signed payload: Payload identity key ${peerB.toString()} does not match expected remote peer ${fakePeer.toString()}`)
     }
   })
 
@@ -120,7 +120,7 @@ describe('XX Handshake', () => {
       assert(false, 'Should throw exception')
     } catch (e) {
       const err = e as Error
-      expect(err.message).equals("Error occurred while verifying signed payload: Peer ID doesn't match libp2p public key.")
+      expect(err.message).equals(`Error occurred while verifying signed payload: Payload identity key ${peerA.toString()} does not match expected remote peer ${fakePeer.toString()}`)
     }
   })
 })
