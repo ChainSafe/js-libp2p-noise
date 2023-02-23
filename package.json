@@ -91,7 +91,7 @@
     "@libp2p/daemon-client": "^4.0.1",
     "@libp2p/daemon-server": "^4.0.1",
     "@libp2p/interface-connection-encrypter-compliance-tests": "^4.0.0",
-    "@libp2p/interop": "^4.0.2",
+    "@libp2p/interop": "^6.0.0",
     "@libp2p/mplex": "^7.0.0",
     "@libp2p/peer-id-factory": "^2.0.0",
     "@libp2p/tcp": "^6.0.2",
