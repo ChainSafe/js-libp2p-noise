@@ -80,7 +80,7 @@
     "@stablelib/x25519": "^1.0.3",
     "it-length-prefixed": "^8.0.2",
     "it-pair": "^2.0.2",
-    "it-pb-stream": "^2.0.2",
+    "it-pb-stream": "^3.0.0",
     "it-pipe": "^2.0.3",
     "it-stream-types": "^1.0.4",
     "protons-runtime": "^4.0.1",
