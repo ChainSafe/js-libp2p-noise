@@ -7,6 +7,16 @@ import type { ICryptoInterface } from '../crypto.js'
 import { logger } from '../logger.js'
 import { Nonce } from '../nonce.js'
 
+export interface DecryptedResult {
+  plaintext: bytes
+  valid: boolean
+}
+
+export interface SplitState {
+  cs1: CipherState
+  cs2: CipherState
+}
+
 export abstract class AbstractHandshake {
   public crypto: ICryptoInterface
 
@@ -21,7 +31,7 @@ export abstract class AbstractHandshake {
     return e
   }
 
-  public decryptWithAd (cs: CipherState, ad: Uint8Array, ciphertext: Uint8Array, dst?: Uint8Array): {plaintext: bytes, valid: boolean} {
+  public decryptWithAd (cs: CipherState, ad: Uint8Array, ciphertext: Uint8Array, dst?: Uint8Array): DecryptedResult {
     const { plaintext, valid } = this.decrypt(cs.k, cs.n, ad, ciphertext, dst)
     if (valid) cs.n.increment()
 
@@ -60,7 +70,7 @@ export abstract class AbstractHandshake {
     return ciphertext
   }
 
-  protected decrypt (k: bytes32, n: Nonce, ad: bytes, ciphertext: bytes, dst?: Uint8Array): {plaintext: bytes, valid: boolean} {
+  protected decrypt (k: bytes32, n: Nonce, ad: bytes, ciphertext: bytes, dst?: Uint8Array): DecryptedResult {
     n.assertValue()
 
     const encryptedMessage = this.crypto.chaCha20Poly1305Decrypt(ciphertext, n.getBytes(), ad, k, dst)
@@ -78,7 +88,7 @@ export abstract class AbstractHandshake {
     }
   }
 
-  protected decryptAndHash (ss: SymmetricState, ciphertext: bytes): {plaintext: bytes, valid: boolean} {
+  protected decryptAndHash (ss: SymmetricState, ciphertext: bytes): DecryptedResult {
     let plaintext: bytes; let valid = true
     if (this.hasKey(ss.cs)) {
       ({ plaintext, valid } = this.decryptWithAd(ss.cs, ss.h, ciphertext))
@@ -148,7 +158,7 @@ export abstract class AbstractHandshake {
     }
   }
 
-  protected split (ss: SymmetricState): {cs1: CipherState, cs2: CipherState} {
+  protected split (ss: SymmetricState): SplitState {
     const [tempk1, tempk2] = this.crypto.getHKDF(ss.ck, new Uint8Array(0))
     const cs1 = this.initializeKey(tempk1)
     const cs2 = this.initializeKey(tempk2)
@@ -164,7 +174,7 @@ export abstract class AbstractHandshake {
     return { ne, ns, ciphertext }
   }
 
-  protected readMessageRegular (cs: CipherState, message: MessageBuffer): {plaintext: bytes, valid: boolean} {
+  protected readMessageRegular (cs: CipherState, message: MessageBuffer): DecryptedResult {
     return this.decryptWithAd(cs, new Uint8Array(0), message.ciphertext)
   }
 }

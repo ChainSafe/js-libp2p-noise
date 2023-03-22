@@ -8,7 +8,7 @@ import { Noise } from '../src/noise.js'
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 
-function createCounterSpy () {
+function createCounterSpy (): ReturnType<typeof sinon.spy> {
   return sinon.spy({
     increment: () => {},
     reset: () => {}

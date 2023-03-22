@@ -24,7 +24,7 @@ export function logLocalStaticKeys (s: KeyPair): void {
   keyLogger(`LOCAL_STATIC_PRIVATE_KEY ${uint8ArrayToString(s.privateKey, 'hex')}`)
 }
 
-export function logLocalEphemeralKeys (e: KeyPair|undefined): void {
+export function logLocalEphemeralKeys (e: KeyPair | undefined): void {
   if (e) {
     keyLogger(`LOCAL_PUBLIC_EPHEMERAL_KEY ${uint8ArrayToString(e.publicKey, 'hex')}`)
     keyLogger(`LOCAL_PRIVATE_EPHEMERAL_KEY ${uint8ArrayToString(e.privateKey, 'hex')}`)

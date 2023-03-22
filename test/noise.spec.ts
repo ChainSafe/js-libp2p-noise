@@ -82,7 +82,7 @@ describe('Noise', () => {
         // Stage 1
         const { publicKey: libp2pPubKey } = getKeyPairFromPeerId(remotePeer)
         const signedPayload = await signPayload(remotePeer, getHandshakePayload(staticKeys.publicKey))
-        const handshakePayload = await createHandshakePayload(libp2pPubKey, signedPayload)
+        const handshakePayload = createHandshakePayload(libp2pPubKey, signedPayload)
 
         const messageBuffer = xx.sendMessage(handshake.session, handshakePayload)
         wrapped.writeLP(encode1(messageBuffer))
@@ -98,7 +98,7 @@ describe('Noise', () => {
     wrappedOutbound.write(uint8ArrayFromString('test'))
 
     // Check that noise message is prefixed with 16-bit big-endian unsigned integer
-    const data = await (await wrapped.readLP()).slice()
+    const data = (await wrapped.readLP()).slice()
     const { plaintext: decrypted, valid } = handshake.decrypt(data, handshake.session)
     // Decrypted data should match
     expect(uint8ArrayEquals(decrypted, uint8ArrayFromString('test'))).to.be.true()

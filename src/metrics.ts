@@ -1,8 +1,8 @@
-import type { Metrics } from '@libp2p/interface-metrics'
+import type { Counter, Metrics } from '@libp2p/interface-metrics'
 
-export type MetricsRegistry = ReturnType<typeof registerMetrics>
+export type MetricsRegistry = Record<string, Counter>
 
-export function registerMetrics (metrics: Metrics) {
+export function registerMetrics (metrics: Metrics): MetricsRegistry {
   return {
     xxHandshakeSuccesses: metrics.registerCounter(
       'libp2p_noise_xxhandshake_successes_total', {

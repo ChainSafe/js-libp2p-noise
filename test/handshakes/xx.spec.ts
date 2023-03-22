@@ -18,7 +18,7 @@ describe('XX Handshake', () => {
 
       const kpInitiator: KeyPair = stablelib.generateX25519KeyPair()
 
-      await xx.initSession(true, prologue, kpInitiator)
+      xx.initSession(true, prologue, kpInitiator)
     } catch (e) {
       const err = e as Error
       assert(false, err.message)
@@ -60,7 +60,7 @@ describe('XX Handshake', () => {
     libp2pInitKeys.marshal().slice(0, 32)
     const libp2pInitPubKey = libp2pInitKeys.marshal().slice(32, 64)
 
-    const payloadInitEnc = await createHandshakePayload(libp2pInitPubKey, initSignedPayload)
+    const payloadInitEnc = createHandshakePayload(libp2pInitPubKey, initSignedPayload)
 
     // initiator sends message
     const message = Buffer.concat([Buffer.alloc(0), payloadInitEnc])
@@ -76,7 +76,7 @@ describe('XX Handshake', () => {
     // responder creates payload
     libp2pRespKeys.marshal().slice(0, 32)
     const libp2pRespPubKey = libp2pRespKeys.marshal().slice(32, 64)
-    const payloadRespEnc = await createHandshakePayload(libp2pRespPubKey, respSignedPayload)
+    const payloadRespEnc = createHandshakePayload(libp2pRespPubKey, respSignedPayload)
 
     const message1 = Buffer.concat([message, payloadRespEnc])
     const messageBuffer2 = xx.sendMessage(nsResp, message1)
