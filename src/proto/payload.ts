@@ -2,10 +2,11 @@
 /* eslint-disable complexity */
 /* eslint-disable @typescript-eslint/no-namespace */
 /* eslint-disable @typescript-eslint/no-unnecessary-boolean-literal-compare */
+/* eslint-disable @typescript-eslint/no-empty-interface */
 
 import { encodeMessage, decodeMessage, message } from 'protons-runtime'
-import type { Uint8ArrayList } from 'uint8arraylist'
 import type { Codec } from 'protons-runtime'
+import type { Uint8ArrayList } from 'uint8arraylist'
 
 export interface NoiseExtensions {
   webtransportCerthashes: Uint8Array[]
@@ -58,7 +59,7 @@ export namespace NoiseExtensions {
     return _codec
   }
 
-  export const encode = (obj: NoiseExtensions): Uint8Array => {
+  export const encode = (obj: Partial<NoiseExtensions>): Uint8Array => {
     return encodeMessage(obj, NoiseExtensions.codec())
   }
 
@@ -85,12 +86,12 @@ export namespace NoiseHandshakePayload {
 
         if (opts.writeDefaults === true || (obj.identityKey != null && obj.identityKey.byteLength > 0)) {
           w.uint32(10)
-          w.bytes(obj.identityKey)
+          w.bytes(obj.identityKey ?? new Uint8Array(0))
         }
 
         if (opts.writeDefaults === true || (obj.identitySig != null && obj.identitySig.byteLength > 0)) {
           w.uint32(18)
-          w.bytes(obj.identitySig)
+          w.bytes(obj.identitySig ?? new Uint8Array(0))
         }
 
         if (obj.extensions != null) {
@@ -137,7 +138,7 @@ export namespace NoiseHandshakePayload {
     return _codec
   }
 
-  export const encode = (obj: NoiseHandshakePayload): Uint8Array => {
+  export const encode = (obj: Partial<NoiseHandshakePayload>): Uint8Array => {
     return encodeMessage(obj, NoiseHandshakePayload.codec())
   }
 
