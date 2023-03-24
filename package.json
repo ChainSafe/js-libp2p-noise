@@ -25,6 +25,7 @@
   "files": [
     "src",
     "dist/src",
+    "dist/index.min.js",
     "!dist/test",
     "!**/*.tsbuildinfo"
   ],
