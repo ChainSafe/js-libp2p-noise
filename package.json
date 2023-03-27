@@ -24,8 +24,7 @@
   "types": "./dist/src/index.d.ts",
   "files": [
     "src",
-    "dist/src",
-    "dist/index.min.js",
+    "dist",
     "!dist/test",
     "!**/*.tsbuildinfo"
   ],
