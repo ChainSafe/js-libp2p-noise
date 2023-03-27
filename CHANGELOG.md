@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [11.0.2](https://github.com/ChainSafe/js-libp2p-noise/compare/v11.0.1...v11.0.2) (2023-03-27)
+
+
+### Bug Fixes
+
+* add missing index.min.js to release files ([#297](https://github.com/ChainSafe/js-libp2p-noise/issues/297)) ([ffca48e](https://github.com/ChainSafe/js-libp2p-noise/commit/ffca48e9f025d7d3bcff9be9f1a842d55707d2c0))
+* bump it-pb-stream from 2.0.4 to 3.2.0 ([#285](https://github.com/ChainSafe/js-libp2p-noise/issues/285)) ([61a53e4](https://github.com/ChainSafe/js-libp2p-noise/commit/61a53e41952f214d6314a97124445ef9ddfd5bfa))
+* update protons ([#269](https://github.com/ChainSafe/js-libp2p-noise/issues/269)) ([cc5f8b1](https://github.com/ChainSafe/js-libp2p-noise/commit/cc5f8b1bed87e92d89ab42d044b0d6407fa1eb6c))
+* upgrade `aegir` to 38.1.7  ([#292](https://github.com/ChainSafe/js-libp2p-noise/issues/292)) ([62b2c91](https://github.com/ChainSafe/js-libp2p-noise/commit/62b2c9135f46d5a7be2430f73bd3f17f150ce843))
+
 ## [11.0.1](https://github.com/ChainSafe/js-libp2p-noise/compare/v11.0.0...v11.0.1) (2023-02-20)
 
 
