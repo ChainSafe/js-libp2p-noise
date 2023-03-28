@@ -5,6 +5,83 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.0.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v11.0.3...v12.0.0) (2023-03-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* update multiformats and related dependencies ([#257](https://github.com/ChainSafe/js-libp2p-noise/issues/257))
+* modules no longer implement `Initializable` instead switching to constructor injection
+* add Noise Extensions and update deps ([#215](https://github.com/ChainSafe/js-libp2p-noise/issues/215))
+* update protons and connection encryption interface ([#193](https://github.com/ChainSafe/js-libp2p-noise/issues/193))
+* remove noise pipes option ([#177](https://github.com/ChainSafe/js-libp2p-noise/issues/177))
+* remove default instance ([#188](https://github.com/ChainSafe/js-libp2p-noise/issues/188))
+* updates to the single-issue libp2p interface definitions
+* This module now outputs ESM code only
+* requires node 15+
+* the new `peer-id` module uses the new `CID` class and not the old one
+* buffer@6 dropped support for IE and Safari < 10
+
+### Features
+
+* add metrics ([#246](https://github.com/ChainSafe/js-libp2p-noise/issues/246)) ([df740a1](https://github.com/ChainSafe/js-libp2p-noise/commit/df740a1a39a20b95d0a2806d14428f3fa3ba91e6))
+* add Noise Extensions and update deps ([#215](https://github.com/ChainSafe/js-libp2p-noise/issues/215)) ([ed3e16b](https://github.com/ChainSafe/js-libp2p-noise/commit/ed3e16bb0b5792a905aa5e1461cef0e8065c2fda))
+* adjust to comply with conn encryptor spec ([#153](https://github.com/ChainSafe/js-libp2p-noise/issues/153)) ([0fd6a63](https://github.com/ChainSafe/js-libp2p-noise/commit/0fd6a6344faf3470412f194b3e37c98c9c0ff0cb))
+* Make crypto implementation pluggable. ([c988bcd](https://github.com/ChainSafe/js-libp2p-noise/commit/c988bcda46b50232a8bf7aebec4da340c6d8bd85))
+* remove default instance ([#188](https://github.com/ChainSafe/js-libp2p-noise/issues/188)) ([1358409](https://github.com/ChainSafe/js-libp2p-noise/commit/13584098db2b5021bb5b979881f5fdf98ddf1100))
+* reuse encrypted data to avoid memory allocation ([#242](https://github.com/ChainSafe/js-libp2p-noise/issues/242)) ([0b4b7f6](https://github.com/ChainSafe/js-libp2p-noise/commit/0b4b7f6048bff5cbd5460ca4dafa2434976ee3e1))
+* reused ciphertext allocation in decrypt function ([0b4b7f6](https://github.com/ChainSafe/js-libp2p-noise/commit/0b4b7f6048bff5cbd5460ca4dafa2434976ee3e1))
+* update to new libp2p interfaces ([c458806](https://github.com/ChainSafe/js-libp2p-noise/commit/c458806b509bb911a60199deb846911c7314a143))
+* use aegir ([f05150e](https://github.com/ChainSafe/js-libp2p-noise/commit/f05150e6405019ad662dc39442de48fff0e1e893))
+
+
+### Bug Fixes
+
+* 3 for yarn publish ([2ac2261](https://github.com/ChainSafe/js-libp2p-noise/commit/2ac2261df2984322dcfa1a85e7f88f3c59cc7675))
+* access node process object via globalThis ([264f7bc](https://github.com/ChainSafe/js-libp2p-noise/commit/264f7bc6720c81ebccae6ac702d35b4cddc02e44))
+* action branch ([cc982dd](https://github.com/ChainSafe/js-libp2p-noise/commit/cc982dd24083b91d86750195ce1ccb9acddd4331))
+* add missing index.min.js to release files ([#297](https://github.com/ChainSafe/js-libp2p-noise/issues/297)) ([ffca48e](https://github.com/ChainSafe/js-libp2p-noise/commit/ffca48e9f025d7d3bcff9be9f1a842d55707d2c0))
+* add noise extension to return type ([#243](https://github.com/ChainSafe/js-libp2p-noise/issues/243)) ([4803ffd](https://github.com/ChainSafe/js-libp2p-noise/commit/4803ffdaeab1b83cf57d8e7828d291a40cb270cd))
+* Add peer id str to mismatch error ([1990c6f](https://github.com/ChainSafe/js-libp2p-noise/commit/1990c6fbc6c51e77f782b24965a596a4188ce43c))
+* aegir types ([c23ba08](https://github.com/ChainSafe/js-libp2p-noise/commit/c23ba08f58048234e446b87c12586a713b70e9ef))
+* Allow the caller to set the prologue ([#181](https://github.com/ChainSafe/js-libp2p-noise/issues/181)) ([#182](https://github.com/ChainSafe/js-libp2p-noise/issues/182)) ([15f7a6e](https://github.com/ChainSafe/js-libp2p-noise/commit/15f7a6e700a69c9a40abb82d989a55032d5cf687))
+* bump it-pb-stream from 2.0.4 to 3.2.0 ([#285](https://github.com/ChainSafe/js-libp2p-noise/issues/285)) ([61a53e4](https://github.com/ChainSafe/js-libp2p-noise/commit/61a53e41952f214d6314a97124445ef9ddfd5bfa))
+* correct type of it-length-prefixed 8.0.2 ([#178](https://github.com/ChainSafe/js-libp2p-noise/issues/178)) ([45c1d56](https://github.com/ChainSafe/js-libp2p-noise/commit/45c1d56dbc9cbb97e1b162b44ed289f8d723e7c1))
+* feedback ([069a2f9](https://github.com/ChainSafe/js-libp2p-noise/commit/069a2f957333dd292808bcc374778d4e73a3e471))
+* fix ci to build before check ([a9b99e4](https://github.com/ChainSafe/js-libp2p-noise/commit/a9b99e4e260990a2b9eaa57a660b1adcea24ae7d))
+* fix package.json ([a8274ad](https://github.com/ChainSafe/js-libp2p-noise/commit/a8274ad416d329a0b96590f386719e12f923c78c))
+* fix setup for new aegir ([2038b26](https://github.com/ChainSafe/js-libp2p-noise/commit/2038b26b76fea44d4e808f1c995f5af70270727f))
+* improve nonce performance ([#162](https://github.com/ChainSafe/js-libp2p-noise/issues/162)) ([9b04145](https://github.com/ChainSafe/js-libp2p-noise/commit/9b04145b07bd0272f1c109502d0f34e853ffcb00))
+* lock ([a2abb93](https://github.com/ChainSafe/js-libp2p-noise/commit/a2abb93d8b7822a232b0d458b5dbc3986308cffe))
+* marshal the verified peer from its public key ([e9af13a](https://github.com/ChainSafe/js-libp2p-noise/commit/e9af13a1eebfa311bb6eefb2f37637a0f4ed64a6))
+* new aegir ([30a1955](https://github.com/ChainSafe/js-libp2p-noise/commit/30a1955929bcc3fc2509db690d13cfb624a3837d))
+* only increment nonce in valid decrypted msg ([#200](https://github.com/ChainSafe/js-libp2p-noise/issues/200)) ([393c169](https://github.com/ChainSafe/js-libp2p-noise/commit/393c1693ec21440432f33c3f27144ad5bb2f714f))
+* readme docs ([77a95fd](https://github.com/ChainSafe/js-libp2p-noise/commit/77a95fdafd861470c5ba763ffec277ba8456ac19)), closes [#203](https://github.com/ChainSafe/js-libp2p-noise/issues/203)
+* readme usage example ([#253](https://github.com/ChainSafe/js-libp2p-noise/issues/253)) ([7eca3a4](https://github.com/ChainSafe/js-libp2p-noise/commit/7eca3a4bcb12c223b0eee6ca975e2648bb0d48a6))
+* remove @libp2p/components ([#229](https://github.com/ChainSafe/js-libp2p-noise/issues/229)) ([dd47517](https://github.com/ChainSafe/js-libp2p-noise/commit/dd4751764d348a3e16f5e1690702392b3df132bf))
+* remove node buffers ([59b27ab](https://github.com/ChainSafe/js-libp2p-noise/commit/59b27ab57698ca519fc67c9ab32dd174283362c8))
+* safely handle nonces as 64 bit uints ([cc1bd68](https://github.com/ChainSafe/js-libp2p-noise/commit/cc1bd680dd01aefd20366a2aec899181e19d5984))
+* test node 14 ([34bb8d4](https://github.com/ChainSafe/js-libp2p-noise/commit/34bb8d4ef75bbe35f4f27dfa42f42b55ba188ec9))
+* ts and lint errors ([ead1514](https://github.com/ChainSafe/js-libp2p-noise/commit/ead151471e901063af64b1515ffa75dbe703461f))
+* update aegir ([9b914ad](https://github.com/ChainSafe/js-libp2p-noise/commit/9b914ad94cc7765a58ad51e71139931ef1869528))
+* update multiformats and related dependencies ([#257](https://github.com/ChainSafe/js-libp2p-noise/issues/257)) ([a2914a0](https://github.com/ChainSafe/js-libp2p-noise/commit/a2914a0b5edeead5094fb9b288ef3a11a872c5cf))
+* update protons ([#269](https://github.com/ChainSafe/js-libp2p-noise/issues/269)) ([cc5f8b1](https://github.com/ChainSafe/js-libp2p-noise/commit/cc5f8b1bed87e92d89ab42d044b0d6407fa1eb6c))
+* update to new interfaces ([#218](https://github.com/ChainSafe/js-libp2p-noise/issues/218)) ([2a04b51](https://github.com/ChainSafe/js-libp2p-noise/commit/2a04b5168da8c9733a61c236922a967da123b28b))
+* upgrade `aegir` to 38.1.7  ([#292](https://github.com/ChainSafe/js-libp2p-noise/issues/292)) ([62b2c91](https://github.com/ChainSafe/js-libp2p-noise/commit/62b2c9135f46d5a7be2430f73bd3f17f150ce843))
+* use protons instead of protobuf for native .proto to .ts ([#141](https://github.com/ChainSafe/js-libp2p-noise/issues/141)) ([2ad93fa](https://github.com/ChainSafe/js-libp2p-noise/commit/2ad93facf96279c390d14b93e420769f0b8cd1a3))
+* use trace logging ([#298](https://github.com/ChainSafe/js-libp2p-noise/issues/298)) ([474c3ed](https://github.com/ChainSafe/js-libp2p-noise/commit/474c3ed3fc860d4b6af6bc42624ba62663723bcf))
+* write handshake nonce correctly ([ecd70af](https://github.com/ChainSafe/js-libp2p-noise/commit/ecd70af1f2866c57f4e7c4a7ff6c4a7f54256843))
+
+
+### Miscellaneous
+
+* remove noise pipes option ([#177](https://github.com/ChainSafe/js-libp2p-noise/issues/177)) ([a43cba9](https://github.com/ChainSafe/js-libp2p-noise/commit/a43cba92f7dec3367273ca97c63d04690dc378e3))
+* update deps ([#159](https://github.com/ChainSafe/js-libp2p-noise/issues/159)) ([2c138df](https://github.com/ChainSafe/js-libp2p-noise/commit/2c138df0997ebf21c0dd173891f43eeae3387e2a))
+* update deps and specify root for pbjs ([4d31d12](https://github.com/ChainSafe/js-libp2p-noise/commit/4d31d12e6f8890e30fc8896db6b73d9cc2ff2115))
+* update peer-id and libp2p-crypto ([a86b5d8](https://github.com/ChainSafe/js-libp2p-noise/commit/a86b5d80786d24d3603713460b51e5efb20774ca))
+* update peer-id dep ([2b7dfa9](https://github.com/ChainSafe/js-libp2p-noise/commit/2b7dfa9f422e8a64f5533f5777fe25821648ab20))
+* update protons and connection encryption interface ([#193](https://github.com/ChainSafe/js-libp2p-noise/issues/193)) ([9d5a07f](https://github.com/ChainSafe/js-libp2p-noise/commit/9d5a07f13610fd6e6e80dbd81e24d46fc084584f))
+
 ## [11.0.3](https://github.com/ChainSafe/js-libp2p-noise/compare/v11.0.2...v11.0.3) (2023-03-28)
 
 
