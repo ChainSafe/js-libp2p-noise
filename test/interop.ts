@@ -78,6 +78,7 @@ async function createJsPeer (options: SpawnOptions): Promise<Daemon> {
     },
     transports: [tcp()],
     streamMuxers: [mplex()],
+    // @ts-expect-error remove this comment after libp2p@0.45.0
     connectionEncryption: [noise()]
   }
 

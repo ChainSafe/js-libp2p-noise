@@ -7,7 +7,7 @@ import { NOISE_MSG_MAX_LENGTH_BYTES, NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG } fr
 import { uint16BEEncode } from '../encoder.js'
 
 // Returns generator that encrypts payload from the user
-export function encryptStream (handshake: IHandshake, metrics?: MetricsRegistry): Transform<Uint8Array> {
+export function encryptStream (handshake: IHandshake, metrics?: MetricsRegistry): Transform<AsyncIterable<Uint8Array>> {
   return async function * (source) {
     for await (const chunk of source) {
       for (let i = 0; i < chunk.length; i += NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG) {
@@ -27,7 +27,7 @@ export function encryptStream (handshake: IHandshake, metrics?: MetricsRegistry)
 }
 
 // Decrypt received payload to the user
-export function decryptStream (handshake: IHandshake, metrics?: MetricsRegistry): Transform<Uint8ArrayList, Uint8Array> {
+export function decryptStream (handshake: IHandshake, metrics?: MetricsRegistry): Transform<AsyncIterable<Uint8ArrayList>, AsyncIterable<Uint8Array>> {
   return async function * (source) {
     for await (const chunk of source) {
       for (let i = 0; i < chunk.length; i += NOISE_MSG_MAX_LENGTH_BYTES) {
