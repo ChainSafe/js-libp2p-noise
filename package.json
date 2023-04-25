@@ -90,7 +90,7 @@
   },
   "devDependencies": {
     "@libp2p/daemon-client": "^5.0.0",
-    "@libp2p/daemon-server": "^4.0.1",
+    "@libp2p/daemon-server": "^5.0.1",
     "@libp2p/interface-connection-encrypter-compliance-tests": "^4.0.0",
     "@libp2p/interop": "^7.0.3",
     "@libp2p/mplex": "^7.0.0",
