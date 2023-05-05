@@ -10,7 +10,7 @@ import type { IHandshake } from './@types/handshake-interface.js'
 import type { INoiseConnection, KeyPair } from './@types/libp2p.js'
 import { NOISE_MSG_MAX_LENGTH_BYTES } from './constants.js'
 import type { ICryptoInterface } from './crypto.js'
-import { stablelib } from './crypto/stablelib.js'
+import { pureJsCrypto } from './crypto/js.js'
 import { decryptStream, encryptStream } from './crypto/streaming.js'
 import { uint16BEDecode, uint16BEEncode } from './encoder.js'
 import { XXHandshake } from './handshake-xx.js'
@@ -49,7 +49,7 @@ export class Noise implements INoiseConnection {
   constructor (init: NoiseInit = {}) {
     const { staticNoiseKey, extensions, crypto, prologueBytes, metrics } = init
 
-    this.crypto = crypto ?? stablelib
+    this.crypto = crypto ?? pureJsCrypto
     this.extensions = extensions
     this.metrics = metrics ? registerMetrics(metrics) : undefined
 

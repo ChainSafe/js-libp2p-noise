@@ -7,7 +7,7 @@ import type { Hkdf } from '../@types/handshake.js'
 import type { KeyPair } from '../@types/libp2p.js'
 import type { ICryptoInterface } from '../crypto.js'
 
-export const stablelib: ICryptoInterface = {
+export const pureJsCrypto: ICryptoInterface = {
   hashSHA256 (data: Uint8Array): Uint8Array {
     return sha256(data)
   },
