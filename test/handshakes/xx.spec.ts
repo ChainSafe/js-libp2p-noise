@@ -2,7 +2,7 @@ import { Buffer } from 'buffer'
 import { expect, assert } from 'aegir/chai'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
-import { stablelib } from '../../src/crypto/stablelib.js'
+import { pureJsCrypto } from '../../src/crypto/js.js'
 import { XX } from '../../src/handshakes/xx.js'
 import { createHandshakePayload, getHandshakePayload } from '../../src/utils.js'
 import { generateEd25519Keys } from '../utils.js'
@@ -14,9 +14,9 @@ describe('XX Handshake', () => {
 
   it('Test creating new XX session', async () => {
     try {
-      const xx = new XX(stablelib)
+      const xx = new XX(pureJsCrypto)
 
-      const kpInitiator: KeyPair = stablelib.generateX25519KeyPair()
+      const kpInitiator: KeyPair = pureJsCrypto.generateX25519KeyPair()
 
       xx.initSession(true, prologue, kpInitiator)
     } catch (e) {
@@ -31,15 +31,15 @@ describe('XX Handshake', () => {
     const ck = Buffer.alloc(32)
     ckBytes.copy(ck)
 
-    const [k1, k2, k3] = stablelib.getHKDF(ck, ikm)
+    const [k1, k2, k3] = pureJsCrypto.getHKDF(ck, ikm)
     expect(uint8ArrayToString(k1, 'hex')).to.equal('cc5659adff12714982f806e2477a8d5ddd071def4c29bb38777b7e37046f6914')
     expect(uint8ArrayToString(k2, 'hex')).to.equal('a16ada915e551ab623f38be674bb4ef15d428ae9d80688899c9ef9b62ef208fa')
     expect(uint8ArrayToString(k3, 'hex')).to.equal('ff67bf9727e31b06efc203907e6786667d2c7a74ac412b4d31a80ba3fd766f68')
   })
 
   async function doHandshake (xx: XX): Promise<{ nsInit: NoiseSession, nsResp: NoiseSession }> {
-    const kpInit = stablelib.generateX25519KeyPair()
-    const kpResp = stablelib.generateX25519KeyPair()
+    const kpInit = pureJsCrypto.generateX25519KeyPair()
+    const kpResp = pureJsCrypto.generateX25519KeyPair()
 
     // initiator setup
     const libp2pInitKeys = await generateEd25519Keys()
@@ -107,7 +107,7 @@ describe('XX Handshake', () => {
 
   it('Test handshake', async () => {
     try {
-      const xx = new XX(stablelib)
+      const xx = new XX(pureJsCrypto)
       await doHandshake(xx)
     } catch (e) {
       const err = e as Error
@@ -117,7 +117,7 @@ describe('XX Handshake', () => {
 
   it('Test symmetric encrypt and decrypt', async () => {
     try {
-      const xx = new XX(stablelib)
+      const xx = new XX(pureJsCrypto)
       const { nsInit, nsResp } = await doHandshake(xx)
       const ad = Buffer.from('authenticated')
       const message = Buffer.from('HelloCrypto')
@@ -139,7 +139,7 @@ describe('XX Handshake', () => {
   })
 
   it('Test multiple messages encryption and decryption', async () => {
-    const xx = new XX(stablelib)
+    const xx = new XX(pureJsCrypto)
     const { nsInit, nsResp } = await doHandshake(xx)
     const ad = Buffer.from('authenticated')
     const message = Buffer.from('ethereum1')

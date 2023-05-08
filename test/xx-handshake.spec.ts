@@ -3,7 +3,7 @@ import { assert, expect } from 'aegir/chai'
 import { duplexPair } from 'it-pair/duplex'
 import { pbStream } from 'it-pb-stream'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
-import { stablelib } from '../src/crypto/stablelib.js'
+import { pureJsCrypto } from '../src/crypto/js.js'
 import { XXHandshake } from '../src/handshake-xx.js'
 import { getPayload } from '../src/utils.js'
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
@@ -23,14 +23,14 @@ describe('XX Handshake', () => {
       const connectionTo = pbStream(duplex[1])
 
       const prologue = Buffer.alloc(0)
-      const staticKeysInitiator = stablelib.generateX25519KeyPair()
-      const staticKeysResponder = stablelib.generateX25519KeyPair()
+      const staticKeysInitiator = pureJsCrypto.generateX25519KeyPair()
+      const staticKeysResponder = pureJsCrypto.generateX25519KeyPair()
 
       const initPayload = await getPayload(peerA, staticKeysInitiator.publicKey)
-      const handshakeInitator = new XXHandshake(true, initPayload, prologue, stablelib, staticKeysInitiator, connectionFrom, peerB)
+      const handshakeInitator = new XXHandshake(true, initPayload, prologue, pureJsCrypto, staticKeysInitiator, connectionFrom, peerB)
 
       const respPayload = await getPayload(peerB, staticKeysResponder.publicKey)
-      const handshakeResponder = new XXHandshake(false, respPayload, prologue, stablelib, staticKeysResponder, connectionTo, peerA)
+      const handshakeResponder = new XXHandshake(false, respPayload, prologue, pureJsCrypto, staticKeysResponder, connectionTo, peerA)
 
       await handshakeInitator.propose()
       await handshakeResponder.propose()
@@ -70,14 +70,14 @@ describe('XX Handshake', () => {
       const connectionTo = pbStream(duplex[1])
 
       const prologue = Buffer.alloc(0)
-      const staticKeysInitiator = stablelib.generateX25519KeyPair()
-      const staticKeysResponder = stablelib.generateX25519KeyPair()
+      const staticKeysInitiator = pureJsCrypto.generateX25519KeyPair()
+      const staticKeysResponder = pureJsCrypto.generateX25519KeyPair()
 
       const initPayload = await getPayload(peerA, staticKeysInitiator.publicKey)
-      const handshakeInitator = new XXHandshake(true, initPayload, prologue, stablelib, staticKeysInitiator, connectionFrom, fakePeer)
+      const handshakeInitator = new XXHandshake(true, initPayload, prologue, pureJsCrypto, staticKeysInitiator, connectionFrom, fakePeer)
 
       const respPayload = await getPayload(peerB, staticKeysResponder.publicKey)
-      const handshakeResponder = new XXHandshake(false, respPayload, prologue, stablelib, staticKeysResponder, connectionTo, peerA)
+      const handshakeResponder = new XXHandshake(false, respPayload, prologue, pureJsCrypto, staticKeysResponder, connectionTo, peerA)
 
       await handshakeInitator.propose()
       await handshakeResponder.propose()
@@ -99,14 +99,14 @@ describe('XX Handshake', () => {
       const connectionTo = pbStream(duplex[1])
 
       const prologue = Buffer.alloc(0)
-      const staticKeysInitiator = stablelib.generateX25519KeyPair()
-      const staticKeysResponder = stablelib.generateX25519KeyPair()
+      const staticKeysInitiator = pureJsCrypto.generateX25519KeyPair()
+      const staticKeysResponder = pureJsCrypto.generateX25519KeyPair()
 
       const initPayload = await getPayload(peerA, staticKeysInitiator.publicKey)
-      const handshakeInitator = new XXHandshake(true, initPayload, prologue, stablelib, staticKeysInitiator, connectionFrom, peerB)
+      const handshakeInitator = new XXHandshake(true, initPayload, prologue, pureJsCrypto, staticKeysInitiator, connectionFrom, peerB)
 
       const respPayload = await getPayload(peerB, staticKeysResponder.publicKey)
-      const handshakeResponder = new XXHandshake(false, respPayload, prologue, stablelib, staticKeysResponder, connectionTo, fakePeer)
+      const handshakeResponder = new XXHandshake(false, respPayload, prologue, pureJsCrypto, staticKeysResponder, connectionTo, fakePeer)
 
       await handshakeInitator.propose()
       await handshakeResponder.propose()

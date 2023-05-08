@@ -1,21 +1,19 @@
+import { hkdf } from '@noble/hashes/hkdf'
+import { sha256 } from '@noble/hashes/sha256'
 import { ChaCha20Poly1305 } from '@stablelib/chacha20poly1305'
-import { HKDF } from '@stablelib/hkdf'
-import { SHA256, hash } from '@stablelib/sha256'
 import * as x25519 from '@stablelib/x25519'
-import type { bytes32, bytes } from '../@types/basic.js'
+import type { bytes, bytes32 } from '../@types/basic.js'
 import type { Hkdf } from '../@types/handshake.js'
 import type { KeyPair } from '../@types/libp2p.js'
 import type { ICryptoInterface } from '../crypto.js'
 
-export const stablelib: ICryptoInterface = {
+export const pureJsCrypto: ICryptoInterface = {
   hashSHA256 (data: Uint8Array): Uint8Array {
-    return hash(data)
+    return sha256(data)
   },
 
   getHKDF (ck: bytes32, ikm: Uint8Array): Hkdf {
-    const hkdf = new HKDF(SHA256, ikm, ck)
-    const okmU8Array = hkdf.expand(96)
-    const okm = okmU8Array
+    const okm = hkdf(sha256, ikm, ck, undefined, 96)
 
     const k1 = okm.subarray(0, 32)
     const k2 = okm.subarray(32, 64)
