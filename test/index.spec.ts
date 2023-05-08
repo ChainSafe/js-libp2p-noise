@@ -1,12 +1,12 @@
-import type { Metrics } from '@libp2p/interface-metrics'
 import { expect } from 'aegir/chai'
 import { duplexPair } from 'it-pair/duplex'
 import { pbStream } from 'it-pb-stream'
 import sinon from 'sinon'
+import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { noise } from '../src/index.js'
 import { Noise } from '../src/noise.js'
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
-import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
+import type { Metrics } from '@libp2p/interface-metrics'
 
 function createCounterSpy (): ReturnType<typeof sinon.spy> {
   return sinon.spy({

@@ -1,10 +1,10 @@
 import { unmarshalPublicKey, unmarshalPrivateKey } from '@libp2p/crypto/keys'
-import type { PeerId } from '@libp2p/interface-peer-id'
 import { peerIdFromKeys } from '@libp2p/peer-id'
 import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
+import { type NoiseExtensions, NoiseHandshakePayload } from './proto/payload.js'
 import type { bytes } from './@types/basic.js'
-import { NoiseExtensions, NoiseHandshakePayload } from './proto/payload.js'
+import type { PeerId } from '@libp2p/interface-peer-id'
 
 export async function getPayload (
   localPeer: PeerId,
@@ -43,11 +43,11 @@ export async function signPayload (peerId: PeerId, payload: bytes): Promise<byte
 
   const privateKey = await unmarshalPrivateKey(peerId.privateKey)
 
-  return await privateKey.sign(payload)
+  return privateKey.sign(payload)
 }
 
 export async function getPeerIdFromPayload (payload: NoiseHandshakePayload): Promise<PeerId> {
-  return await peerIdFromKeys(payload.identityKey)
+  return peerIdFromKeys(payload.identityKey)
 }
 
 export function decodePayload (payload: bytes | Uint8Array): NoiseHandshakePayload {

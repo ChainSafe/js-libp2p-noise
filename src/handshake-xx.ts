@@ -1,11 +1,4 @@
-import type { PeerId } from '@libp2p/interface-peer-id'
 import { InvalidCryptoExchangeError, UnexpectedPeerError } from '@libp2p/interface-connection-encrypter/errors'
-import type { ProtobufStream } from 'it-pb-stream'
-import type { bytes, bytes32 } from './@types/basic.js'
-import type { CipherState, NoiseSession } from './@types/handshake.js'
-import type { KeyPair } from './@types/libp2p.js'
-import type { IHandshake } from './@types/handshake-interface.js'
-import type { ICryptoInterface } from './crypto.js'
 import { decode0, decode1, decode2, encode0, encode1, encode2 } from './encoder.js'
 import { XX } from './handshakes/xx.js'
 import {
@@ -21,7 +14,14 @@ import {
   getPeerIdFromPayload,
   verifySignedPayload
 } from './utils.js'
+import type { bytes, bytes32 } from './@types/basic.js'
+import type { IHandshake } from './@types/handshake-interface.js'
+import type { CipherState, NoiseSession } from './@types/handshake.js'
+import type { KeyPair } from './@types/libp2p.js'
+import type { ICryptoInterface } from './crypto.js'
 import type { NoiseExtensions } from './proto/payload.js'
+import type { PeerId } from '@libp2p/interface-peer-id'
+import type { ProtobufStream } from 'it-pb-stream'
 
 export class XXHandshake implements IHandshake {
   public isInitiator: boolean

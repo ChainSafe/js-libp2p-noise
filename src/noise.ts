@@ -1,23 +1,23 @@
-import type { PeerId } from '@libp2p/interface-peer-id'
-import type { SecuredConnection } from '@libp2p/interface-connection-encrypter'
-import { pbStream, ProtobufStream } from 'it-pb-stream'
-import { duplexPair } from 'it-pair/duplex'
-import { pipe } from 'it-pipe'
 import { decode } from 'it-length-prefixed'
-import type { Duplex, Source } from 'it-stream-types'
-import type { bytes } from './@types/basic.js'
-import type { IHandshake } from './@types/handshake-interface.js'
-import type { INoiseConnection, KeyPair } from './@types/libp2p.js'
+import { duplexPair } from 'it-pair/duplex'
+import { pbStream, type ProtobufStream } from 'it-pb-stream'
+import { pipe } from 'it-pipe'
 import { NOISE_MSG_MAX_LENGTH_BYTES } from './constants.js'
-import type { ICryptoInterface } from './crypto.js'
 import { stablelib } from './crypto/stablelib.js'
 import { decryptStream, encryptStream } from './crypto/streaming.js'
 import { uint16BEDecode, uint16BEEncode } from './encoder.js'
 import { XXHandshake } from './handshake-xx.js'
+import { type MetricsRegistry, registerMetrics } from './metrics.js'
 import { getPayload } from './utils.js'
+import type { bytes } from './@types/basic.js'
+import type { IHandshake } from './@types/handshake-interface.js'
+import type { INoiseConnection, KeyPair } from './@types/libp2p.js'
+import type { ICryptoInterface } from './crypto.js'
 import type { NoiseExtensions } from './proto/payload.js'
+import type { SecuredConnection } from '@libp2p/interface-connection-encrypter'
 import type { Metrics } from '@libp2p/interface-metrics'
-import { MetricsRegistry, registerMetrics } from './metrics.js'
+import type { PeerId } from '@libp2p/interface-peer-id'
+import type { Duplex, Source } from 'it-stream-types'
 
 interface HandshakeParams {
   connection: ProtobufStream
@@ -136,7 +136,7 @@ export class Noise implements INoiseConnection {
     const payload = await getPayload(params.localPeer, this.staticKeys.publicKey, this.extensions)
 
     // run XX handshake
-    return await this.performXXHandshake(params, payload)
+    return this.performXXHandshake(params, payload)
   }
 
   private async performXXHandshake (

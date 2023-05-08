@@ -1,13 +1,13 @@
 import { Buffer } from 'buffer'
 import { expect, assert } from 'aegir/chai'
-import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
-import type { KeyPair } from '../../src/@types/libp2p.js'
-import type { NoiseSession } from '../../src/@types/handshake.js'
+import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { stablelib } from '../../src/crypto/stablelib.js'
 import { XX } from '../../src/handshakes/xx.js'
 import { createHandshakePayload, getHandshakePayload } from '../../src/utils.js'
 import { generateEd25519Keys } from '../utils.js'
+import type { NoiseSession } from '../../src/@types/handshake.js'
+import type { KeyPair } from '../../src/@types/libp2p.js'
 
 describe('XX Handshake', () => {
   const prologue = Buffer.alloc(0)

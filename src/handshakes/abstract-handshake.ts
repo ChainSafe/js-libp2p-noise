@@ -1,11 +1,11 @@
-import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
-import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
 import { fromString as uint8ArrayFromString } from 'uint8arrays'
+import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
+import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
+import { logger } from '../logger.js'
+import { Nonce } from '../nonce.js'
 import type { bytes, bytes32 } from '../@types/basic.js'
 import type { CipherState, MessageBuffer, SymmetricState } from '../@types/handshake.js'
 import type { ICryptoInterface } from '../crypto.js'
-import { logger } from '../logger.js'
-import { Nonce } from '../nonce.js'
 
 export interface DecryptedResult {
   plaintext: bytes

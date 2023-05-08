@@ -1,8 +1,8 @@
 import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
-import type { Uint8ArrayList } from 'uint8arraylist'
 import type { bytes } from './@types/basic.js'
 import type { MessageBuffer } from './@types/handshake.js'
 import type { LengthDecoderFunction } from 'it-length-prefixed'
+import type { Uint8ArrayList } from 'uint8arraylist'
 
 const allocUnsafe = (len: number): Uint8Array => {
   if (globalThis.Buffer) {
