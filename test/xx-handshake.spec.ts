@@ -1,4 +1,3 @@
-import type { PeerId } from '@libp2p/interface-peer-id'
 import { Buffer } from 'buffer'
 import { assert, expect } from 'aegir/chai'
 import { duplexPair } from 'it-pair/duplex'
@@ -8,6 +7,7 @@ import { pureJsCrypto } from '../src/crypto/js.js'
 import { XXHandshake } from '../src/handshake-xx.js'
 import { getPayload } from '../src/utils.js'
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
+import type { PeerId } from '@libp2p/interface-peer-id'
 
 describe('XX Handshake', () => {
   let peerA: PeerId, peerB: PeerId, fakePeer: PeerId
