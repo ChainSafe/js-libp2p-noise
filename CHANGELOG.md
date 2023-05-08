@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.0.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v11.0.4...v12.0.0) (2023-05-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* stablelib crypto backend renamed to pureJsCrypto
+* the type of the source/sink properties have changed
+
+### Bug Fixes
+
+* update hashing libs to noble, `stablelib` crypto backend renamed to `pureJsCrypto` ([3732fda](https://github.com/ChainSafe/js-libp2p-noise/commit/3732fda3b5330dc5454185d2cfe669f9f70e93e2))
+* update stream types ([#316](https://github.com/ChainSafe/js-libp2p-noise/issues/316)) ([8426920](https://github.com/ChainSafe/js-libp2p-noise/commit/842692007f1b042d828d2dea9a64c4bdf1a31e10))
+
 ## [11.0.4](https://github.com/ChainSafe/js-libp2p-noise/compare/v11.0.3...v11.0.4) (2023-03-28)
 
 
