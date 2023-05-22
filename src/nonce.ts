@@ -1,4 +1,4 @@
-import type { bytes, uint64 } from './@types/basic'
+import type { bytes, uint64 } from './@types/basic.js'
 
 export const MIN_NONCE = 0
 // For performance reasons, the nonce is represented as a JS `number`
