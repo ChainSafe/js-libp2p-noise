@@ -1,5 +1,5 @@
-import type { PeerId } from '@libp2p/interface-peer-id'
 import { createEd25519PeerId, createFromJSON } from '@libp2p/peer-id-factory'
+import type { PeerId } from '@libp2p/interface-peer-id'
 
 // ed25519 keys
 const peers = [{
@@ -21,8 +21,8 @@ const peers = [{
 }]
 
 export async function createPeerIdsFromFixtures (length: number): Promise<PeerId[]> {
-  return await Promise.all(
-    Array.from({ length }).map(async (_, i) => await createFromJSON(peers[i]))
+  return Promise.all(
+    Array.from({ length }).map(async (_, i) => createFromJSON(peers[i]))
   )
 }
 

@@ -1,8 +1,8 @@
-import type { bytes32, bytes } from '../@types/basic.js'
-import type { KeyPair } from '../@types/libp2p.js'
 import { isValidPublicKey } from '../utils.js'
+import { AbstractHandshake, type DecryptedResult } from './abstract-handshake.js'
+import type { bytes32, bytes } from '../@types/basic.js'
 import type { CipherState, HandshakeState, MessageBuffer, NoiseSession } from '../@types/handshake.js'
-import { AbstractHandshake, DecryptedResult } from './abstract-handshake.js'
+import type { KeyPair } from '../@types/libp2p.js'
 
 export class XX extends AbstractHandshake {
   private initializeInitiator (prologue: bytes32, s: KeyPair, rs: bytes32, psk: bytes32): HandshakeState {

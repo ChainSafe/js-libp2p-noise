@@ -1,13 +1,13 @@
+import { chacha20_poly1305 } from '@noble/ciphers/chacha'
+import { x25519 } from '@noble/curves/ed25519'
 import { extract, expand } from '@noble/hashes/hkdf'
 import { sha256 } from '@noble/hashes/sha256'
-import { x25519 } from '@noble/curves/ed25519'
-import { ChaCha20Poly1305 } from '@stablelib/chacha20poly1305'
-import type { bytes32, bytes } from '../@types/basic.js'
+import type { bytes, bytes32 } from '../@types/basic.js'
 import type { Hkdf } from '../@types/handshake.js'
 import type { KeyPair } from '../@types/libp2p.js'
 import type { ICryptoInterface } from '../crypto.js'
 
-export const stablelib: ICryptoInterface = {
+export const pureJsCrypto: ICryptoInterface = {
   hashSHA256 (data: Uint8Array): Uint8Array {
     return sha256(data)
   },
@@ -48,14 +48,14 @@ export const stablelib: ICryptoInterface = {
   },
 
   chaCha20Poly1305Encrypt (plaintext: Uint8Array, nonce: Uint8Array, ad: Uint8Array, k: bytes32): bytes {
-    const ctx = new ChaCha20Poly1305(k)
-
-    return ctx.seal(nonce, plaintext, ad)
+    return chacha20_poly1305(k, nonce, ad).encrypt(plaintext)
   },
 
   chaCha20Poly1305Decrypt (ciphertext: Uint8Array, nonce: Uint8Array, ad: Uint8Array, k: bytes32, dst?: Uint8Array): bytes | null {
-    const ctx = new ChaCha20Poly1305(k)
-
-    return ctx.open(nonce, ciphertext, ad, dst)
+    const result = chacha20_poly1305(k, nonce, ad).decrypt(ciphertext)
+    if (dst) {
+      dst.set(result)
+    }
+    return result
   }
 }

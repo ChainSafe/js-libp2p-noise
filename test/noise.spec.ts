@@ -1,22 +1,22 @@
-import { randomBytes } from 'iso-random-stream'
-import type { PeerId } from '@libp2p/interface-peer-id'
 import { Buffer } from 'buffer'
 import { assert, expect } from 'aegir/chai'
+import { randomBytes } from 'iso-random-stream'
 import { duplexPair } from 'it-pair/duplex'
 import { pbStream } from 'it-pb-stream'
-import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
-import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
-import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import sinon from 'sinon'
+import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
+import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
+import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { NOISE_MSG_MAX_LENGTH_BYTES } from '../src/constants.js'
-import { stablelib } from '../src/crypto/stablelib.js'
+import { pureJsCrypto } from '../src/crypto/js.js'
 import { decode0, decode2, encode1, uint16BEDecode, uint16BEEncode } from '../src/encoder.js'
-import { XX } from '../src/handshakes/xx.js'
 import { XXHandshake } from '../src/handshake-xx.js'
+import { XX } from '../src/handshakes/xx.js'
 import { Noise } from '../src/noise.js'
 import { createHandshakePayload, getHandshakePayload, getPayload, signPayload } from '../src/utils.js'
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
 import { getKeyPairFromPeerId } from './utils.js'
+import type { PeerId } from '@libp2p/interface-peer-id'
 
 describe('Noise', () => {
   let remotePeer: PeerId, localPeer: PeerId
@@ -68,11 +68,11 @@ describe('Noise', () => {
           }
         )
         const prologue = Buffer.alloc(0)
-        const staticKeys = stablelib.generateX25519KeyPair()
-        const xx = new XX(stablelib)
+        const staticKeys = pureJsCrypto.generateX25519KeyPair()
+        const xx = new XX(pureJsCrypto)
 
         const payload = await getPayload(remotePeer, staticKeys.publicKey)
-        const handshake = new XXHandshake(false, payload, prologue, stablelib, staticKeys, wrapped, localPeer, xx)
+        const handshake = new XXHandshake(false, payload, prologue, pureJsCrypto, staticKeys, wrapped, localPeer, xx)
 
         let receivedMessageBuffer = decode0((await wrapped.readLP()).slice())
         // The first handshake message contains the initiator's ephemeral public key
@@ -132,9 +132,9 @@ describe('Noise', () => {
 
   it('should working without remote peer provided in incoming connection', async () => {
     try {
-      const staticKeysInitiator = stablelib.generateX25519KeyPair()
+      const staticKeysInitiator = pureJsCrypto.generateX25519KeyPair()
       const noiseInit = new Noise({ staticNoiseKey: staticKeysInitiator.privateKey })
-      const staticKeysResponder = stablelib.generateX25519KeyPair()
+      const staticKeysResponder = pureJsCrypto.generateX25519KeyPair()
       const noiseResp = new Noise({ staticNoiseKey: staticKeysResponder.privateKey })
 
       const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
@@ -165,9 +165,9 @@ describe('Noise', () => {
   it('should accept and return Noise extension from remote peer', async () => {
     try {
       const certhashInit = Buffer.from('certhash data from init')
-      const staticKeysInitiator = stablelib.generateX25519KeyPair()
+      const staticKeysInitiator = pureJsCrypto.generateX25519KeyPair()
       const noiseInit = new Noise({ staticNoiseKey: staticKeysInitiator.privateKey, extensions: { webtransportCerthashes: [certhashInit] } })
-      const staticKeysResponder = stablelib.generateX25519KeyPair()
+      const staticKeysResponder = pureJsCrypto.generateX25519KeyPair()
       const certhashResp = Buffer.from('certhash data from respon')
       const noiseResp = new Noise({ staticNoiseKey: staticKeysResponder.privateKey, extensions: { webtransportCerthashes: [certhashResp] } })
 
@@ -187,8 +187,8 @@ describe('Noise', () => {
 
   it('should accept a prologue', async () => {
     try {
-      const noiseInit = new Noise({ staticNoiseKey: undefined, crypto: stablelib, prologueBytes: Buffer.from('Some prologue') })
-      const noiseResp = new Noise({ staticNoiseKey: undefined, crypto: stablelib, prologueBytes: Buffer.from('Some prologue') })
+      const noiseInit = new Noise({ staticNoiseKey: undefined, crypto: pureJsCrypto, prologueBytes: Buffer.from('Some prologue') })
+      const noiseResp = new Noise({ staticNoiseKey: undefined, crypto: pureJsCrypto, prologueBytes: Buffer.from('Some prologue') })
 
       const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
       const [outbound, inbound] = await Promise.all([
