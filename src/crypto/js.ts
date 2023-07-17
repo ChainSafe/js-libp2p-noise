@@ -55,6 +55,7 @@ export const pureJsCrypto: ICryptoInterface = {
     const result = chacha20_poly1305(k, nonce, ad).decrypt(ciphertext)
     if (dst) {
       dst.set(result)
+      return result
     }
     return result
   }
