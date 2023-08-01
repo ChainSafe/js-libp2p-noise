@@ -94,7 +94,7 @@
     "@libp2p/interface-connection-encrypter-compliance-tests": "^5.0.0",
     "@libp2p/interop": "^8.0.1",
     "@libp2p/peer-id-factory": "^2.0.0",
-    "@libp2p/tcp": "^7.0.0",
+    "@libp2p/tcp": "^8.0.0",
     "@multiformats/multiaddr": "^12.1.0",
     "@types/sinon": "^10.0.14",
     "aegir": "^39.0.5",
