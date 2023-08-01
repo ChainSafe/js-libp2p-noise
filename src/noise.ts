@@ -1,6 +1,6 @@
 import { decode } from 'it-length-prefixed'
+import { lpStream, type LengthPrefixedStream } from 'it-length-prefixed-stream'
 import { duplexPair } from 'it-pair/duplex'
-import { pbStream, type ProtobufStream } from 'it-pb-stream'
 import { pipe } from 'it-pipe'
 import { NOISE_MSG_MAX_LENGTH_BYTES } from './constants.js'
 import { pureJsCrypto } from './crypto/js.js'
@@ -14,13 +14,13 @@ import type { IHandshake } from './@types/handshake-interface.js'
 import type { INoiseConnection, KeyPair } from './@types/libp2p.js'
 import type { ICryptoInterface } from './crypto.js'
 import type { NoiseExtensions } from './proto/payload.js'
-import type { SecuredConnection } from '@libp2p/interface-connection-encrypter'
-import type { Metrics } from '@libp2p/interface-metrics'
-import type { PeerId } from '@libp2p/interface-peer-id'
+import type { SecuredConnection } from '@libp2p/interface/connection-encrypter'
+import type { Metrics } from '@libp2p/interface/metrics'
+import type { PeerId } from '@libp2p/interface/peer-id'
 import type { Duplex, Source } from 'it-stream-types'
 
 interface HandshakeParams {
-  connection: ProtobufStream
+  connection: LengthPrefixedStream
   isInitiator: boolean
   localPeer: PeerId
   remotePeer?: PeerId
@@ -71,7 +71,7 @@ export class Noise implements INoiseConnection {
    * @returns {Promise<SecuredConnection>}
    */
   public async secureOutbound (localPeer: PeerId, connection: Duplex<AsyncGenerator<Uint8Array>, AsyncIterable<Uint8Array>, Promise<void>>, remotePeer?: PeerId): Promise<SecuredConnection<NoiseExtensions>> {
-    const wrappedConnection = pbStream(
+    const wrappedConnection = lpStream(
       connection,
       {
         lengthEncoder: uint16BEEncode,
@@ -103,7 +103,7 @@ export class Noise implements INoiseConnection {
    * @returns {Promise<SecuredConnection>}
    */
   public async secureInbound (localPeer: PeerId, connection: Duplex<AsyncGenerator<Uint8Array>, AsyncIterable<Uint8Array>, Promise<void>>, remotePeer?: PeerId): Promise<SecuredConnection<NoiseExtensions>> {
-    const wrappedConnection = pbStream(
+    const wrappedConnection = lpStream(
       connection,
       {
         lengthEncoder: uint16BEEncode,
@@ -171,7 +171,7 @@ export class Noise implements INoiseConnection {
   }
 
   private async createSecureConnection (
-    connection: ProtobufStream<Duplex<AsyncGenerator<Uint8Array>, AsyncIterable<Uint8Array>, Promise<void>>>,
+    connection: LengthPrefixedStream<Duplex<AsyncGenerator<Uint8Array>, AsyncIterable<Uint8Array>, Promise<void>>>,
     handshake: IHandshake
   ): Promise<Duplex<AsyncGenerator<Uint8Array>, Source<Uint8Array>, Promise<void>>> {
     // Create encryption box/unbox wrapper

@@ -1,13 +1,13 @@
 import { Buffer } from 'buffer'
 import { assert, expect } from 'aegir/chai'
+import { lpStream } from 'it-length-prefixed-stream'
 import { duplexPair } from 'it-pair/duplex'
-import { pbStream } from 'it-pb-stream'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { pureJsCrypto } from '../src/crypto/js.js'
 import { XXHandshake } from '../src/handshake-xx.js'
 import { getPayload } from '../src/utils.js'
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
-import type { PeerId } from '@libp2p/interface-peer-id'
+import type { PeerId } from '@libp2p/interface/peer-id'
 
 describe('XX Handshake', () => {
   let peerA: PeerId, peerB: PeerId, fakePeer: PeerId
@@ -19,8 +19,8 @@ describe('XX Handshake', () => {
   it('should propose, exchange and finish handshake', async () => {
     try {
       const duplex = duplexPair<Uint8Array>()
-      const connectionFrom = pbStream(duplex[0])
-      const connectionTo = pbStream(duplex[1])
+      const connectionFrom = lpStream(duplex[0])
+      const connectionTo = lpStream(duplex[1])
 
       const prologue = Buffer.alloc(0)
       const staticKeysInitiator = pureJsCrypto.generateX25519KeyPair()
@@ -66,8 +66,8 @@ describe('XX Handshake', () => {
   it('Initiator should fail to exchange handshake if given wrong public key in payload', async () => {
     try {
       const duplex = duplexPair<Uint8Array>()
-      const connectionFrom = pbStream(duplex[0])
-      const connectionTo = pbStream(duplex[1])
+      const connectionFrom = lpStream(duplex[0])
+      const connectionTo = lpStream(duplex[1])
 
       const prologue = Buffer.alloc(0)
       const staticKeysInitiator = pureJsCrypto.generateX25519KeyPair()
@@ -95,8 +95,8 @@ describe('XX Handshake', () => {
   it('Responder should fail to exchange handshake if given wrong public key in payload', async () => {
     try {
       const duplex = duplexPair<Uint8Array>()
-      const connectionFrom = pbStream(duplex[0])
-      const connectionTo = pbStream(duplex[1])
+      const connectionFrom = lpStream(duplex[0])
+      const connectionTo = lpStream(duplex[1])
 
       const prologue = Buffer.alloc(0)
       const staticKeysInitiator = pureJsCrypto.generateX25519KeyPair()

@@ -1,12 +1,12 @@
 import { expect } from 'aegir/chai'
+import { lpStream } from 'it-length-prefixed-stream'
 import { duplexPair } from 'it-pair/duplex'
-import { pbStream } from 'it-pb-stream'
 import sinon from 'sinon'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { noise } from '../src/index.js'
 import { Noise } from '../src/noise.js'
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
-import type { Metrics } from '@libp2p/interface-metrics'
+import type { Metrics } from '@libp2p/interface/metrics'
 
 function createCounterSpy (): ReturnType<typeof sinon.spy> {
   return sinon.spy({
@@ -41,11 +41,11 @@ describe('Index', () => {
       noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
       noiseResp.secureInbound(remotePeer, inboundConnection, localPeer)
     ])
-    const wrappedInbound = pbStream(inbound.conn)
-    const wrappedOutbound = pbStream(outbound.conn)
+    const wrappedInbound = lpStream(inbound.conn)
+    const wrappedOutbound = lpStream(outbound.conn)
 
-    wrappedOutbound.writeLP(uint8ArrayFromString('test'))
-    await wrappedInbound.readLP()
+    await wrappedOutbound.write(uint8ArrayFromString('test'))
+    await wrappedInbound.read()
     expect(metricsRegistry.get('libp2p_noise_xxhandshake_successes_total')?.increment.callCount).to.equal(1)
     expect(metricsRegistry.get('libp2p_noise_xxhandshake_error_total')?.increment.callCount).to.equal(0)
     expect(metricsRegistry.get('libp2p_noise_encrypted_packets_total')?.increment.callCount).to.equal(1)
