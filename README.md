@@ -26,34 +26,28 @@ Install with `yarn add @chainsafe/libp2p-noise` or `npm i @chainsafe/libp2p-nois
 Example of using default noise configuration and passing it to the libp2p config:
 
 ```js
+import {createLibp2p} from "libp2p"
 import {noise} from "@chainsafe/libp2p-noise"
 
-//custom noise configuration, pass it instead of `new Noise()`
+//custom noise configuration, pass it instead of `noise()`
 //x25519 private key
-const n = noise(privateKey);
+const n = noise({ staticNoiseKey });
 
-const libp2p = new Libp2p({
-   modules: {
-     connEncryption: [noise()],
-   },
-});
+const libp2p = await createLibp2p({
+  connectionEncryption: [noise()],
+  //... other options
+})
 ```
 
-Where parameters for Noise constructor are:
- - *static Noise key* - (optional) existing private Noise static key
- - *early data* - (optional) an early data payload to be sent in handshake messages
-
-
+See the [NoiseInit](https://github.com/ChainSafe/js-libp2p-noise/blob/master/src/noise.ts#L29-L38) interface for noise configuration options.
 
 ## API
 
-This module exposes a crypto interface, as defined in the repository [js-interfaces](https://github.com/libp2p/js-libp2p-interfaces).
-
-[» API Docs](https://github.com/libp2p/js-libp2p-interfaces/tree/master/packages/interface-connection-encrypter#api)
+This module exposes an implementation of the [ConnectionEncrypter](https://libp2p.github.io/js-libp2p/interfaces/_libp2p_interface.connection_encrypter.ConnectionEncrypter.html) interface.
 
 ## Bring your own crypto
 
-You can provide a custom crypto implementation (instead of the default, based on [stablelib](https://www.stablelib.com/)) by passing a third argument to the `Noise` constructor.
+You can provide a custom crypto implementation (instead of the default, based on [stablelib](https://www.stablelib.com/)) by adding a `crypto` field to the init argument passed to the `Noise` factory.
 
 The implementation must conform to the `ICryptoInterface`, defined in https://github.com/ChainSafe/js-libp2p-noise/blob/master/src/crypto.ts
 
