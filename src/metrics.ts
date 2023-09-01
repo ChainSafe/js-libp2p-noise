@@ -1,4 +1,4 @@
-import type { Counter, Metrics } from '@libp2p/interface-metrics'
+import type { Counter, Metrics } from '@libp2p/interface/metrics'
 
 export type MetricsRegistry = Record<string, Counter>
 

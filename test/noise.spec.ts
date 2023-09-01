@@ -1,8 +1,9 @@
 import { Buffer } from 'buffer'
 import { assert, expect } from 'aegir/chai'
 import { randomBytes } from 'iso-random-stream'
+import { byteStream } from 'it-byte-stream'
+import { lpStream } from 'it-length-prefixed-stream'
 import { duplexPair } from 'it-pair/duplex'
-import { pbStream } from 'it-pb-stream'
 import sinon from 'sinon'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
@@ -16,7 +17,7 @@ import { Noise } from '../src/noise.js'
 import { createHandshakePayload, getHandshakePayload, getPayload, signPayload } from '../src/utils.js'
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
 import { getKeyPairFromPeerId } from './utils.js'
-import type { PeerId } from '@libp2p/interface-peer-id'
+import type { PeerId } from '@libp2p/interface/peer-id'
 
 describe('Noise', () => {
   let remotePeer: PeerId, localPeer: PeerId
@@ -40,11 +41,11 @@ describe('Noise', () => {
         noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
         noiseResp.secureInbound(remotePeer, inboundConnection, localPeer)
       ])
-      const wrappedInbound = pbStream(inbound.conn)
-      const wrappedOutbound = pbStream(outbound.conn)
+      const wrappedInbound = lpStream(inbound.conn)
+      const wrappedOutbound = lpStream(outbound.conn)
 
-      wrappedOutbound.writeLP(Buffer.from('test'))
-      const response = await wrappedInbound.readLP()
+      await wrappedOutbound.write(Buffer.from('test'))
+      const response = await wrappedInbound.read()
       expect(uint8ArrayToString(response.slice())).equal('test')
     } catch (e) {
       const err = e as Error
@@ -59,7 +60,7 @@ describe('Noise', () => {
     const [outbound, { wrapped, handshake }] = await Promise.all([
       noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
       (async () => {
-        const wrapped = pbStream(
+        const wrapped = lpStream(
           inboundConnection,
           {
             lengthEncoder: uint16BEEncode,
@@ -74,7 +75,7 @@ describe('Noise', () => {
         const payload = await getPayload(remotePeer, staticKeys.publicKey)
         const handshake = new XXHandshake(false, payload, prologue, pureJsCrypto, staticKeys, wrapped, localPeer, xx)
 
-        let receivedMessageBuffer = decode0((await wrapped.readLP()).slice())
+        let receivedMessageBuffer = decode0((await wrapped.read()).slice())
         // The first handshake message contains the initiator's ephemeral public key
         expect(receivedMessageBuffer.ne.length).equal(32)
         xx.recvMessage(handshake.session, receivedMessageBuffer)
@@ -85,20 +86,20 @@ describe('Noise', () => {
         const handshakePayload = createHandshakePayload(libp2pPubKey, signedPayload)
 
         const messageBuffer = xx.sendMessage(handshake.session, handshakePayload)
-        wrapped.writeLP(encode1(messageBuffer))
+        await wrapped.write(encode1(messageBuffer))
 
         // Stage 2 - finish handshake
-        receivedMessageBuffer = decode2((await wrapped.readLP()).slice())
+        receivedMessageBuffer = decode2((await wrapped.read()).slice())
         xx.recvMessage(handshake.session, receivedMessageBuffer)
         return { wrapped, handshake }
       })()
     ])
 
-    const wrappedOutbound = pbStream(outbound.conn)
-    wrappedOutbound.write(uint8ArrayFromString('test'))
+    const wrappedOutbound = byteStream(outbound.conn)
+    await wrappedOutbound.write(uint8ArrayFromString('test'))
 
     // Check that noise message is prefixed with 16-bit big-endian unsigned integer
-    const data = (await wrapped.readLP()).slice()
+    const data = (await wrapped.read()).slice()
     const { plaintext: decrypted, valid } = handshake.decrypt(data, handshake.session)
     // Decrypted data should match
     expect(uint8ArrayEquals(decrypted, uint8ArrayFromString('test'))).to.be.true()
@@ -116,11 +117,11 @@ describe('Noise', () => {
         noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
         noiseResp.secureInbound(remotePeer, inboundConnection, localPeer)
       ])
-      const wrappedInbound = pbStream(inbound.conn)
-      const wrappedOutbound = pbStream(outbound.conn)
+      const wrappedInbound = byteStream(inbound.conn)
+      const wrappedOutbound = lpStream(outbound.conn)
 
       const largePlaintext = randomBytes(60000)
-      wrappedOutbound.writeLP(Buffer.from(largePlaintext))
+      await wrappedOutbound.write(Buffer.from(largePlaintext))
       const response = await wrappedInbound.read(60000)
 
       expect(response.length).equals(largePlaintext.length)
@@ -142,11 +143,11 @@ describe('Noise', () => {
         noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
         noiseResp.secureInbound(remotePeer, inboundConnection)
       ])
-      const wrappedInbound = pbStream(inbound.conn)
-      const wrappedOutbound = pbStream(outbound.conn)
+      const wrappedInbound = lpStream(inbound.conn)
+      const wrappedOutbound = lpStream(outbound.conn)
 
-      wrappedOutbound.writeLP(Buffer.from('test v2'))
-      const response = await wrappedInbound.readLP()
+      await wrappedOutbound.write(Buffer.from('test v2'))
+      const response = await wrappedInbound.read()
       expect(uint8ArrayToString(response.slice())).equal('test v2')
 
       if (inbound.remotePeer.publicKey == null || localPeer.publicKey == null ||
@@ -195,11 +196,11 @@ describe('Noise', () => {
         noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
         noiseResp.secureInbound(remotePeer, inboundConnection, localPeer)
       ])
-      const wrappedInbound = pbStream(inbound.conn)
-      const wrappedOutbound = pbStream(outbound.conn)
+      const wrappedInbound = lpStream(inbound.conn)
+      const wrappedOutbound = lpStream(outbound.conn)
 
-      wrappedOutbound.writeLP(Buffer.from('test'))
-      const response = await wrappedInbound.readLP()
+      await wrappedOutbound.write(Buffer.from('test'))
+      const response = await wrappedInbound.read()
       expect(uint8ArrayToString(response.slice())).equal('test')
     } catch (e) {
       const err = e as Error

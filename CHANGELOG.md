@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [13.0.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v12.0.2...v13.0.0) (2023-08-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* stream close methods are now asyc, requires libp2p@0.46.x or later
+
+### Features
+
+* close streams gracefully ([#344](https://github.com/ChainSafe/js-libp2p-noise/issues/344)) ([b267e7a](https://github.com/ChainSafe/js-libp2p-noise/commit/b267e7a9c494867bc7b7c9ad3e420357ae74116f))
+
 ## [12.0.2](https://github.com/ChainSafe/js-libp2p-noise/compare/v12.0.1...v12.0.2) (2023-07-17)
 
 
