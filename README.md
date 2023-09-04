@@ -47,7 +47,7 @@ This module exposes an implementation of the [ConnectionEncrypter](https://libp2
 
 ## Bring your own crypto
 
-You can provide a custom crypto implementation (instead of the default, based on [stablelib](https://www.stablelib.com/)) by adding a `crypto` field to the init argument passed to the `Noise` factory.
+You can provide a custom crypto implementation (instead of the default, based on [@noble](https://paulmillr.com/noble/)) by adding a `crypto` field to the init argument passed to the `Noise` factory.
 
 The implementation must conform to the `ICryptoInterface`, defined in https://github.com/ChainSafe/js-libp2p-noise/blob/master/src/crypto.ts
 

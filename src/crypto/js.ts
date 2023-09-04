@@ -1,4 +1,4 @@
-import { chacha20_poly1305 } from '@noble/ciphers/chacha'
+import { chacha20poly1305 } from '@noble/ciphers/chacha'
 import { x25519 } from '@noble/curves/ed25519'
 import { extract, expand } from '@noble/hashes/hkdf'
 import { sha256 } from '@noble/hashes/sha256'
@@ -48,15 +48,10 @@ export const pureJsCrypto: ICryptoInterface = {
   },
 
   chaCha20Poly1305Encrypt (plaintext: Uint8Array, nonce: Uint8Array, ad: Uint8Array, k: bytes32): bytes {
-    return chacha20_poly1305(k, nonce, ad).encrypt(plaintext)
+    return chacha20poly1305(k, nonce, ad).encrypt(plaintext)
   },
 
   chaCha20Poly1305Decrypt (ciphertext: Uint8Array, nonce: Uint8Array, ad: Uint8Array, k: bytes32, dst?: Uint8Array): bytes | null {
-    const result = chacha20_poly1305(k, nonce, ad).decrypt(ciphertext)
-    if (dst) {
-      dst.set(result)
-      return result
-    }
-    return result
+    return chacha20poly1305(k, nonce, ad).decrypt(ciphertext, dst)
   }
 }
