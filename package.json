@@ -98,7 +98,7 @@
     "@types/sinon": "^10.0.14",
     "aegir": "^40.0.8",
     "benchmark": "^2.1.4",
-    "execa": "^7.0.0",
+    "execa": "^8.0.1",
     "go-libp2p": "^1.0.3",
     "iso-random-stream": "^2.0.2",
     "libp2p": "^0.46.0",
