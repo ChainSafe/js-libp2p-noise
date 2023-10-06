@@ -105,7 +105,7 @@
     "mkdirp": "^3.0.0",
     "p-defer": "^4.0.0",
     "protons": "^7.0.0",
-    "sinon": "^15.0.0"
+    "sinon": "^16.1.0"
   },
   "browser": {
     "./dist/src/alloc-unsafe.js": "./dist/src/alloc-unsafe-browser.js",
