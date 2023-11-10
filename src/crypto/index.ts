@@ -1,6 +1,7 @@
 import crypto from 'node:crypto'
 import { newInstance, ChaCha20Poly1305 } from '@chainsafe/as-chacha20poly1305'
 import { digest } from '@chainsafe/as-sha256'
+import { isElectronMain } from 'wherearewe'
 import { pureJsCrypto } from './js.js'
 import type { ICryptoInterface } from '../crypto.js'
 
@@ -76,4 +77,10 @@ export const defaultCrypto: ICryptoInterface = {
     }
     return nodeCrypto.chaCha20Poly1305Decrypt(ciphertext, nonce, ad, k, dst)
   }
+}
+
+// no chacha20-poly1305 in electron https://github.com/electron/electron/issues/24024
+if (isElectronMain) {
+  defaultCrypto.chaCha20Poly1305Encrypt = asCrypto.chaCha20Poly1305Encrypt
+  defaultCrypto.chaCha20Poly1305Decrypt = asCrypto.chaCha20Poly1305Decrypt
 }
