@@ -3,7 +3,7 @@ import { lpStream, type LengthPrefixedStream } from 'it-length-prefixed-stream'
 import { duplexPair } from 'it-pair/duplex'
 import { pipe } from 'it-pipe'
 import { NOISE_MSG_MAX_LENGTH_BYTES } from './constants.js'
-import { pureJsCrypto } from './crypto/js.js'
+import { defaultCrypto } from './crypto/index.js'
 import { decryptStream, encryptStream } from './crypto/streaming.js'
 import { uint16BEDecode, uint16BEEncode } from './encoder.js'
 import { XXHandshake } from './handshake-xx.js'
@@ -49,7 +49,7 @@ export class Noise implements INoiseConnection {
   constructor (init: NoiseInit = {}) {
     const { staticNoiseKey, extensions, crypto, prologueBytes, metrics } = init
 
-    this.crypto = crypto ?? pureJsCrypto
+    this.crypto = crypto ?? defaultCrypto
     this.extensions = extensions
     this.metrics = metrics ? registerMetrics(metrics) : undefined
 
