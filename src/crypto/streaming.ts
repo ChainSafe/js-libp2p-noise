@@ -1,3 +1,4 @@
+import { concat as uint8ArrayConcat } from 'uint8arrays'
 import { NOISE_MSG_MAX_LENGTH_BYTES, NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG } from '../constants.js'
 import { uint16BEEncode } from '../encoder.js'
 import type { IHandshake } from '../@types/handshake-interface.js'
@@ -20,8 +21,10 @@ export function encryptStream (handshake: IHandshake, metrics?: MetricsRegistry)
         const data = handshake.encrypt(chunk.subarray(i, end), handshake.session)
         metrics?.encryptedPackets.increment()
 
-        yield uint16BEEncode(data.byteLength)
-        yield data
+        yield uint8ArrayConcat([
+          uint16BEEncode(data.byteLength),
+          data
+        ], 2 + data.byteLength)
       }
     }
   }
