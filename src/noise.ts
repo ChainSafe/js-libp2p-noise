@@ -2,6 +2,7 @@ import { decode } from 'it-length-prefixed'
 import { lpStream, type LengthPrefixedStream } from 'it-length-prefixed-stream'
 import { duplexPair } from 'it-pair/duplex'
 import { pipe } from 'it-pipe'
+import { alloc as uint8ArrayAlloc } from 'uint8arrays/alloc'
 import { NOISE_MSG_MAX_LENGTH_BYTES } from './constants.js'
 import { defaultCrypto } from './crypto/index.js'
 import { decryptStream, encryptStream } from './crypto/streaming.js'
@@ -59,7 +60,7 @@ export class Noise implements INoiseConnection {
     } else {
       this.staticKeys = this.crypto.generateX25519KeyPair()
     }
-    this.prologue = prologueBytes ?? new Uint8Array(0)
+    this.prologue = prologueBytes ?? uint8ArrayAlloc(0)
   }
 
   /**

@@ -1,3 +1,4 @@
+import { alloc as uint8ArrayAlloc } from 'uint8arrays/alloc'
 import { isValidPublicKey } from '../utils.js'
 import { AbstractHandshake, type DecryptedResult } from './abstract-handshake.js'
 import type { bytes32, bytes } from '../@types/basic.js'
@@ -9,7 +10,7 @@ export class XX extends AbstractHandshake {
     const name = 'Noise_XX_25519_ChaChaPoly_SHA256'
     const ss = this.initializeSymmetric(name)
     this.mixHash(ss, prologue)
-    const re = new Uint8Array(32)
+    const re = uint8ArrayAlloc(32)
 
     return { ss, s, rs, psk, re }
   }
@@ -18,13 +19,13 @@ export class XX extends AbstractHandshake {
     const name = 'Noise_XX_25519_ChaChaPoly_SHA256'
     const ss = this.initializeSymmetric(name)
     this.mixHash(ss, prologue)
-    const re = new Uint8Array(32)
+    const re = uint8ArrayAlloc(32)
 
     return { ss, s, rs, psk, re }
   }
 
   private writeMessageA (hs: HandshakeState, payload: bytes, e?: KeyPair): MessageBuffer {
-    const ns = new Uint8Array(0)
+    const ns = uint8ArrayAlloc(0)
 
     if (e !== undefined) {
       hs.e = e
@@ -113,7 +114,7 @@ export class XX extends AbstractHandshake {
 
   public initSession (initiator: boolean, prologue: bytes32, s: KeyPair): NoiseSession {
     const psk = this.createEmptyKey()
-    const rs = new Uint8Array(32) // no static key yet
+    const rs = uint8ArrayAlloc(32) // no static key yet
     let hs
 
     if (initiator) {
@@ -164,7 +165,7 @@ export class XX extends AbstractHandshake {
   }
 
   public recvMessage (session: NoiseSession, message: MessageBuffer): DecryptedResult {
-    let plaintext: bytes = new Uint8Array(0)
+    let plaintext: bytes = uint8ArrayAlloc(0)
     let valid = false
     if (session.mc === 0) {
       ({ plaintext, valid } = this.readMessageA(session.hs, message))

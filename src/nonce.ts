@@ -1,3 +1,4 @@
+import { alloc as uint8ArrayAlloc } from 'uint8arrays/alloc'
 import type { bytes, uint64 } from './@types/basic.js'
 
 export const MIN_NONCE = 0
@@ -22,7 +23,7 @@ export class Nonce {
 
   constructor (n = MIN_NONCE) {
     this.n = n
-    this.bytes = new Uint8Array(12)
+    this.bytes = uint8ArrayAlloc(12)
     this.view = new DataView(this.bytes.buffer, this.bytes.byteOffset, this.bytes.byteLength)
     this.view.setUint32(4, n, true)
   }
