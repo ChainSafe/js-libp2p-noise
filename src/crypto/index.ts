@@ -1,7 +1,6 @@
 import crypto from 'node:crypto'
 import { newInstance, ChaCha20Poly1305 } from '@chainsafe/as-chacha20poly1305'
 import { digest } from '@chainsafe/as-sha256'
-import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
 import { isElectronMain } from 'wherearewe'
 import { pureJsCrypto } from './js.js'
 import type { KeyPair } from '../@types/libp2p.js'
@@ -120,12 +119,12 @@ export const defaultCrypto: ICryptoInterface = {
     }
   },
   generateX25519SharedKey (privateKey: Uint8Array, publicKey: Uint8Array): Uint8Array {
-    publicKey = uint8ArrayConcat([
+    publicKey = Buffer.concat([
       X25519_PREFIX,
       publicKey
     ], X25519_PREFIX.byteLength + publicKey.byteLength)
 
-    privateKey = uint8ArrayConcat([
+    privateKey = Buffer.concat([
       PKCS8_PREFIX,
       privateKey
     ], PKCS8_PREFIX.byteLength + privateKey.byteLength)
