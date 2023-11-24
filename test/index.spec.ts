@@ -7,6 +7,7 @@ import { noise } from '../src/index.js'
 import { Noise } from '../src/noise.js'
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
 import type { Metrics } from '@libp2p/interface/metrics'
+import type { Uint8ArrayList } from 'uint8arraylist'
 
 function createCounterSpy (): ReturnType<typeof sinon.spy> {
   return sinon.spy({
@@ -36,7 +37,7 @@ describe('Index', () => {
     const noiseInit = new Noise({ metrics: metrics as any as Metrics })
     const noiseResp = new Noise({})
 
-    const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
+    const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
     const [outbound, inbound] = await Promise.all([
       noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
       noiseResp.secureInbound(remotePeer, inboundConnection, localPeer)

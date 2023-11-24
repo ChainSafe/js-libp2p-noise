@@ -18,6 +18,7 @@ import { createHandshakePayload, getHandshakePayload, getPayload, signPayload } 
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
 import { getKeyPairFromPeerId } from './utils.js'
 import type { PeerId } from '@libp2p/interface/peer-id'
+import type { Uint8ArrayList } from 'uint8arraylist'
 
 describe('Noise', () => {
   let remotePeer: PeerId, localPeer: PeerId
@@ -36,7 +37,7 @@ describe('Noise', () => {
       const noiseInit = new Noise({ staticNoiseKey: undefined, extensions: undefined })
       const noiseResp = new Noise({ staticNoiseKey: undefined, extensions: undefined })
 
-      const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
+      const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
       const [outbound, inbound] = await Promise.all([
         noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
         noiseResp.secureInbound(remotePeer, inboundConnection, localPeer)
@@ -55,7 +56,7 @@ describe('Noise', () => {
 
   it('should test that secureOutbound is spec compliant', async () => {
     const noiseInit = new Noise({ staticNoiseKey: undefined })
-    const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
+    const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
 
     const [outbound, { wrapped, handshake }] = await Promise.all([
       noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
@@ -82,7 +83,7 @@ describe('Noise', () => {
 
         // Stage 1
         const { publicKey: libp2pPubKey } = getKeyPairFromPeerId(remotePeer)
-        const signedPayload = await signPayload(remotePeer, getHandshakePayload(staticKeys.publicKey))
+        const signedPayload = await signPayload(remotePeer, getHandshakePayload(staticKeys.publicKey).subarray())
         const handshakePayload = createHandshakePayload(libp2pPubKey, signedPayload)
 
         const messageBuffer = xx.sendMessage(handshake.session, handshakePayload)
@@ -102,7 +103,7 @@ describe('Noise', () => {
     const data = (await wrapped.read()).slice()
     const { plaintext: decrypted, valid } = handshake.decrypt(data, handshake.session)
     // Decrypted data should match
-    expect(uint8ArrayEquals(decrypted, uint8ArrayFromString('test'))).to.be.true()
+    expect(uint8ArrayEquals(decrypted.subarray(), uint8ArrayFromString('test'))).to.be.true()
     expect(valid).to.be.true()
   })
 
@@ -112,7 +113,7 @@ describe('Noise', () => {
       const noiseInit = new Noise({ staticNoiseKey: undefined })
       const noiseResp = new Noise({ staticNoiseKey: undefined })
 
-      const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
+      const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
       const [outbound, inbound] = await Promise.all([
         noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
         noiseResp.secureInbound(remotePeer, inboundConnection, localPeer)
@@ -138,7 +139,7 @@ describe('Noise', () => {
       const staticKeysResponder = pureJsCrypto.generateX25519KeyPair()
       const noiseResp = new Noise({ staticNoiseKey: staticKeysResponder.privateKey })
 
-      const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
+      const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
       const [outbound, inbound] = await Promise.all([
         noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
         noiseResp.secureInbound(remotePeer, inboundConnection)
@@ -172,7 +173,7 @@ describe('Noise', () => {
       const certhashResp = Buffer.from('certhash data from respon')
       const noiseResp = new Noise({ staticNoiseKey: staticKeysResponder.privateKey, extensions: { webtransportCerthashes: [certhashResp] } })
 
-      const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
+      const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
       const [outbound, inbound] = await Promise.all([
         noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
         noiseResp.secureInbound(remotePeer, inboundConnection)
@@ -191,7 +192,7 @@ describe('Noise', () => {
       const noiseInit = new Noise({ staticNoiseKey: undefined, crypto: pureJsCrypto, prologueBytes: Buffer.from('Some prologue') })
       const noiseResp = new Noise({ staticNoiseKey: undefined, crypto: pureJsCrypto, prologueBytes: Buffer.from('Some prologue') })
 
-      const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
+      const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
       const [outbound, inbound] = await Promise.all([
         noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
         noiseResp.secureInbound(remotePeer, inboundConnection, localPeer)
