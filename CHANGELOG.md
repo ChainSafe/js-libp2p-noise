@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [13.0.4](https://github.com/ChainSafe/js-libp2p-noise/compare/v13.0.3...v13.0.4) (2023-11-24)
+
+
+### Bug Fixes
+
+* use node.js crypto for x25519 keys ([#389](https://github.com/ChainSafe/js-libp2p-noise/issues/389)) ([8ba08ea](https://github.com/ChainSafe/js-libp2p-noise/commit/8ba08ea312a68c4e843e03f095357247711339f2))
+
 ## [13.0.3](https://github.com/ChainSafe/js-libp2p-noise/compare/v13.0.2...v13.0.3) (2023-11-13)
 
 
