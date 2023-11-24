@@ -1,4 +1,5 @@
 import { InvalidCryptoExchangeError, UnexpectedPeerError } from '@libp2p/interface/errors'
+import { alloc as uint8ArrayAlloc } from 'uint8arrays/alloc'
 import { decode0, decode1, decode2, encode0, encode1, encode2 } from './encoder.js'
 import { XX } from './handshakes/xx.js'
 import {
@@ -63,7 +64,7 @@ export class XXHandshake implements IHandshake {
     logLocalStaticKeys(this.session.hs.s)
     if (this.isInitiator) {
       logger.trace('Stage 0 - Initiator starting to send first message.')
-      const messageBuffer = this.xx.sendMessage(this.session, new Uint8Array(0))
+      const messageBuffer = this.xx.sendMessage(this.session, uint8ArrayAlloc(0))
       await this.connection.write(encode0(messageBuffer))
       logger.trace('Stage 0 - Initiator finished sending first message.')
       logLocalEphemeralKeys(this.session.hs.e)
@@ -144,13 +145,13 @@ export class XXHandshake implements IHandshake {
   public encrypt (plaintext: Uint8Array, session: NoiseSession): bytes {
     const cs = this.getCS(session)
 
-    return this.xx.encryptWithAd(cs, new Uint8Array(0), plaintext)
+    return this.xx.encryptWithAd(cs, uint8ArrayAlloc(0), plaintext)
   }
 
   public decrypt (ciphertext: Uint8Array, session: NoiseSession, dst?: Uint8Array): { plaintext: bytes, valid: boolean } {
     const cs = this.getCS(session, false)
 
-    return this.xx.decryptWithAd(cs, new Uint8Array(0), ciphertext, dst)
+    return this.xx.decryptWithAd(cs, uint8ArrayAlloc(0), ciphertext, dst)
   }
 
   public getRemoteStaticKey (): bytes {

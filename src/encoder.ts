@@ -1,19 +1,12 @@
+import { alloc as uint8ArrayAlloc, allocUnsafe as uint8ArrayAllocUnsafe } from 'uint8arrays/alloc'
 import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
 import type { bytes } from './@types/basic.js'
 import type { MessageBuffer } from './@types/handshake.js'
 import type { LengthDecoderFunction } from 'it-length-prefixed'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
-const allocUnsafe = (len: number): Uint8Array => {
-  if (globalThis.Buffer) {
-    return globalThis.Buffer.allocUnsafe(len)
-  }
-
-  return new Uint8Array(len)
-}
-
 export const uint16BEEncode = (value: number): Uint8Array => {
-  const target = allocUnsafe(2)
+  const target = uint8ArrayAllocUnsafe(2)
   new DataView(target.buffer, target.byteOffset, target.byteLength).setUint16(0, value, false)
   return target
 }
@@ -52,7 +45,7 @@ export function decode0 (input: bytes): MessageBuffer {
   return {
     ne: input.subarray(0, 32),
     ciphertext: input.subarray(32, input.length),
-    ns: new Uint8Array(0)
+    ns: uint8ArrayAlloc(0)
   }
 }
 
@@ -74,7 +67,7 @@ export function decode2 (input: bytes): MessageBuffer {
   }
 
   return {
-    ne: new Uint8Array(0),
+    ne: uint8ArrayAlloc(0),
     ns: input.subarray(0, 48),
     ciphertext: input.subarray(48, input.length)
   }

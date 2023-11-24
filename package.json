@@ -55,7 +55,6 @@
     "clean": "aegir clean",
     "dep-check": "aegir dep-check",
     "build": "aegir build",
-    "prebuild": "mkdirp dist/src && cp -R src/proto dist/src",
     "lint": "aegir lint",
     "lint:fix": "aegir lint --fix",
     "test": "aegir test",

@@ -1,4 +1,5 @@
 import { fromString as uint8ArrayFromString } from 'uint8arrays'
+import { alloc as uint8ArrayAlloc } from 'uint8arrays/alloc'
 import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { logger } from '../logger.js'
@@ -44,7 +45,7 @@ export abstract class AbstractHandshake {
   }
 
   protected createEmptyKey (): bytes32 {
-    return new Uint8Array(32)
+    return uint8ArrayAlloc(32)
   }
 
   protected isEmptyKey (k: bytes32): boolean {
@@ -82,7 +83,7 @@ export abstract class AbstractHandshake {
       }
     } else {
       return {
-        plaintext: new Uint8Array(0),
+        plaintext: uint8ArrayAlloc(0),
         valid: false
       }
     }
@@ -112,7 +113,7 @@ export abstract class AbstractHandshake {
     } catch (e) {
       const err = e as Error
       logger.error(err)
-      return new Uint8Array(32)
+      return uint8ArrayAlloc(32)
     }
   }
 
@@ -150,16 +151,16 @@ export abstract class AbstractHandshake {
 
   protected hashProtocolName (protocolName: Uint8Array): bytes32 {
     if (protocolName.length <= 32) {
-      const h = new Uint8Array(32)
+      const h = uint8ArrayAlloc(32)
       h.set(protocolName)
       return h
     } else {
-      return this.getHash(protocolName, new Uint8Array(0))
+      return this.getHash(protocolName, uint8ArrayAlloc(0))
     }
   }
 
   protected split (ss: SymmetricState): SplitState {
-    const [tempk1, tempk2] = this.crypto.getHKDF(ss.ck, new Uint8Array(0))
+    const [tempk1, tempk2] = this.crypto.getHKDF(ss.ck, uint8ArrayAlloc(0))
     const cs1 = this.initializeKey(tempk1)
     const cs2 = this.initializeKey(tempk2)
 
@@ -167,14 +168,14 @@ export abstract class AbstractHandshake {
   }
 
   protected writeMessageRegular (cs: CipherState, payload: bytes): MessageBuffer {
-    const ciphertext = this.encryptWithAd(cs, new Uint8Array(0), payload)
+    const ciphertext = this.encryptWithAd(cs, uint8ArrayAlloc(0), payload)
     const ne = this.createEmptyKey()
-    const ns = new Uint8Array(0)
+    const ns = uint8ArrayAlloc(0)
 
     return { ne, ns, ciphertext }
   }
 
   protected readMessageRegular (cs: CipherState, message: MessageBuffer): DecryptedResult {
-    return this.decryptWithAd(cs, new Uint8Array(0), message.ciphertext)
+    return this.decryptWithAd(cs, uint8ArrayAlloc(0), message.ciphertext)
   }
 }

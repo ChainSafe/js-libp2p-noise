@@ -3,7 +3,7 @@ import { assert, expect } from 'aegir/chai'
 import { lpStream } from 'it-length-prefixed-stream'
 import { duplexPair } from 'it-pair/duplex'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
-import { pureJsCrypto } from '../src/crypto/js.js'
+import { defaultCrypto } from '../src/crypto/index.js'
 import { XXHandshake } from '../src/handshake-xx.js'
 import { getPayload } from '../src/utils.js'
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
@@ -23,25 +23,31 @@ describe('XX Handshake', () => {
       const connectionTo = lpStream(duplex[1])
 
       const prologue = Buffer.alloc(0)
-      const staticKeysInitiator = pureJsCrypto.generateX25519KeyPair()
-      const staticKeysResponder = pureJsCrypto.generateX25519KeyPair()
+      const staticKeysInitiator = defaultCrypto.generateX25519KeyPair()
+      const staticKeysResponder = defaultCrypto.generateX25519KeyPair()
 
       const initPayload = await getPayload(peerA, staticKeysInitiator.publicKey)
-      const handshakeInitator = new XXHandshake(true, initPayload, prologue, pureJsCrypto, staticKeysInitiator, connectionFrom, peerB)
+      const handshakeInitiator = new XXHandshake(true, initPayload, prologue, defaultCrypto, staticKeysInitiator, connectionFrom, peerB)
 
       const respPayload = await getPayload(peerB, staticKeysResponder.publicKey)
-      const handshakeResponder = new XXHandshake(false, respPayload, prologue, pureJsCrypto, staticKeysResponder, connectionTo, peerA)
+      const handshakeResponder = new XXHandshake(false, respPayload, prologue, defaultCrypto, staticKeysResponder, connectionTo, peerA)
 
-      await handshakeInitator.propose()
-      await handshakeResponder.propose()
+      await Promise.all([
+        handshakeInitiator.propose(),
+        handshakeResponder.propose()
+      ])
 
-      await handshakeResponder.exchange()
-      await handshakeInitator.exchange()
+      await Promise.all([
+        handshakeResponder.exchange(),
+        handshakeInitiator.exchange()
+      ])
 
-      await handshakeInitator.finish()
-      await handshakeResponder.finish()
+      await Promise.all([
+        handshakeInitiator.finish(),
+        handshakeResponder.finish()
+      ])
 
-      const sessionInitator = handshakeInitator.session
+      const sessionInitator = handshakeInitiator.session
       const sessionResponder = handshakeResponder.session
 
       // Test shared key
@@ -53,7 +59,7 @@ describe('XX Handshake', () => {
       }
 
       // Test encryption and decryption
-      const encrypted = handshakeInitator.encrypt(Buffer.from('encryptthis'), handshakeInitator.session)
+      const encrypted = handshakeInitiator.encrypt(Buffer.from('encryptthis'), handshakeInitiator.session)
       const { plaintext: decrypted, valid } = handshakeResponder.decrypt(encrypted, handshakeResponder.session)
       assert(uint8ArrayEquals(decrypted, Buffer.from('encryptthis')))
       assert(valid)
@@ -70,20 +76,24 @@ describe('XX Handshake', () => {
       const connectionTo = lpStream(duplex[1])
 
       const prologue = Buffer.alloc(0)
-      const staticKeysInitiator = pureJsCrypto.generateX25519KeyPair()
-      const staticKeysResponder = pureJsCrypto.generateX25519KeyPair()
+      const staticKeysInitiator = defaultCrypto.generateX25519KeyPair()
+      const staticKeysResponder = defaultCrypto.generateX25519KeyPair()
 
       const initPayload = await getPayload(peerA, staticKeysInitiator.publicKey)
-      const handshakeInitator = new XXHandshake(true, initPayload, prologue, pureJsCrypto, staticKeysInitiator, connectionFrom, fakePeer)
+      const handshakeInitiator = new XXHandshake(true, initPayload, prologue, defaultCrypto, staticKeysInitiator, connectionFrom, fakePeer)
 
       const respPayload = await getPayload(peerB, staticKeysResponder.publicKey)
-      const handshakeResponder = new XXHandshake(false, respPayload, prologue, pureJsCrypto, staticKeysResponder, connectionTo, peerA)
+      const handshakeResponder = new XXHandshake(false, respPayload, prologue, defaultCrypto, staticKeysResponder, connectionTo, peerA)
 
-      await handshakeInitator.propose()
-      await handshakeResponder.propose()
+      await Promise.all([
+        handshakeInitiator.propose(),
+        handshakeResponder.propose()
+      ])
 
-      await handshakeResponder.exchange()
-      await handshakeInitator.exchange()
+      await Promise.all([
+        handshakeResponder.exchange(),
+        handshakeInitiator.exchange()
+      ])
 
       assert(false, 'Should throw exception')
     } catch (e) {
@@ -99,23 +109,29 @@ describe('XX Handshake', () => {
       const connectionTo = lpStream(duplex[1])
 
       const prologue = Buffer.alloc(0)
-      const staticKeysInitiator = pureJsCrypto.generateX25519KeyPair()
-      const staticKeysResponder = pureJsCrypto.generateX25519KeyPair()
+      const staticKeysInitiator = defaultCrypto.generateX25519KeyPair()
+      const staticKeysResponder = defaultCrypto.generateX25519KeyPair()
 
       const initPayload = await getPayload(peerA, staticKeysInitiator.publicKey)
-      const handshakeInitator = new XXHandshake(true, initPayload, prologue, pureJsCrypto, staticKeysInitiator, connectionFrom, peerB)
+      const handshakeInitiator = new XXHandshake(true, initPayload, prologue, defaultCrypto, staticKeysInitiator, connectionFrom, peerB)
 
       const respPayload = await getPayload(peerB, staticKeysResponder.publicKey)
-      const handshakeResponder = new XXHandshake(false, respPayload, prologue, pureJsCrypto, staticKeysResponder, connectionTo, fakePeer)
+      const handshakeResponder = new XXHandshake(false, respPayload, prologue, defaultCrypto, staticKeysResponder, connectionTo, fakePeer)
 
-      await handshakeInitator.propose()
-      await handshakeResponder.propose()
+      await Promise.all([
+        handshakeInitiator.propose(),
+        handshakeResponder.propose()
+      ])
 
-      await handshakeResponder.exchange()
-      await handshakeInitator.exchange()
+      await Promise.all([
+        handshakeResponder.exchange(),
+        handshakeInitiator.exchange()
+      ])
 
-      await handshakeInitator.finish()
-      await handshakeResponder.finish()
+      await Promise.all([
+        handshakeInitiator.finish(),
+        handshakeResponder.finish()
+      ])
 
       assert(false, 'Should throw exception')
     } catch (e) {
