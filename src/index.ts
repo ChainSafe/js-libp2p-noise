@@ -1,10 +1,15 @@
 import { Noise } from './noise.js'
 import type { NoiseInit } from './noise.js'
 import type { NoiseExtensions } from './proto/payload.js'
-import type { ConnectionEncrypter } from '@libp2p/interface/connection-encrypter'
+import type { ComponentLogger, ConnectionEncrypter, Metrics } from '@libp2p/interface'
 export type { ICryptoInterface } from './crypto.js'
 export { pureJsCrypto } from './crypto/js.js'
 
-export function noise (init: NoiseInit = {}): () => ConnectionEncrypter<NoiseExtensions> {
-  return () => new Noise(init)
+export interface NoiseComponents {
+  logger: ComponentLogger
+  metrics?: Metrics
+}
+
+export function noise (init: NoiseInit = {}): (components: NoiseComponents) => ConnectionEncrypter<NoiseExtensions> {
+  return (components: NoiseComponents) => new Noise(components, init)
 }

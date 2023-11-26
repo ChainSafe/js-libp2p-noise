@@ -1,4 +1,5 @@
 import { Buffer } from 'buffer'
+import { defaultLogger } from '@libp2p/logger'
 import { assert, expect } from 'aegir/chai'
 import { lpStream } from 'it-length-prefixed-stream'
 import { duplexPair } from 'it-pair/duplex'
@@ -27,10 +28,10 @@ describe('XX Handshake', () => {
       const staticKeysResponder = defaultCrypto.generateX25519KeyPair()
 
       const initPayload = await getPayload(peerA, staticKeysInitiator.publicKey)
-      const handshakeInitiator = new XXHandshake(true, initPayload, prologue, defaultCrypto, staticKeysInitiator, connectionFrom, peerB)
+      const handshakeInitiator = new XXHandshake({ logger: defaultLogger() }, true, initPayload, prologue, defaultCrypto, staticKeysInitiator, connectionFrom, peerB)
 
       const respPayload = await getPayload(peerB, staticKeysResponder.publicKey)
-      const handshakeResponder = new XXHandshake(false, respPayload, prologue, defaultCrypto, staticKeysResponder, connectionTo, peerA)
+      const handshakeResponder = new XXHandshake({ logger: defaultLogger() }, false, respPayload, prologue, defaultCrypto, staticKeysResponder, connectionTo, peerA)
 
       await Promise.all([
         handshakeInitiator.propose(),
@@ -80,10 +81,10 @@ describe('XX Handshake', () => {
       const staticKeysResponder = defaultCrypto.generateX25519KeyPair()
 
       const initPayload = await getPayload(peerA, staticKeysInitiator.publicKey)
-      const handshakeInitiator = new XXHandshake(true, initPayload, prologue, defaultCrypto, staticKeysInitiator, connectionFrom, fakePeer)
+      const handshakeInitiator = new XXHandshake({ logger: defaultLogger() }, true, initPayload, prologue, defaultCrypto, staticKeysInitiator, connectionFrom, fakePeer)
 
       const respPayload = await getPayload(peerB, staticKeysResponder.publicKey)
-      const handshakeResponder = new XXHandshake(false, respPayload, prologue, defaultCrypto, staticKeysResponder, connectionTo, peerA)
+      const handshakeResponder = new XXHandshake({ logger: defaultLogger() }, false, respPayload, prologue, defaultCrypto, staticKeysResponder, connectionTo, peerA)
 
       await Promise.all([
         handshakeInitiator.propose(),
@@ -113,10 +114,10 @@ describe('XX Handshake', () => {
       const staticKeysResponder = defaultCrypto.generateX25519KeyPair()
 
       const initPayload = await getPayload(peerA, staticKeysInitiator.publicKey)
-      const handshakeInitiator = new XXHandshake(true, initPayload, prologue, defaultCrypto, staticKeysInitiator, connectionFrom, peerB)
+      const handshakeInitiator = new XXHandshake({ logger: defaultLogger() }, true, initPayload, prologue, defaultCrypto, staticKeysInitiator, connectionFrom, peerB)
 
       const respPayload = await getPayload(peerB, staticKeysResponder.publicKey)
-      const handshakeResponder = new XXHandshake(false, respPayload, prologue, defaultCrypto, staticKeysResponder, connectionTo, fakePeer)
+      const handshakeResponder = new XXHandshake({ logger: defaultLogger() }, false, respPayload, prologue, defaultCrypto, staticKeysResponder, connectionTo, fakePeer)
 
       await Promise.all([
         handshakeInitiator.propose(),

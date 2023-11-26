@@ -5,7 +5,7 @@ import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { type NoiseExtensions, NoiseHandshakePayload } from './proto/payload.js'
 import type { bytes } from './@types/basic.js'
-import type { PeerId } from '@libp2p/interface/peer-id'
+import type { PeerId } from '@libp2p/interface'
 
 export async function getPayload (
   localPeer: PeerId,

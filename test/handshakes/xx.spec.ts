@@ -1,4 +1,5 @@
 import { Buffer } from 'buffer'
+import { defaultLogger } from '@libp2p/logger'
 import { expect, assert } from 'aegir/chai'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
@@ -14,7 +15,7 @@ describe('XX Handshake', () => {
 
   it('Test creating new XX session', async () => {
     try {
-      const xx = new XX(pureJsCrypto)
+      const xx = new XX({ logger: defaultLogger() }, pureJsCrypto)
 
       const kpInitiator: KeyPair = pureJsCrypto.generateX25519KeyPair()
 
@@ -107,7 +108,7 @@ describe('XX Handshake', () => {
 
   it('Test handshake', async () => {
     try {
-      const xx = new XX(pureJsCrypto)
+      const xx = new XX({ logger: defaultLogger() }, pureJsCrypto)
       await doHandshake(xx)
     } catch (e) {
       const err = e as Error
@@ -117,7 +118,7 @@ describe('XX Handshake', () => {
 
   it('Test symmetric encrypt and decrypt', async () => {
     try {
-      const xx = new XX(pureJsCrypto)
+      const xx = new XX({ logger: defaultLogger() }, pureJsCrypto)
       const { nsInit, nsResp } = await doHandshake(xx)
       const ad = Buffer.from('authenticated')
       const message = Buffer.from('HelloCrypto')
@@ -139,7 +140,7 @@ describe('XX Handshake', () => {
   })
 
   it('Test multiple messages encryption and decryption', async () => {
-    const xx = new XX(pureJsCrypto)
+    const xx = new XX({ logger: defaultLogger() }, pureJsCrypto)
     const { nsInit, nsResp } = await doHandshake(xx)
     const ad = Buffer.from('authenticated')
     const message = Buffer.from('ethereum1')

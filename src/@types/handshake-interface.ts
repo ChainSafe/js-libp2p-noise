@@ -1,6 +1,6 @@
 import type { NoiseSession } from './handshake.js'
 import type { NoiseExtensions } from '../proto/payload.js'
-import type { PeerId } from '@libp2p/interface/peer-id'
+import type { PeerId } from '@libp2p/interface'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
 export interface IHandshake {

@@ -2,11 +2,12 @@ import { Uint8ArrayList } from 'uint8arraylist'
 import { fromString as uint8ArrayFromString } from 'uint8arrays'
 import { alloc as uint8ArrayAlloc } from 'uint8arrays/alloc'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
-import { logger } from '../logger.js'
 import { Nonce } from '../nonce.js'
 import type { bytes, bytes32 } from '../@types/basic.js'
 import type { CipherState, MessageBuffer, SymmetricState } from '../@types/handshake.js'
 import type { ICryptoInterface } from '../crypto.js'
+import type { NoiseComponents } from '../index.js'
+import type { Logger } from '@libp2p/interface'
 
 export interface DecryptedResult {
   plaintext: Uint8ArrayList | Uint8Array
@@ -20,8 +21,10 @@ export interface SplitState {
 
 export abstract class AbstractHandshake {
   public crypto: ICryptoInterface
+  private readonly log: Logger
 
-  constructor (crypto: ICryptoInterface) {
+  constructor (components: NoiseComponents, crypto: ICryptoInterface) {
+    this.log = components.logger.forComponent('libp2p:noise:abstract-handshake')
     this.crypto = crypto
   }
 
@@ -113,7 +116,7 @@ export abstract class AbstractHandshake {
       return derivedU8.subarray(0, 32)
     } catch (e) {
       const err = e as Error
-      logger.error(err)
+      this.log.error('error deriving shared key', err)
       return uint8ArrayAlloc(32)
     }
   }

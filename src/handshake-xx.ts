@@ -1,9 +1,8 @@
-import { InvalidCryptoExchangeError, UnexpectedPeerError } from '@libp2p/interface/errors'
 import { alloc as uint8ArrayAlloc } from 'uint8arrays/alloc'
 import { decode0, decode1, decode2, encode0, encode1, encode2 } from './encoder.js'
+import { InvalidCryptoExchangeError, UnexpectedPeerError } from './errors.js'
 import { XX } from './handshakes/xx.js'
 import {
-  logger,
   logLocalStaticKeys,
   logLocalEphemeralKeys,
   logRemoteEphemeralKey,
@@ -20,8 +19,9 @@ import type { IHandshake } from './@types/handshake-interface.js'
 import type { CipherState, NoiseSession } from './@types/handshake.js'
 import type { KeyPair } from './@types/libp2p.js'
 import type { ICryptoInterface } from './crypto.js'
+import type { NoiseComponents } from './index.js'
 import type { NoiseExtensions } from './proto/payload.js'
-import type { PeerId } from '@libp2p/interface/peer-id'
+import type { Logger, PeerId } from '@libp2p/interface'
 import type { LengthPrefixedStream } from 'it-length-prefixed-stream'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
@@ -37,8 +37,10 @@ export class XXHandshake implements IHandshake {
   protected staticKeypair: KeyPair
 
   private readonly prologue: bytes32
+  private readonly log: Logger
 
   constructor (
+    components: NoiseComponents,
     isInitiator: boolean,
     payload: bytes,
     prologue: bytes32,
@@ -48,6 +50,7 @@ export class XXHandshake implements IHandshake {
     remotePeer?: PeerId,
     handshake?: XX
   ) {
+    this.log = components.logger.forComponent('libp2p:noise:xxhandshake')
     this.isInitiator = isInitiator
     this.payload = payload
     this.prologue = prologue
@@ -56,45 +59,45 @@ export class XXHandshake implements IHandshake {
     if (remotePeer) {
       this.remotePeer = remotePeer
     }
-    this.xx = handshake ?? new XX(crypto)
+    this.xx = handshake ?? new XX(components, crypto)
     this.session = this.xx.initSession(this.isInitiator, this.prologue, this.staticKeypair)
   }
 
   // stage 0
   public async propose (): Promise<void> {
-    logLocalStaticKeys(this.session.hs.s)
+    logLocalStaticKeys(this.session.hs.s, this.log)
     if (this.isInitiator) {
-      logger.trace('Stage 0 - Initiator starting to send first message.')
+      this.log.trace('Stage 0 - Initiator starting to send first message.')
       const messageBuffer = this.xx.sendMessage(this.session, uint8ArrayAlloc(0))
       await this.connection.write(encode0(messageBuffer))
-      logger.trace('Stage 0 - Initiator finished sending first message.')
-      logLocalEphemeralKeys(this.session.hs.e)
+      this.log.trace('Stage 0 - Initiator finished sending first message.')
+      logLocalEphemeralKeys(this.session.hs.e, this.log)
     } else {
-      logger.trace('Stage 0 - Responder waiting to receive first message...')
+      this.log.trace('Stage 0 - Responder waiting to receive first message...')
       const receivedMessageBuffer = decode0((await this.connection.read()).subarray())
       const { valid } = this.xx.recvMessage(this.session, receivedMessageBuffer)
       if (!valid) {
         throw new InvalidCryptoExchangeError('xx handshake stage 0 validation fail')
       }
-      logger.trace('Stage 0 - Responder received first message.')
-      logRemoteEphemeralKey(this.session.hs.re)
+      this.log.trace('Stage 0 - Responder received first message.')
+      logRemoteEphemeralKey(this.session.hs.re, this.log)
     }
   }
 
   // stage 1
   public async exchange (): Promise<void> {
     if (this.isInitiator) {
-      logger.trace('Stage 1 - Initiator waiting to receive first message from responder...')
+      this.log.trace('Stage 1 - Initiator waiting to receive first message from responder...')
       const receivedMessageBuffer = decode1((await this.connection.read()).subarray())
       const { plaintext, valid } = this.xx.recvMessage(this.session, receivedMessageBuffer)
       if (!valid) {
         throw new InvalidCryptoExchangeError('xx handshake stage 1 validation fail')
       }
-      logger.trace('Stage 1 - Initiator received the message.')
-      logRemoteEphemeralKey(this.session.hs.re)
-      logRemoteStaticKey(this.session.hs.rs)
+      this.log.trace('Stage 1 - Initiator received the message.')
+      logRemoteEphemeralKey(this.session.hs.re, this.log)
+      logRemoteStaticKey(this.session.hs.rs, this.log)
 
-      logger.trace("Initiator going to check remote's signature...")
+      this.log.trace("Initiator going to check remote's signature...")
       try {
         const decodedPayload = decodePayload(plaintext)
         this.remotePeer = this.remotePeer || await getPeerIdFromPayload(decodedPayload)
@@ -104,31 +107,31 @@ export class XXHandshake implements IHandshake {
         const err = e as Error
         throw new UnexpectedPeerError(`Error occurred while verifying signed payload: ${err.message}`)
       }
-      logger.trace('All good with the signature!')
+      this.log.trace('All good with the signature!')
     } else {
-      logger.trace('Stage 1 - Responder sending out first message with signed payload and static key.')
+      this.log.trace('Stage 1 - Responder sending out first message with signed payload and static key.')
       const messageBuffer = this.xx.sendMessage(this.session, this.payload)
       await this.connection.write(encode1(messageBuffer))
-      logger.trace('Stage 1 - Responder sent the second handshake message with signed payload.')
-      logLocalEphemeralKeys(this.session.hs.e)
+      this.log.trace('Stage 1 - Responder sent the second handshake message with signed payload.')
+      logLocalEphemeralKeys(this.session.hs.e, this.log)
     }
   }
 
   // stage 2
   public async finish (): Promise<void> {
     if (this.isInitiator) {
-      logger.trace('Stage 2 - Initiator sending third handshake message.')
+      this.log.trace('Stage 2 - Initiator sending third handshake message.')
       const messageBuffer = this.xx.sendMessage(this.session, this.payload)
       await this.connection.write(encode2(messageBuffer))
-      logger.trace('Stage 2 - Initiator sent message with signed payload.')
+      this.log.trace('Stage 2 - Initiator sent message with signed payload.')
     } else {
-      logger.trace('Stage 2 - Responder waiting for third handshake message...')
+      this.log.trace('Stage 2 - Responder waiting for third handshake message...')
       const receivedMessageBuffer = decode2((await this.connection.read()).subarray())
       const { plaintext, valid } = this.xx.recvMessage(this.session, receivedMessageBuffer)
       if (!valid) {
         throw new InvalidCryptoExchangeError('xx handshake stage 2 validation fail')
       }
-      logger.trace('Stage 2 - Responder received the message, finished handshake.')
+      this.log.trace('Stage 2 - Responder received the message, finished handshake.')
 
       try {
         const decodedPayload = decodePayload(plaintext)
@@ -140,7 +143,7 @@ export class XXHandshake implements IHandshake {
         throw new UnexpectedPeerError(`Error occurred while verifying signed payload: ${err.message}`)
       }
     }
-    logCipherState(this.session)
+    logCipherState(this.session, this.log)
   }
 
   public encrypt (plaintext: Uint8Array | Uint8ArrayList, session: NoiseSession): Uint8Array | Uint8ArrayList {

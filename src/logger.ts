@@ -1,27 +1,12 @@
-import { type Logger, logger } from '@libp2p/logger'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { DUMP_SESSION_KEYS } from './constants.js'
 import type { NoiseSession } from './@types/handshake.js'
 import type { KeyPair } from './@types/libp2p.js'
+import type { Logger } from '@libp2p/interface'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
-const log = logger('libp2p:noise')
-
-export { log as logger }
-
-let keyLogger: Logger
-if (DUMP_SESSION_KEYS) {
-  keyLogger = log
-} else {
-  keyLogger = Object.assign(() => { /* do nothing */ }, {
-    enabled: false,
-    trace: () => {},
-    error: () => {}
-  })
-}
-
-export function logLocalStaticKeys (s: KeyPair): void {
-  if (!keyLogger.enabled) {
+export function logLocalStaticKeys (s: KeyPair, keyLogger: Logger): void {
+  if (!keyLogger.enabled || !DUMP_SESSION_KEYS) {
     return
   }
 
@@ -29,8 +14,8 @@ export function logLocalStaticKeys (s: KeyPair): void {
   keyLogger(`LOCAL_STATIC_PRIVATE_KEY ${uint8ArrayToString(s.privateKey, 'hex')}`)
 }
 
-export function logLocalEphemeralKeys (e: KeyPair | undefined): void {
-  if (!keyLogger.enabled) {
+export function logLocalEphemeralKeys (e: KeyPair | undefined, keyLogger: Logger): void {
+  if (!keyLogger.enabled || !DUMP_SESSION_KEYS) {
     return
   }
 
@@ -42,24 +27,24 @@ export function logLocalEphemeralKeys (e: KeyPair | undefined): void {
   }
 }
 
-export function logRemoteStaticKey (rs: Uint8Array | Uint8ArrayList): void {
-  if (!keyLogger.enabled) {
+export function logRemoteStaticKey (rs: Uint8Array | Uint8ArrayList, keyLogger: Logger): void {
+  if (!keyLogger.enabled || !DUMP_SESSION_KEYS) {
     return
   }
 
   keyLogger(`REMOTE_STATIC_PUBLIC_KEY ${uint8ArrayToString(rs.subarray(), 'hex')}`)
 }
 
-export function logRemoteEphemeralKey (re: Uint8Array | Uint8ArrayList): void {
-  if (!keyLogger.enabled) {
+export function logRemoteEphemeralKey (re: Uint8Array | Uint8ArrayList, keyLogger: Logger): void {
+  if (!keyLogger.enabled || !DUMP_SESSION_KEYS) {
     return
   }
 
   keyLogger(`REMOTE_EPHEMERAL_PUBLIC_KEY ${uint8ArrayToString(re.subarray(), 'hex')}`)
 }
 
-export function logCipherState (session: NoiseSession): void {
-  if (!keyLogger.enabled) {
+export function logCipherState (session: NoiseSession, keyLogger: Logger): void {
+  if (!keyLogger.enabled || !DUMP_SESSION_KEYS) {
     return
   }
 

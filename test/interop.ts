@@ -77,7 +77,6 @@ async function createJsPeer (options: SpawnOptions): Promise<Daemon> {
       listen: ['/ip4/0.0.0.0/tcp/0']
     },
     transports: [tcp()],
-    // @ts-expect-error yamux needs updating
     streamMuxers: [yamux()],
     connectionEncryption: [noise()]
   }

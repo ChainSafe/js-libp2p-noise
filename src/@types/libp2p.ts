@@ -1,6 +1,6 @@
 import type { bytes32 } from './basic.js'
 import type { NoiseExtensions } from '../proto/payload.js'
-import type { ConnectionEncrypter } from '@libp2p/interface/connection-encrypter'
+import type { ConnectionEncrypter } from '@libp2p/interface'
 
 export interface KeyPair {
   publicKey: bytes32

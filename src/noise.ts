@@ -14,11 +14,9 @@ import type { bytes } from './@types/basic.js'
 import type { IHandshake } from './@types/handshake-interface.js'
 import type { INoiseConnection, KeyPair } from './@types/libp2p.js'
 import type { ICryptoInterface } from './crypto.js'
+import type { NoiseComponents } from './index.js'
 import type { NoiseExtensions } from './proto/payload.js'
-import type { MultiaddrConnection } from '@libp2p/interface/connection'
-import type { SecuredConnection } from '@libp2p/interface/connection-encrypter'
-import type { Metrics } from '@libp2p/interface/metrics'
-import type { PeerId } from '@libp2p/interface/peer-id'
+import type { MultiaddrConnection, SecuredConnection, PeerId } from '@libp2p/interface'
 import type { Duplex } from 'it-stream-types'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
@@ -37,7 +35,6 @@ export interface NoiseInit {
   extensions?: NoiseExtensions
   crypto?: ICryptoInterface
   prologueBytes?: Uint8Array
-  metrics?: Metrics
 }
 
 export class Noise implements INoiseConnection {
@@ -48,10 +45,13 @@ export class Noise implements INoiseConnection {
   private readonly staticKeys: KeyPair
   private readonly extensions?: NoiseExtensions
   private readonly metrics?: MetricsRegistry
+  private readonly components: NoiseComponents
 
-  constructor (init: NoiseInit = {}) {
-    const { staticNoiseKey, extensions, crypto, prologueBytes, metrics } = init
+  constructor (components: NoiseComponents, init: NoiseInit = {}) {
+    const { staticNoiseKey, extensions, crypto, prologueBytes } = init
+    const { metrics } = components
 
+    this.components = components
     this.crypto = crypto ?? defaultCrypto
     this.extensions = extensions
     this.metrics = metrics ? registerMetrics(metrics) : undefined
@@ -154,6 +154,7 @@ export class Noise implements INoiseConnection {
   ): Promise<XXHandshake> {
     const { isInitiator, remotePeer, connection } = params
     const handshake = new XXHandshake(
+      this.components,
       isInitiator,
       payload,
       this.prologue,
