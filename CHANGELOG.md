@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [14.0.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v13.0.5...v14.0.0) (2023-11-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* yield uint8arraylists instead of concatenating buffers  ([#391](https://github.com/ChainSafe/js-libp2p-noise/issues/391))
+
+### Bug Fixes
+
+* yield uint8arraylists instead of concatenating buffers  ([#391](https://github.com/ChainSafe/js-libp2p-noise/issues/391)) ([ad25a5e](https://github.com/ChainSafe/js-libp2p-noise/commit/ad25a5e2a7a08564d1130b16a58f248b55c19242))
+
 ## [13.0.5](https://github.com/ChainSafe/js-libp2p-noise/compare/v13.0.4...v13.0.5) (2023-11-27)
 
 
