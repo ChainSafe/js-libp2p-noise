@@ -1,3 +1,4 @@
+import { defaultLogger } from '@libp2p/logger'
 import { expect } from 'aegir/chai'
 import { lpStream } from 'it-length-prefixed-stream'
 import { duplexPair } from 'it-pair/duplex'
@@ -7,6 +8,7 @@ import { noise } from '../src/index.js'
 import { Noise } from '../src/noise.js'
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
 import type { Metrics } from '@libp2p/interface/metrics'
+import type { Uint8ArrayList } from 'uint8arraylist'
 
 function createCounterSpy (): ReturnType<typeof sinon.spy> {
   return sinon.spy({
@@ -17,7 +19,7 @@ function createCounterSpy (): ReturnType<typeof sinon.spy> {
 
 describe('Index', () => {
   it('should expose class with tag and required functions', () => {
-    const noiseInstance = noise()()
+    const noiseInstance = noise()({ logger: defaultLogger() })
     expect(noiseInstance.protocol).to.equal('/noise')
     expect(typeof (noiseInstance.secureInbound)).to.equal('function')
     expect(typeof (noiseInstance.secureOutbound)).to.equal('function')
@@ -33,10 +35,10 @@ describe('Index', () => {
         return counter
       }
     }
-    const noiseInit = new Noise({ metrics: metrics as any as Metrics })
-    const noiseResp = new Noise({})
+    const noiseInit = new Noise({ logger: defaultLogger(), metrics: metrics as any as Metrics })
+    const noiseResp = new Noise({ logger: defaultLogger() })
 
-    const [inboundConnection, outboundConnection] = duplexPair<Uint8Array>()
+    const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
     const [outbound, inbound] = await Promise.all([
       noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
       noiseResp.secureInbound(remotePeer, inboundConnection, localPeer)

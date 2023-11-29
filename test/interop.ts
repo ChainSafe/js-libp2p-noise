@@ -13,7 +13,7 @@ import { path as p2pd } from 'go-libp2p'
 import { createLibp2p, type Libp2pOptions } from 'libp2p'
 import pDefer from 'p-defer'
 import { noise } from '../src/index.js'
-import type { PeerId } from '@libp2p/interface-peer-id'
+import type { PeerId } from '@libp2p/interface/peer-id'
 import type { SpawnOptions, Daemon, DaemonFactory } from '@libp2p/interop'
 
 async function createGoPeer (options: SpawnOptions): Promise<Daemon> {

@@ -14,11 +14,11 @@ import type { bytes } from './@types/basic.js'
 import type { IHandshake } from './@types/handshake-interface.js'
 import type { INoiseConnection, KeyPair } from './@types/libp2p.js'
 import type { ICryptoInterface } from './crypto.js'
+import type { NoiseComponents } from './index.js'
 import type { NoiseExtensions } from './proto/payload.js'
-import type { SecuredConnection } from '@libp2p/interface/connection-encrypter'
-import type { Metrics } from '@libp2p/interface/metrics'
-import type { PeerId } from '@libp2p/interface/peer-id'
-import type { Duplex, Source } from 'it-stream-types'
+import type { MultiaddrConnection, SecuredConnection, PeerId } from '@libp2p/interface'
+import type { Duplex } from 'it-stream-types'
+import type { Uint8ArrayList } from 'uint8arraylist'
 
 interface HandshakeParams {
   connection: LengthPrefixedStream
@@ -35,7 +35,6 @@ export interface NoiseInit {
   extensions?: NoiseExtensions
   crypto?: ICryptoInterface
   prologueBytes?: Uint8Array
-  metrics?: Metrics
 }
 
 export class Noise implements INoiseConnection {
@@ -46,10 +45,13 @@ export class Noise implements INoiseConnection {
   private readonly staticKeys: KeyPair
   private readonly extensions?: NoiseExtensions
   private readonly metrics?: MetricsRegistry
+  private readonly components: NoiseComponents
 
-  constructor (init: NoiseInit = {}) {
-    const { staticNoiseKey, extensions, crypto, prologueBytes, metrics } = init
+  constructor (components: NoiseComponents, init: NoiseInit = {}) {
+    const { staticNoiseKey, extensions, crypto, prologueBytes } = init
+    const { metrics } = components
 
+    this.components = components
     this.crypto = crypto ?? defaultCrypto
     this.extensions = extensions
     this.metrics = metrics ? registerMetrics(metrics) : undefined
@@ -67,11 +69,11 @@ export class Noise implements INoiseConnection {
    * Encrypt outgoing data to the remote party (handshake as initiator)
    *
    * @param {PeerId} localPeer - PeerId of the receiving peer
-   * @param {Duplex<AsyncGenerator<Uint8Array>, AsyncIterable<Uint8Array>, Promise<void>>} connection - streaming iterable duplex that will be encrypted
+   * @param {Stream} connection - streaming iterable duplex that will be encrypted
    * @param {PeerId} remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer.
-   * @returns {Promise<SecuredConnection>}
+   * @returns {Promise<SecuredConnection<Stream, NoiseExtensions>>}
    */
-  public async secureOutbound (localPeer: PeerId, connection: Duplex<AsyncGenerator<Uint8Array>, AsyncIterable<Uint8Array>, Promise<void>>, remotePeer?: PeerId): Promise<SecuredConnection<NoiseExtensions>> {
+  public async secureOutbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (localPeer: PeerId, connection: Stream, remotePeer?: PeerId): Promise<SecuredConnection<Stream, NoiseExtensions>> {
     const wrappedConnection = lpStream(
       connection,
       {
@@ -88,8 +90,11 @@ export class Noise implements INoiseConnection {
     })
     const conn = await this.createSecureConnection(wrappedConnection, handshake)
 
+    connection.source = conn.source
+    connection.sink = conn.sink
+
     return {
-      conn,
+      conn: connection,
       remoteExtensions: handshake.remoteExtensions,
       remotePeer: handshake.remotePeer
     }
@@ -99,11 +104,11 @@ export class Noise implements INoiseConnection {
    * Decrypt incoming data (handshake as responder).
    *
    * @param {PeerId} localPeer - PeerId of the receiving peer.
-   * @param {Duplex<AsyncGenerator<Uint8Array>, AsyncIterable<Uint8Array>, Promise<void>>} connection - streaming iterable duplex that will be encryption.
+   * @param {Stream} connection - streaming iterable duplex that will be encrypted.
    * @param {PeerId} remotePeer - optional PeerId of the initiating peer, if known. This may only exist during transport upgrades.
-   * @returns {Promise<SecuredConnection>}
+   * @returns {Promise<SecuredConnection<Stream, NoiseExtensions>>}
    */
-  public async secureInbound (localPeer: PeerId, connection: Duplex<AsyncGenerator<Uint8Array>, AsyncIterable<Uint8Array>, Promise<void>>, remotePeer?: PeerId): Promise<SecuredConnection<NoiseExtensions>> {
+  public async secureInbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (localPeer: PeerId, connection: Stream, remotePeer?: PeerId): Promise<SecuredConnection<Stream, NoiseExtensions>> {
     const wrappedConnection = lpStream(
       connection,
       {
@@ -120,8 +125,11 @@ export class Noise implements INoiseConnection {
     })
     const conn = await this.createSecureConnection(wrappedConnection, handshake)
 
+    connection.source = conn.source
+    connection.sink = conn.sink
+
     return {
-      conn,
+      conn: connection,
       remotePeer: handshake.remotePeer,
       remoteExtensions: handshake.remoteExtensions
     }
@@ -146,6 +154,7 @@ export class Noise implements INoiseConnection {
   ): Promise<XXHandshake> {
     const { isInitiator, remotePeer, connection } = params
     const handshake = new XXHandshake(
+      this.components,
       isInitiator,
       payload,
       this.prologue,
@@ -172,11 +181,11 @@ export class Noise implements INoiseConnection {
   }
 
   private async createSecureConnection (
-    connection: LengthPrefixedStream<Duplex<AsyncGenerator<Uint8Array>, AsyncIterable<Uint8Array>, Promise<void>>>,
+    connection: LengthPrefixedStream<Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>>>,
     handshake: IHandshake
-  ): Promise<Duplex<AsyncGenerator<Uint8Array>, Source<Uint8Array>, Promise<void>>> {
+  ): Promise<Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>>> {
     // Create encryption box/unbox wrapper
-    const [secure, user] = duplexPair<Uint8Array>()
+    const [secure, user] = duplexPair<Uint8Array | Uint8ArrayList>()
     const network = connection.unwrap()
 
     await pipe(

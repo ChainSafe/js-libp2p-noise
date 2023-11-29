@@ -1,9 +1,8 @@
+import { Uint8ArrayList } from 'uint8arraylist'
 import { alloc as uint8ArrayAlloc, allocUnsafe as uint8ArrayAllocUnsafe } from 'uint8arrays/alloc'
-import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
 import type { bytes } from './@types/basic.js'
 import type { MessageBuffer } from './@types/handshake.js'
 import type { LengthDecoderFunction } from 'it-length-prefixed'
-import type { Uint8ArrayList } from 'uint8arraylist'
 
 export const uint16BEEncode = (value: number): Uint8Array => {
   const target = uint8ArrayAllocUnsafe(2)
@@ -25,16 +24,16 @@ uint16BEDecode.bytes = 2
 
 // Note: IK and XX encoder usage is opposite (XX uses in stages encode0 where IK uses encode1)
 
-export function encode0 (message: MessageBuffer): bytes {
-  return uint8ArrayConcat([message.ne, message.ciphertext], message.ne.length + message.ciphertext.length)
+export function encode0 (message: MessageBuffer): Uint8ArrayList {
+  return new Uint8ArrayList(message.ne, message.ciphertext)
 }
 
-export function encode1 (message: MessageBuffer): bytes {
-  return uint8ArrayConcat([message.ne, message.ns, message.ciphertext], message.ne.length + message.ns.length + message.ciphertext.length)
+export function encode1 (message: MessageBuffer): Uint8ArrayList {
+  return new Uint8ArrayList(message.ne, message.ns, message.ciphertext)
 }
 
-export function encode2 (message: MessageBuffer): bytes {
-  return uint8ArrayConcat([message.ns, message.ciphertext], message.ns.length + message.ciphertext.length)
+export function encode2 (message: MessageBuffer): Uint8ArrayList {
+  return new Uint8ArrayList(message.ns, message.ciphertext)
 }
 
 export function decode0 (input: bytes): MessageBuffer {

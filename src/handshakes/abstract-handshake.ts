@@ -1,15 +1,16 @@
+import { Uint8ArrayList } from 'uint8arraylist'
 import { fromString as uint8ArrayFromString } from 'uint8arrays'
 import { alloc as uint8ArrayAlloc } from 'uint8arrays/alloc'
-import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
-import { logger } from '../logger.js'
 import { Nonce } from '../nonce.js'
 import type { bytes, bytes32 } from '../@types/basic.js'
 import type { CipherState, MessageBuffer, SymmetricState } from '../@types/handshake.js'
 import type { ICryptoInterface } from '../crypto.js'
+import type { NoiseComponents } from '../index.js'
+import type { Logger } from '@libp2p/interface'
 
 export interface DecryptedResult {
-  plaintext: bytes
+  plaintext: Uint8ArrayList | Uint8Array
   valid: boolean
 }
 
@@ -20,19 +21,21 @@ export interface SplitState {
 
 export abstract class AbstractHandshake {
   public crypto: ICryptoInterface
+  private readonly log: Logger
 
-  constructor (crypto: ICryptoInterface) {
+  constructor (components: NoiseComponents, crypto: ICryptoInterface) {
+    this.log = components.logger.forComponent('libp2p:noise:abstract-handshake')
     this.crypto = crypto
   }
 
-  public encryptWithAd (cs: CipherState, ad: Uint8Array, plaintext: Uint8Array): bytes {
+  public encryptWithAd (cs: CipherState, ad: Uint8Array, plaintext: Uint8Array | Uint8ArrayList): Uint8Array | Uint8ArrayList {
     const e = this.encrypt(cs.k, cs.n, ad, plaintext)
     cs.n.increment()
 
     return e
   }
 
-  public decryptWithAd (cs: CipherState, ad: Uint8Array, ciphertext: Uint8Array, dst?: Uint8Array): DecryptedResult {
+  public decryptWithAd (cs: CipherState, ad: Uint8Array, ciphertext: Uint8Array | Uint8ArrayList, dst?: Uint8Array): DecryptedResult {
     const { plaintext, valid } = this.decrypt(cs.k, cs.n, ad, ciphertext, dst)
     if (valid) cs.n.increment()
 
@@ -53,13 +56,13 @@ export abstract class AbstractHandshake {
     return uint8ArrayEquals(emptyKey, k)
   }
 
-  protected encrypt (k: bytes32, n: Nonce, ad: Uint8Array, plaintext: Uint8Array): bytes {
+  protected encrypt (k: bytes32, n: Nonce, ad: Uint8Array, plaintext: Uint8Array | Uint8ArrayList): Uint8Array | Uint8ArrayList {
     n.assertValue()
 
     return this.crypto.chaCha20Poly1305Encrypt(plaintext, n.getBytes(), ad, k)
   }
 
-  protected encryptAndHash (ss: SymmetricState, plaintext: bytes): bytes {
+  protected encryptAndHash (ss: SymmetricState, plaintext: bytes): Uint8Array | Uint8ArrayList {
     let ciphertext
     if (this.hasKey(ss.cs)) {
       ciphertext = this.encryptWithAd(ss.cs, ss.h, plaintext)
@@ -71,7 +74,7 @@ export abstract class AbstractHandshake {
     return ciphertext
   }
 
-  protected decrypt (k: bytes32, n: Nonce, ad: bytes, ciphertext: bytes, dst?: Uint8Array): DecryptedResult {
+  protected decrypt (k: bytes32, n: Nonce, ad: bytes, ciphertext: Uint8Array | Uint8ArrayList, dst?: Uint8Array): DecryptedResult {
     n.assertValue()
 
     const encryptedMessage = this.crypto.chaCha20Poly1305Decrypt(ciphertext, n.getBytes(), ad, k, dst)
@@ -89,8 +92,9 @@ export abstract class AbstractHandshake {
     }
   }
 
-  protected decryptAndHash (ss: SymmetricState, ciphertext: bytes): DecryptedResult {
-    let plaintext: bytes; let valid = true
+  protected decryptAndHash (ss: SymmetricState, ciphertext: Uint8Array | Uint8ArrayList): DecryptedResult {
+    let plaintext: Uint8Array | Uint8ArrayList
+    let valid = true
     if (this.hasKey(ss.cs)) {
       ({ plaintext, valid } = this.decryptWithAd(ss.cs, ss.h, ciphertext))
     } else {
@@ -101,7 +105,7 @@ export abstract class AbstractHandshake {
     return { plaintext, valid }
   }
 
-  protected dh (privateKey: bytes32, publicKey: bytes32): bytes32 {
+  protected dh (privateKey: bytes32, publicKey: Uint8Array | Uint8ArrayList): bytes32 {
     try {
       const derivedU8 = this.crypto.generateX25519SharedKey(privateKey, publicKey)
 
@@ -112,17 +116,17 @@ export abstract class AbstractHandshake {
       return derivedU8.subarray(0, 32)
     } catch (e) {
       const err = e as Error
-      logger.error(err)
+      this.log.error('error deriving shared key', err)
       return uint8ArrayAlloc(32)
     }
   }
 
-  protected mixHash (ss: SymmetricState, data: bytes): void {
+  protected mixHash (ss: SymmetricState, data: Uint8Array | Uint8ArrayList): void {
     ss.h = this.getHash(ss.h, data)
   }
 
-  protected getHash (a: Uint8Array, b: Uint8Array): bytes32 {
-    const u = this.crypto.hashSHA256(uint8ArrayConcat([a, b], a.length + b.length))
+  protected getHash (a: Uint8Array, b: Uint8Array | Uint8ArrayList): Uint8Array {
+    const u = this.crypto.hashSHA256(new Uint8ArrayList(a, b))
     return u
   }
 

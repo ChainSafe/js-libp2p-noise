@@ -22,13 +22,13 @@ const bench = async function () {
   console.log('Init complete, running benchmark')
   const bench = new benchmark('handshake', {
     defer: true,
-    fn: async function (deffered) {
+    fn: async function (deferred) {
       const [inboundConnection, outboundConnection] = duplexPair()
       await Promise.all([
         initiator.secureOutbound(initiatorPeer, outboundConnection, responderPeer),
         responder.secureInbound(responderPeer, inboundConnection, initiatorPeer)
       ])
-      deffered.resolve()
+      deferred.resolve()
     }
   })
     .on('complete', function (stats) {

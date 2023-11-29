@@ -1,4 +1,5 @@
 import { Buffer } from 'buffer'
+import { defaultLogger } from '@libp2p/logger'
 import { expect, assert } from 'aegir/chai'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
@@ -14,7 +15,7 @@ describe('XX Handshake', () => {
 
   it('Test creating new XX session', async () => {
     try {
-      const xx = new XX(pureJsCrypto)
+      const xx = new XX({ logger: defaultLogger() }, pureJsCrypto)
 
       const kpInitiator: KeyPair = pureJsCrypto.generateX25519KeyPair()
 
@@ -107,7 +108,7 @@ describe('XX Handshake', () => {
 
   it('Test handshake', async () => {
     try {
-      const xx = new XX(pureJsCrypto)
+      const xx = new XX({ logger: defaultLogger() }, pureJsCrypto)
       await doHandshake(xx)
     } catch (e) {
       const err = e as Error
@@ -117,7 +118,7 @@ describe('XX Handshake', () => {
 
   it('Test symmetric encrypt and decrypt', async () => {
     try {
-      const xx = new XX(pureJsCrypto)
+      const xx = new XX({ logger: defaultLogger() }, pureJsCrypto)
       const { nsInit, nsResp } = await doHandshake(xx)
       const ad = Buffer.from('authenticated')
       const message = Buffer.from('HelloCrypto')
@@ -127,10 +128,10 @@ describe('XX Handshake', () => {
       }
 
       const ciphertext = xx.encryptWithAd(nsInit.cs1, ad, message)
-      assert(!uint8ArrayEquals(Buffer.from('HelloCrypto'), ciphertext), 'Encrypted message should not be same as plaintext.')
+      assert(!uint8ArrayEquals(Buffer.from('HelloCrypto'), ciphertext.subarray()), 'Encrypted message should not be same as plaintext.')
       const { plaintext: decrypted, valid } = xx.decryptWithAd(nsResp.cs1, ad, ciphertext)
 
-      assert(uint8ArrayEquals(Buffer.from('HelloCrypto'), decrypted), 'Decrypted text not equal to original message.')
+      assert(uint8ArrayEquals(Buffer.from('HelloCrypto'), decrypted.subarray()), 'Decrypted text not equal to original message.')
       assert(valid)
     } catch (e) {
       const err = e as Error
@@ -139,7 +140,7 @@ describe('XX Handshake', () => {
   })
 
   it('Test multiple messages encryption and decryption', async () => {
-    const xx = new XX(pureJsCrypto)
+    const xx = new XX({ logger: defaultLogger() }, pureJsCrypto)
     const { nsInit, nsResp } = await doHandshake(xx)
     const ad = Buffer.from('authenticated')
     const message = Buffer.from('ethereum1')
@@ -150,11 +151,11 @@ describe('XX Handshake', () => {
 
     const encrypted = xx.encryptWithAd(nsInit.cs1, ad, message)
     const { plaintext: decrypted } = xx.decryptWithAd(nsResp.cs1, ad, encrypted)
-    assert.equal('ethereum1', uint8ArrayToString(decrypted, 'utf8'), 'Decrypted text not equal to original message.')
+    assert.equal('ethereum1', uint8ArrayToString(decrypted.subarray(), 'utf8'), 'Decrypted text not equal to original message.')
 
     const message2 = Buffer.from('ethereum2')
     const encrypted2 = xx.encryptWithAd(nsInit.cs1, ad, message2)
     const { plaintext: decrypted2 } = xx.decryptWithAd(nsResp.cs1, ad, encrypted2)
-    assert.equal('ethereum2', uint8ArrayToString(decrypted2, 'utf-8'), 'Decrypted text not equal to original message.')
+    assert.equal('ethereum2', uint8ArrayToString(decrypted2.subarray(), 'utf-8'), 'Decrypted text not equal to original message.')
   })
 })
