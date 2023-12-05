@@ -70,10 +70,10 @@ export function getHandshakePayload (publicKey: Uint8Array | Uint8ArrayList): Ui
 /**
  * Verifies signed payload, throws on any irregularities.
  *
- * @param {bytes} noiseStaticKey - owner's noise static key
- * @param {bytes} payload - decoded payload
- * @param {PeerId} remotePeer - owner's libp2p peer ID
- * @returns {Promise<PeerId>} - peer ID of payload owner
+ * @param noiseStaticKey - owner's noise static key
+ * @param payload - decoded payload
+ * @param remotePeer - owner's libp2p peer ID
+ * @returns peer ID of payload owner
  */
 export async function verifySignedPayload (
   noiseStaticKey: Uint8Array | Uint8ArrayList,

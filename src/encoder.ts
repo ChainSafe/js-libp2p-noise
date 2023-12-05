@@ -22,8 +22,6 @@ export const uint16BEDecode: LengthDecoderFunction = (data: Uint8Array | Uint8Ar
 }
 uint16BEDecode.bytes = 2
 
-// Note: IK and XX encoder usage is opposite (XX uses in stages encode0 where IK uses encode1)
-
 export function encode0 (message: MessageBuffer): Uint8ArrayList {
   return new Uint8ArrayList(message.ne, message.ciphertext)
 }
