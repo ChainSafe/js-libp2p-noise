@@ -38,7 +38,7 @@ const nodeCrypto: Pick<ICryptoInterface, 'hashSHA256' | 'chaCha20Poly1305Encrypt
       const final = cipher.final()
       const tag = cipher.getAuthTag()
 
-      return Buffer.concat([updated, tag, final], updated.byteLength + tag.byteLength + final.byteLength)
+      return Buffer.concat([updated, final, tag], updated.byteLength + final.byteLength + tag.byteLength)
     }
 
     const output = new Uint8ArrayList()
@@ -181,8 +181,7 @@ export const defaultCrypto: ICryptoInterface = {
         publicKey
       ], X25519_PREFIX.byteLength + publicKey.byteLength)
     } else {
-      publicKey.prepend(X25519_PREFIX)
-      publicKey = publicKey.subarray()
+      publicKey = new Uint8ArrayList(X25519_PREFIX, publicKey).subarray()
     }
 
     if (privateKey instanceof Uint8Array) {
@@ -191,8 +190,7 @@ export const defaultCrypto: ICryptoInterface = {
         privateKey
       ], PKCS8_PREFIX.byteLength + privateKey.byteLength)
     } else {
-      privateKey.prepend(PKCS8_PREFIX)
-      privateKey = privateKey.subarray()
+      privateKey = new Uint8ArrayList(PKCS8_PREFIX, privateKey).subarray()
     }
 
     return crypto.diffieHellman({
