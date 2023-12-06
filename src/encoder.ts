@@ -6,7 +6,8 @@ import type { LengthDecoderFunction } from 'it-length-prefixed'
 
 export const uint16BEEncode = (value: number): Uint8Array => {
   const target = uint8ArrayAllocUnsafe(2)
-  new DataView(target.buffer, target.byteOffset, target.byteLength).setUint16(0, value, false)
+  target[0] = value >> 8
+  target[1] = value
   return target
 }
 uint16BEEncode.bytes = 2
@@ -15,7 +16,10 @@ export const uint16BEDecode: LengthDecoderFunction = (data: Uint8Array | Uint8Ar
   if (data.length < 2) throw RangeError('Could not decode int16BE')
 
   if (data instanceof Uint8Array) {
-    return new DataView(data.buffer, data.byteOffset, data.byteLength).getUint16(0, false)
+    let value = 0
+    value += data[0] << 8
+    value += data[1]
+    return value
   }
 
   return data.getUint16(0)
