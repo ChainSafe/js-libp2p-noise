@@ -111,5 +111,9 @@
   "browser": {
     "./dist/src/crypto/index.js": "./dist/src/crypto/index.browser.js",
     "util": false
+  },
+  "react-native": {
+    "./dist/src/crypto/index.js": "./dist/src/crypto/index.browser.js",
+    "util": false
   }
 }
