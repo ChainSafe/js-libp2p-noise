@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [14.1.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v14.0.0...v14.1.0) (2023-12-09)
+
+
+### Features
+
+* react-native support ([#403](https://github.com/ChainSafe/js-libp2p-noise/issues/403)) ([233144f](https://github.com/ChainSafe/js-libp2p-noise/commit/233144f61623d67ff7fede43526817b249320d03))
+
+
+### Bug Fixes
+
+* bump uint8arrays from 4.0.10 to 5.0.0 ([#401](https://github.com/ChainSafe/js-libp2p-noise/issues/401)) ([aa32c25](https://github.com/ChainSafe/js-libp2p-noise/commit/aa32c25a1d5e516ce1476d9a1987a014e9f2b896))
+* revert react-native changes in [#403](https://github.com/ChainSafe/js-libp2p-noise/issues/403) ([#405](https://github.com/ChainSafe/js-libp2p-noise/issues/405)) ([f5046cd](https://github.com/ChainSafe/js-libp2p-noise/commit/f5046cd1cc793a11d4b4c2964e654cc70e691a40))
+
 ## [14.0.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v13.0.5...v14.0.0) (2023-11-29)
 
 
