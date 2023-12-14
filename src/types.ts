@@ -1,7 +1,21 @@
-import type { bytes, bytes32, uint64 } from './basic.js'
-import type { KeyPair } from './libp2p.js'
-import type { Nonce } from '../nonce.js'
+import type { Nonce } from './nonce'
+import type { NoiseExtensions } from './proto/payload'
+import type { ConnectionEncrypter, PeerId } from '@libp2p/interface'
 import type { Uint8ArrayList } from 'uint8arraylist'
+
+export type bytes = Uint8Array
+export type bytes32 = Uint8Array
+export type bytes16 = Uint8Array
+
+export type uint64 = number
+
+export interface IHandshake {
+  session: NoiseSession
+  remotePeer: PeerId
+  remoteExtensions: NoiseExtensions
+  encrypt(plaintext: Uint8Array | Uint8ArrayList, session: NoiseSession): Uint8Array | Uint8ArrayList
+  decrypt(ciphertext: Uint8Array | Uint8ArrayList, session: NoiseSession, dst?: Uint8Array): { plaintext: Uint8Array | Uint8ArrayList, valid: boolean }
+}
 
 export type Hkdf = [bytes, bytes, bytes]
 
@@ -47,3 +61,10 @@ export interface INoisePayload {
   identitySig: bytes
   data: bytes
 }
+
+export interface KeyPair {
+  publicKey: bytes32
+  privateKey: bytes32
+}
+
+export interface INoiseConnection extends ConnectionEncrypter<NoiseExtensions> { }

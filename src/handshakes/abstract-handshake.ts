@@ -3,10 +3,9 @@ import { fromString as uint8ArrayFromString } from 'uint8arrays'
 import { alloc as uint8ArrayAlloc } from 'uint8arrays/alloc'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { Nonce } from '../nonce.js'
-import type { bytes, bytes32 } from '../@types/basic.js'
-import type { CipherState, MessageBuffer, SymmetricState } from '../@types/handshake.js'
 import type { ICryptoInterface } from '../crypto.js'
 import type { NoiseComponents } from '../index.js'
+import type { bytes, bytes32, CipherState, MessageBuffer, SymmetricState } from '../types.js'
 import type { Logger } from '@libp2p/interface'
 
 export interface DecryptedResult {

@@ -1,5 +1,5 @@
 import { alloc as uint8ArrayAlloc } from 'uint8arrays/alloc'
-import type { bytes, uint64 } from './@types/basic.js'
+import type { bytes, uint64 } from './types.js'
 
 export const MIN_NONCE = 0
 // For performance reasons, the nonce is represented as a JS `number`

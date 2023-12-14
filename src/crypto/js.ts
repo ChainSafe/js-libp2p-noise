@@ -2,10 +2,8 @@ import { chacha20poly1305 } from '@noble/ciphers/chacha'
 import { x25519 } from '@noble/curves/ed25519'
 import { extract, expand } from '@noble/hashes/hkdf'
 import { sha256 } from '@noble/hashes/sha256'
-import type { bytes32 } from '../@types/basic.js'
-import type { Hkdf } from '../@types/handshake.js'
-import type { KeyPair } from '../@types/libp2p.js'
 import type { ICryptoInterface } from '../crypto.js'
+import type { bytes32, Hkdf, KeyPair } from '../types.js'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
 export const pureJsCrypto: ICryptoInterface = {

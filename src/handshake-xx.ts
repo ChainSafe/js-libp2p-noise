@@ -14,13 +14,10 @@ import {
   getPeerIdFromPayload,
   verifySignedPayload
 } from './utils.js'
-import type { bytes, bytes32 } from './@types/basic.js'
-import type { IHandshake } from './@types/handshake-interface.js'
-import type { CipherState, NoiseSession } from './@types/handshake.js'
-import type { KeyPair } from './@types/libp2p.js'
 import type { ICryptoInterface } from './crypto.js'
 import type { NoiseComponents } from './index.js'
 import type { NoiseExtensions } from './proto/payload.js'
+import type { bytes, bytes32, IHandshake, CipherState, NoiseSession, KeyPair } from './types.js'
 import type { Logger, PeerId } from '@libp2p/interface'
 import type { LengthPrefixedStream } from 'it-length-prefixed-stream'
 import type { Uint8ArrayList } from 'uint8arraylist'

@@ -7,8 +7,7 @@ import { pureJsCrypto } from '../../src/crypto/js.js'
 import { XX } from '../../src/handshakes/xx.js'
 import { createHandshakePayload, getHandshakePayload } from '../../src/utils.js'
 import { generateEd25519Keys } from '../utils.js'
-import type { NoiseSession } from '../../src/@types/handshake.js'
-import type { KeyPair } from '../../src/@types/libp2p.js'
+import type { KeyPair, NoiseSession } from '../../src/types.js'
 
 describe('XX Handshake', () => {
   const prologue = Buffer.alloc(0)

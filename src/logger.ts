@@ -1,7 +1,6 @@
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { DUMP_SESSION_KEYS } from './constants.js'
-import type { NoiseSession } from './@types/handshake.js'
-import type { KeyPair } from './@types/libp2p.js'
+import type { NoiseSession, KeyPair } from './types.js'
 import type { Logger } from '@libp2p/interface'
 import type { Uint8ArrayList } from 'uint8arraylist'
 

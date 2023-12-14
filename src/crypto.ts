@@ -1,7 +1,5 @@
 import { type Uint8ArrayList } from 'uint8arraylist'
-import type { bytes32 } from './@types/basic.js'
-import type { Hkdf } from './@types/handshake.js'
-import type { KeyPair } from './@types/libp2p.js'
+import type { bytes32, Hkdf, KeyPair } from './types.js'
 
 export interface ICryptoInterface {
   hashSHA256(data: Uint8Array | Uint8ArrayList): Uint8Array

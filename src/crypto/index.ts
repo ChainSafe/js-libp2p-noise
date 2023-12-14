@@ -4,8 +4,8 @@ import { digest } from '@chainsafe/as-sha256'
 import { Uint8ArrayList } from 'uint8arraylist'
 import { isElectronMain } from 'wherearewe'
 import { pureJsCrypto } from './js.js'
-import type { KeyPair } from '../@types/libp2p.js'
 import type { ICryptoInterface } from '../crypto.js'
+import type { KeyPair } from '../types.js'
 
 const ctx = newInstance()
 const asImpl = new ChaCha20Poly1305(ctx)

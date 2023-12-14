@@ -4,7 +4,7 @@ import { type Uint8ArrayList, isUint8ArrayList } from 'uint8arraylist'
 import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { type NoiseExtensions, NoiseHandshakePayload } from './proto/payload.js'
-import type { bytes } from './@types/basic.js'
+import type { bytes } from './types.js'
 import type { PeerId } from '@libp2p/interface'
 
 export async function getPayload (

@@ -1,7 +1,6 @@
 import { Uint8ArrayList } from 'uint8arraylist'
 import { alloc as uint8ArrayAlloc, allocUnsafe as uint8ArrayAllocUnsafe } from 'uint8arrays/alloc'
-import type { bytes } from './@types/basic.js'
-import type { MessageBuffer } from './@types/handshake.js'
+import type { bytes, MessageBuffer } from './types.js'
 import type { LengthDecoderFunction } from 'it-length-prefixed'
 
 export const uint16BEEncode = (value: number): Uint8Array => {

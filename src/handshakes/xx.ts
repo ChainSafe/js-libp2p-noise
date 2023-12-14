@@ -1,9 +1,7 @@
 import { alloc as uint8ArrayAlloc } from 'uint8arrays/alloc'
 import { isValidPublicKey } from '../utils.js'
 import { AbstractHandshake, type DecryptedResult } from './abstract-handshake.js'
-import type { bytes32, bytes } from '../@types/basic.js'
-import type { CipherState, HandshakeState, MessageBuffer, NoiseSession } from '../@types/handshake.js'
-import type { KeyPair } from '../@types/libp2p.js'
+import type { bytes32, bytes, CipherState, HandshakeState, KeyPair, MessageBuffer, NoiseSession } from '../types.js'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
 export class XX extends AbstractHandshake {

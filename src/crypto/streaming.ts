@@ -1,8 +1,8 @@
 import { Uint8ArrayList } from 'uint8arraylist'
 import { NOISE_MSG_MAX_LENGTH_BYTES, NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG } from '../constants.js'
 import { uint16BEEncode } from '../encoder.js'
-import type { IHandshake } from '../@types/handshake-interface.js'
 import type { MetricsRegistry } from '../metrics.js'
+import type { IHandshake } from '../types.js'
 import type { Transform } from 'it-stream-types'
 
 const CHACHA_TAG_LENGTH = 16
