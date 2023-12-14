@@ -60,7 +60,7 @@ export class XX extends AbstractHandshake {
     const ns = this.encryptAndHash(hs.ss, spk)
     this.mixKey(hs.ss, this.dh(hs.s.privateKey, hs.re))
     const ciphertext = this.encryptAndHash(hs.ss, payload)
-    const ne = this.createEmptyKey()
+    const ne = uint8ArrayAlloc(32)
     const messageBuffer: MessageBuffer = { ne, ns, ciphertext }
     const { cs1, cs2 } = this.split(hs.ss)
 
@@ -112,7 +112,7 @@ export class XX extends AbstractHandshake {
   }
 
   public initSession (initiator: boolean, prologue: bytes32, s: KeyPair): NoiseSession {
-    const psk = this.createEmptyKey()
+    const psk = uint8ArrayAlloc(32)
     const rs = uint8ArrayAlloc(32) // no static key yet
     let hs
 

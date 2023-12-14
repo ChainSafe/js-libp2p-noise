@@ -18,6 +18,8 @@ export interface SplitState {
   cs2: CipherState
 }
 
+const EMPTY_KEY = uint8ArrayAlloc(32)
+
 export abstract class AbstractHandshake {
   public crypto: ICryptoInterface
   private readonly log: Logger
@@ -46,13 +48,8 @@ export abstract class AbstractHandshake {
     return !this.isEmptyKey(cs.k)
   }
 
-  protected createEmptyKey (): bytes32 {
-    return uint8ArrayAlloc(32)
-  }
-
   protected isEmptyKey (k: bytes32): boolean {
-    const emptyKey = this.createEmptyKey()
-    return uint8ArrayEquals(emptyKey, k)
+    return uint8ArrayEquals(EMPTY_KEY, k)
   }
 
   protected encrypt (k: bytes32, n: Nonce, ad: Uint8Array, plaintext: Uint8Array | Uint8ArrayList): Uint8Array | Uint8ArrayList {
@@ -146,7 +143,7 @@ export abstract class AbstractHandshake {
     const h = this.hashProtocolName(protocolNameBytes)
 
     const ck = h
-    const key = this.createEmptyKey()
+    const key = uint8ArrayAlloc(32)
     const cs: CipherState = this.initializeKey(key)
 
     return { cs, ck, h }
@@ -172,7 +169,7 @@ export abstract class AbstractHandshake {
 
   protected writeMessageRegular (cs: CipherState, payload: bytes): MessageBuffer {
     const ciphertext = this.encryptWithAd(cs, uint8ArrayAlloc(0), payload)
-    const ne = this.createEmptyKey()
+    const ne = uint8ArrayAlloc(32)
     const ns = uint8ArrayAlloc(0)
 
     return { ne, ns, ciphertext }
