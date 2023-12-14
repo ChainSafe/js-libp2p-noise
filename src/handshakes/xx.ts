@@ -5,19 +5,12 @@ import type { bytes32, bytes, CipherState, HandshakeState, KeyPair, MessageBuffe
 import type { Uint8ArrayList } from 'uint8arraylist'
 
 export class XX extends AbstractHandshake {
-  private initializeInitiator (prologue: bytes32, s: KeyPair, rs: bytes32, psk: bytes32): HandshakeState {
+  private initializeState (prologue: bytes32, s: KeyPair): HandshakeState {
     const name = 'Noise_XX_25519_ChaChaPoly_SHA256'
     const ss = this.initializeSymmetric(name)
     this.mixHash(ss, prologue)
-    const re = uint8ArrayAlloc(32)
-
-    return { ss, s, rs, psk, re }
-  }
-
-  private initializeResponder (prologue: bytes32, s: KeyPair, rs: bytes32, psk: bytes32): HandshakeState {
-    const name = 'Noise_XX_25519_ChaChaPoly_SHA256'
-    const ss = this.initializeSymmetric(name)
-    this.mixHash(ss, prologue)
+    const psk = uint8ArrayAlloc(32)
+    const rs = uint8ArrayAlloc(32) // no static key yet
     const re = uint8ArrayAlloc(32)
 
     return { ss, s, rs, psk, re }
@@ -112,15 +105,7 @@ export class XX extends AbstractHandshake {
   }
 
   public initSession (initiator: boolean, prologue: bytes32, s: KeyPair): NoiseSession {
-    const psk = uint8ArrayAlloc(32)
-    const rs = uint8ArrayAlloc(32) // no static key yet
-    let hs
-
-    if (initiator) {
-      hs = this.initializeInitiator(prologue, s, rs, psk)
-    } else {
-      hs = this.initializeResponder(prologue, s, rs, psk)
-    }
+    const hs = this.initializeState(prologue, s)
 
     return {
       hs,
