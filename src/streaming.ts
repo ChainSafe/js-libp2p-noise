@@ -1,14 +1,14 @@
 import { Uint8ArrayList } from 'uint8arraylist'
-import { NOISE_MSG_MAX_LENGTH_BYTES, NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG } from '../constants.js'
-import { uint16BEEncode } from '../encoder.js'
-import type { MetricsRegistry } from '../metrics.js'
-import type { IHandshake } from '../types.js'
+import { NOISE_MSG_MAX_LENGTH_BYTES, NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG } from './constants.js'
+import { uint16BEEncode } from './encoder.js'
+import type { MetricsRegistry } from './metrics.js'
+import type { HandshakeResult } from './types.js'
 import type { Transform } from 'it-stream-types'
 
 const CHACHA_TAG_LENGTH = 16
 
 // Returns generator that encrypts payload from the user
-export function encryptStream (handshake: IHandshake, metrics?: MetricsRegistry): Transform<AsyncGenerator<Uint8Array | Uint8ArrayList>> {
+export function encryptStream (handshake: HandshakeResult, metrics?: MetricsRegistry): Transform<AsyncGenerator<Uint8Array | Uint8ArrayList>> {
   return async function * (source) {
     for await (const chunk of source) {
       for (let i = 0; i < chunk.length; i += NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG) {
@@ -20,9 +20,9 @@ export function encryptStream (handshake: IHandshake, metrics?: MetricsRegistry)
         let data: Uint8Array | Uint8ArrayList
 
         if (chunk instanceof Uint8Array) {
-          data = handshake.encrypt(chunk.subarray(i, end), handshake.session)
+          data = handshake.encrypt(chunk.subarray(i, end))
         } else {
-          data = handshake.encrypt(chunk.sublist(i, end), handshake.session)
+          data = handshake.encrypt(chunk.sublist(i, end))
         }
 
         metrics?.encryptedPackets.increment()
@@ -34,7 +34,7 @@ export function encryptStream (handshake: IHandshake, metrics?: MetricsRegistry)
 }
 
 // Decrypt received payload to the user
-export function decryptStream (handshake: IHandshake, metrics?: MetricsRegistry): Transform<AsyncGenerator<Uint8ArrayList>, AsyncGenerator<Uint8Array | Uint8ArrayList>> {
+export function decryptStream (handshake: HandshakeResult, metrics?: MetricsRegistry): Transform<AsyncGenerator<Uint8ArrayList>, AsyncGenerator<Uint8Array | Uint8ArrayList>> {
   return async function * (source) {
     for await (const chunk of source) {
       for (let i = 0; i < chunk.length; i += NOISE_MSG_MAX_LENGTH_BYTES) {
@@ -53,13 +53,14 @@ export function decryptStream (handshake: IHandshake, metrics?: MetricsRegistry)
         // this is ok because chacha20 reads bytes one by one and don't reread after that
         // it's also tested in https://github.com/ChainSafe/as-chacha20poly1305/pull/1/files#diff-25252846b58979dcaf4e41d47b3eadd7e4f335e7fb98da6c049b1f9cd011f381R48
         const dst = chunk.subarray(i, end - CHACHA_TAG_LENGTH)
-        const { plaintext: decrypted, valid } = handshake.decrypt(encrypted, handshake.session, dst)
-        if (!valid) {
+        try {
+          const plaintext = handshake.decrypt(encrypted, dst)
+          metrics?.decryptedPackets.increment()
+          yield plaintext
+        } catch (e) {
           metrics?.decryptErrors.increment()
-          throw new Error('Failed to validate decrypted chunk')
+          throw e
         }
-        metrics?.decryptedPackets.increment()
-        yield decrypted
       }
     }
   }

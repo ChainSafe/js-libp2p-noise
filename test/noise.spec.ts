@@ -7,17 +7,10 @@ import { lpStream } from 'it-length-prefixed-stream'
 import { duplexPair } from 'it-pair/duplex'
 import sinon from 'sinon'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
-import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
-import { NOISE_MSG_MAX_LENGTH_BYTES } from '../src/constants.js'
 import { pureJsCrypto } from '../src/crypto/js.js'
-import { decode0, decode2, encode1, uint16BEDecode, uint16BEEncode } from '../src/encoder.js'
-import { XXHandshake } from '../src/handshake-xx.js'
-import { XX } from '../src/handshakes/xx.js'
 import { Noise } from '../src/noise.js'
-import { createHandshakePayload, getHandshakePayload, getPayload, signPayload } from '../src/utils.js'
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
-import { getKeyPairFromPeerId } from './utils.js'
 import type { PeerId } from '@libp2p/interface/peer-id'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
@@ -53,59 +46,6 @@ describe('Noise', () => {
       const err = e as Error
       assert(false, err.message)
     }
-  })
-
-  it('should test that secureOutbound is spec compliant', async () => {
-    const noiseInit = new Noise({ logger: defaultLogger() }, { staticNoiseKey: undefined })
-    const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
-
-    const [outbound, { wrapped, handshake }] = await Promise.all([
-      noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
-      (async () => {
-        const wrapped = lpStream(
-          inboundConnection,
-          {
-            lengthEncoder: uint16BEEncode,
-            lengthDecoder: uint16BEDecode,
-            maxDataLength: NOISE_MSG_MAX_LENGTH_BYTES
-          }
-        )
-        const prologue = Buffer.alloc(0)
-        const staticKeys = pureJsCrypto.generateX25519KeyPair()
-        const xx = new XX({ logger: defaultLogger() }, pureJsCrypto)
-
-        const payload = await getPayload(remotePeer, staticKeys.publicKey)
-        const handshake = new XXHandshake({ logger: defaultLogger() }, false, payload, prologue, pureJsCrypto, staticKeys, wrapped, localPeer, xx)
-
-        let receivedMessageBuffer = decode0((await wrapped.read()).slice())
-        // The first handshake message contains the initiator's ephemeral public key
-        expect(receivedMessageBuffer.ne.length).equal(32)
-        xx.recvMessage(handshake.session, receivedMessageBuffer)
-
-        // Stage 1
-        const { publicKey: libp2pPubKey } = getKeyPairFromPeerId(remotePeer)
-        const signedPayload = await signPayload(remotePeer, getHandshakePayload(staticKeys.publicKey).subarray())
-        const handshakePayload = createHandshakePayload(libp2pPubKey, signedPayload)
-
-        const messageBuffer = xx.sendMessage(handshake.session, handshakePayload)
-        await wrapped.write(encode1(messageBuffer))
-
-        // Stage 2 - finish handshake
-        receivedMessageBuffer = decode2((await wrapped.read()).slice())
-        xx.recvMessage(handshake.session, receivedMessageBuffer)
-        return { wrapped, handshake }
-      })()
-    ])
-
-    const wrappedOutbound = byteStream(outbound.conn)
-    await wrappedOutbound.write(uint8ArrayFromString('test'))
-
-    // Check that noise message is prefixed with 16-bit big-endian unsigned integer
-    const data = (await wrapped.read()).slice()
-    const { plaintext: decrypted, valid } = handshake.decrypt(data, handshake.session)
-    // Decrypted data should match
-    expect(uint8ArrayEquals(decrypted.subarray(), uint8ArrayFromString('test'))).to.be.true()
-    expect(valid).to.be.true()
   })
 
   it('should test large payloads', async function () {

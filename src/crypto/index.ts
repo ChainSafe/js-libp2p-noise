@@ -112,7 +112,11 @@ const asCrypto: Pick<ICryptoInterface, 'hashSHA256' | 'chaCha20Poly1305Encrypt' 
     return asImpl.seal(k, nonce, plaintext.subarray(), ad)
   },
   chaCha20Poly1305Decrypt (ciphertext, nonce, ad, k, dst) {
-    return asImpl.open(k, nonce, ciphertext.subarray(), ad, dst)
+    const plaintext = asImpl.open(k, nonce, ciphertext.subarray(), ad, dst)
+    if (!plaintext) {
+      throw new Error('Invalid chacha20poly1305 decryption')
+    }
+    return plaintext
   }
 }
 
