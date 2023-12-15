@@ -67,8 +67,6 @@ export interface HandshakeState {
   rs: Uint8Array | Uint8ArrayList
   /** The remote party's ephemeral public key */
   re: bytes32
-  /** Pre-shared symmetric key */
-  psk: bytes32
 }
 
 export interface NoiseSession {
