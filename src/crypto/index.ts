@@ -4,8 +4,8 @@ import { digest } from '@chainsafe/as-sha256'
 import { Uint8ArrayList } from 'uint8arraylist'
 import { isElectronMain } from 'wherearewe'
 import { pureJsCrypto } from './js.js'
-import type { KeyPair } from '../@types/libp2p.js'
 import type { ICryptoInterface } from '../crypto.js'
+import type { KeyPair } from '../types.js'
 
 const ctx = newInstance()
 const asImpl = new ChaCha20Poly1305(ctx)
@@ -38,7 +38,7 @@ const nodeCrypto: Pick<ICryptoInterface, 'hashSHA256' | 'chaCha20Poly1305Encrypt
       const final = cipher.final()
       const tag = cipher.getAuthTag()
 
-      return Buffer.concat([updated, tag, final], updated.byteLength + tag.byteLength + final.byteLength)
+      return Buffer.concat([updated, final, tag], updated.byteLength + final.byteLength + tag.byteLength)
     }
 
     const output = new Uint8ArrayList()
@@ -112,7 +112,11 @@ const asCrypto: Pick<ICryptoInterface, 'hashSHA256' | 'chaCha20Poly1305Encrypt' 
     return asImpl.seal(k, nonce, plaintext.subarray(), ad)
   },
   chaCha20Poly1305Decrypt (ciphertext, nonce, ad, k, dst) {
-    return asImpl.open(k, nonce, ciphertext.subarray(), ad, dst)
+    const plaintext = asImpl.open(k, nonce, ciphertext.subarray(), ad, dst)
+    if (!plaintext) {
+      throw new Error('Invalid chacha20poly1305 decryption')
+    }
+    return plaintext
   }
 }
 
@@ -181,8 +185,7 @@ export const defaultCrypto: ICryptoInterface = {
         publicKey
       ], X25519_PREFIX.byteLength + publicKey.byteLength)
     } else {
-      publicKey.prepend(X25519_PREFIX)
-      publicKey = publicKey.subarray()
+      publicKey = new Uint8ArrayList(X25519_PREFIX, publicKey).subarray()
     }
 
     if (privateKey instanceof Uint8Array) {
@@ -191,8 +194,7 @@ export const defaultCrypto: ICryptoInterface = {
         privateKey
       ], PKCS8_PREFIX.byteLength + privateKey.byteLength)
     } else {
-      privateKey.prepend(PKCS8_PREFIX)
-      privateKey = privateKey.subarray()
+      privateKey = new Uint8ArrayList(PKCS8_PREFIX, privateKey).subarray()
     }
 
     return crypto.diffieHellman({

@@ -1,3 +1,6 @@
+import { unmarshalPrivateKey } from '@libp2p/crypto/keys'
+import { type MultiaddrConnection, type SecuredConnection, type PeerId, CodeError, type PrivateKey } from '@libp2p/interface'
+import { peerIdFromKeys } from '@libp2p/peer-id'
 import { decode } from 'it-length-prefixed'
 import { lpStream, type LengthPrefixedStream } from 'it-length-prefixed-stream'
 import { duplexPair } from 'it-pair/duplex'
@@ -5,33 +8,22 @@ import { pipe } from 'it-pipe'
 import { alloc as uint8ArrayAlloc } from 'uint8arrays/alloc'
 import { NOISE_MSG_MAX_LENGTH_BYTES } from './constants.js'
 import { defaultCrypto } from './crypto/index.js'
-import { decryptStream, encryptStream } from './crypto/streaming.js'
+import { wrapCrypto, type ICryptoInterface } from './crypto.js'
 import { uint16BEDecode, uint16BEEncode } from './encoder.js'
-import { XXHandshake } from './handshake-xx.js'
 import { type MetricsRegistry, registerMetrics } from './metrics.js'
-import { getPayload } from './utils.js'
-import type { bytes } from './@types/basic.js'
-import type { IHandshake } from './@types/handshake-interface.js'
-import type { INoiseConnection, KeyPair } from './@types/libp2p.js'
-import type { ICryptoInterface } from './crypto.js'
+import { performHandshakeInitiator, performHandshakeResponder } from './performHandshake.js'
+import { decryptStream, encryptStream } from './streaming.js'
 import type { NoiseComponents } from './index.js'
 import type { NoiseExtensions } from './proto/payload.js'
-import type { MultiaddrConnection, SecuredConnection, PeerId } from '@libp2p/interface'
+import type { HandshakeResult, ICrypto, INoiseConnection, KeyPair } from './types.js'
 import type { Duplex } from 'it-stream-types'
 import type { Uint8ArrayList } from 'uint8arraylist'
-
-interface HandshakeParams {
-  connection: LengthPrefixedStream
-  isInitiator: boolean
-  localPeer: PeerId
-  remotePeer?: PeerId
-}
 
 export interface NoiseInit {
   /**
    * x25519 private key, reuse for faster handshakes
    */
-  staticNoiseKey?: bytes
+  staticNoiseKey?: Uint8Array
   extensions?: NoiseExtensions
   crypto?: ICryptoInterface
   prologueBytes?: Uint8Array
@@ -39,10 +31,10 @@ export interface NoiseInit {
 
 export class Noise implements INoiseConnection {
   public protocol = '/noise'
-  public crypto: ICryptoInterface
+  public crypto: ICrypto
 
   private readonly prologue: Uint8Array
-  private readonly staticKeys: KeyPair
+  private readonly staticKey: KeyPair
   private readonly extensions?: NoiseExtensions
   private readonly metrics?: MetricsRegistry
   private readonly components: NoiseComponents
@@ -52,15 +44,16 @@ export class Noise implements INoiseConnection {
     const { metrics } = components
 
     this.components = components
-    this.crypto = crypto ?? defaultCrypto
+    const _crypto = crypto ?? defaultCrypto
+    this.crypto = wrapCrypto(_crypto)
     this.extensions = extensions
     this.metrics = metrics ? registerMetrics(metrics) : undefined
 
     if (staticNoiseKey) {
       // accepts x25519 private key of length 32
-      this.staticKeys = this.crypto.generateX25519KeyPairFromSeed(staticNoiseKey)
+      this.staticKey = _crypto.generateX25519KeyPairFromSeed(staticNoiseKey)
     } else {
-      this.staticKeys = this.crypto.generateX25519KeyPair()
+      this.staticKey = _crypto.generateX25519KeyPair()
     }
     this.prologue = prologueBytes ?? uint8ArrayAlloc(0)
   }
@@ -68,10 +61,9 @@ export class Noise implements INoiseConnection {
   /**
    * Encrypt outgoing data to the remote party (handshake as initiator)
    *
-   * @param {PeerId} localPeer - PeerId of the receiving peer
-   * @param {Stream} connection - streaming iterable duplex that will be encrypted
-   * @param {PeerId} remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer.
-   * @returns {Promise<SecuredConnection<Stream, NoiseExtensions>>}
+   * @param localPeer - PeerId of the receiving peer
+   * @param connection - streaming iterable duplex that will be encrypted
+   * @param remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer.
    */
   public async secureOutbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (localPeer: PeerId, connection: Stream, remotePeer?: PeerId): Promise<SecuredConnection<Stream, NoiseExtensions>> {
     const wrappedConnection = lpStream(
@@ -82,12 +74,19 @@ export class Noise implements INoiseConnection {
         maxDataLength: NOISE_MSG_MAX_LENGTH_BYTES
       }
     )
-    const handshake = await this.performHandshake({
-      connection: wrappedConnection,
-      isInitiator: true,
-      localPeer,
-      remotePeer
-    })
+
+    if (!localPeer.privateKey) {
+      throw new CodeError('local peerId does not contain private key', 'ERR_NO_PRIVATE_KEY')
+    }
+    const privateKey = await unmarshalPrivateKey(localPeer.privateKey)
+
+    const remoteIdentityKey = remotePeer?.publicKey
+
+    const handshake = await this.performHandshakeInitiator(
+      wrappedConnection,
+      privateKey,
+      remoteIdentityKey
+    )
     const conn = await this.createSecureConnection(wrappedConnection, handshake)
 
     connection.source = conn.source
@@ -95,18 +94,17 @@ export class Noise implements INoiseConnection {
 
     return {
       conn: connection,
-      remoteExtensions: handshake.remoteExtensions,
-      remotePeer: handshake.remotePeer
+      remoteExtensions: handshake.payload.extensions,
+      remotePeer: await peerIdFromKeys(handshake.payload.identityKey)
     }
   }
 
   /**
    * Decrypt incoming data (handshake as responder).
    *
-   * @param {PeerId} localPeer - PeerId of the receiving peer.
-   * @param {Stream} connection - streaming iterable duplex that will be encrypted.
-   * @param {PeerId} remotePeer - optional PeerId of the initiating peer, if known. This may only exist during transport upgrades.
-   * @returns {Promise<SecuredConnection<Stream, NoiseExtensions>>}
+   * @param localPeer - PeerId of the receiving peer.
+   * @param connection - streaming iterable duplex that will be encrypted.
+   * @param remotePeer - optional PeerId of the initiating peer, if known. This may only exist during transport upgrades.
    */
   public async secureInbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (localPeer: PeerId, connection: Stream, remotePeer?: PeerId): Promise<SecuredConnection<Stream, NoiseExtensions>> {
     const wrappedConnection = lpStream(
@@ -117,12 +115,19 @@ export class Noise implements INoiseConnection {
         maxDataLength: NOISE_MSG_MAX_LENGTH_BYTES
       }
     )
-    const handshake = await this.performHandshake({
-      connection: wrappedConnection,
-      isInitiator: false,
-      localPeer,
-      remotePeer
-    })
+
+    if (!localPeer.privateKey) {
+      throw new CodeError('local peerId does not contain private key', 'ERR_NO_PRIVATE_KEY')
+    }
+    const privateKey = await unmarshalPrivateKey(localPeer.privateKey)
+
+    const remoteIdentityKey = remotePeer?.publicKey
+
+    const handshake = await this.performHandshakeResponder(
+      wrappedConnection,
+      privateKey,
+      remoteIdentityKey
+    )
     const conn = await this.createSecureConnection(wrappedConnection, handshake)
 
     connection.source = conn.source
@@ -130,59 +135,74 @@ export class Noise implements INoiseConnection {
 
     return {
       conn: connection,
-      remotePeer: handshake.remotePeer,
-      remoteExtensions: handshake.remoteExtensions
+      remoteExtensions: handshake.payload.extensions,
+      remotePeer: await peerIdFromKeys(handshake.payload.identityKey)
     }
   }
 
   /**
-   * If Noise pipes supported, tries IK handshake first with XX as fallback if it fails.
-   * If noise pipes disabled or remote peer static key is unknown, use XX.
-   *
-   * @param {HandshakeParams} params
+   * Perform XX handshake as initiator.
    */
-  private async performHandshake (params: HandshakeParams): Promise<IHandshake> {
-    const payload = await getPayload(params.localPeer, this.staticKeys.publicKey, this.extensions)
-
-    // run XX handshake
-    return this.performXXHandshake(params, payload)
-  }
-
-  private async performXXHandshake (
-    params: HandshakeParams,
-    payload: bytes
-  ): Promise<XXHandshake> {
-    const { isInitiator, remotePeer, connection } = params
-    const handshake = new XXHandshake(
-      this.components,
-      isInitiator,
-      payload,
-      this.prologue,
-      this.crypto,
-      this.staticKeys,
-      connection,
-      remotePeer
-    )
-
+  private async performHandshakeInitiator (
+    connection: LengthPrefixedStream,
+    // TODO: pass private key in noise constructor via Components
+    privateKey: PrivateKey,
+    remoteIdentityKey?: Uint8Array | Uint8ArrayList
+  ): Promise<HandshakeResult> {
+    let result: HandshakeResult
     try {
-      await handshake.propose()
-      await handshake.exchange()
-      await handshake.finish()
+      result = await performHandshakeInitiator({
+        connection,
+        privateKey,
+        remoteIdentityKey,
+        log: this.components.logger.forComponent('libp2p:noise:xxhandshake'),
+        crypto: this.crypto,
+        prologue: this.prologue,
+        s: this.staticKey,
+        extensions: this.extensions
+      })
       this.metrics?.xxHandshakeSuccesses.increment()
     } catch (e: unknown) {
       this.metrics?.xxHandshakeErrors.increment()
-      if (e instanceof Error) {
-        e.message = `Error occurred during XX handshake: ${e.message}`
-        throw e
-      }
+      throw e
     }
 
-    return handshake
+    return result
+  }
+
+  /**
+   * Perform XX handshake as responder.
+   */
+  private async performHandshakeResponder (
+    connection: LengthPrefixedStream,
+    // TODO: pass private key in noise constructor via Components
+    privateKey: PrivateKey,
+    remoteIdentityKey?: Uint8Array | Uint8ArrayList
+  ): Promise<HandshakeResult> {
+    let result: HandshakeResult
+    try {
+      result = await performHandshakeResponder({
+        connection,
+        privateKey,
+        remoteIdentityKey,
+        log: this.components.logger.forComponent('libp2p:noise:xxhandshake'),
+        crypto: this.crypto,
+        prologue: this.prologue,
+        s: this.staticKey,
+        extensions: this.extensions
+      })
+      this.metrics?.xxHandshakeSuccesses.increment()
+    } catch (e: unknown) {
+      this.metrics?.xxHandshakeErrors.increment()
+      throw e
+    }
+
+    return result
   }
 
   private async createSecureConnection (
     connection: LengthPrefixedStream<Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>>>,
-    handshake: IHandshake
+    handshake: HandshakeResult
   ): Promise<Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>>> {
     // Create encryption box/unbox wrapper
     const [secure, user] = duplexPair<Uint8Array | Uint8ArrayList>()
