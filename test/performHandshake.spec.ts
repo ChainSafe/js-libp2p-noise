@@ -10,8 +10,7 @@ import { defaultCrypto } from '../src/crypto/index.js'
 import { wrapCrypto } from '../src/crypto.js'
 import { performHandshakeInitiator, performHandshakeResponder } from '../src/performHandshake.js'
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
-import type { PrivateKey } from '@libp2p/interface'
-import type { PeerId } from '@libp2p/interface/peer-id'
+import type { PrivateKey, PeerId } from '@libp2p/interface'
 
 describe('performHandshake', () => {
   let peerA: PeerId, peerB: PeerId, fakePeer: PeerId

@@ -1,5 +1,5 @@
 import { createEd25519PeerId, createFromJSON } from '@libp2p/peer-id-factory'
-import type { PeerId } from '@libp2p/interface/peer-id'
+import type { PeerId } from '@libp2p/interface'
 
 // ed25519 keys
 const peers = [{
