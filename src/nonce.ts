@@ -1,5 +1,4 @@
 import { alloc as uint8ArrayAlloc } from 'uint8arrays/alloc'
-import type { bytes, uint64 } from './@types/basic.js'
 
 export const MIN_NONCE = 0
 // For performance reasons, the nonce is represented as a JS `number`
@@ -17,8 +16,8 @@ const ERR_MAX_NONCE = 'Cipherstate has reached maximum n, a new handshake must b
  * Maintaining different representations help improve performance.
  */
 export class Nonce {
-  private n: uint64
-  private readonly bytes: bytes
+  private n: number
+  private readonly bytes: Uint8Array
   private readonly view: DataView
 
   constructor (n = MIN_NONCE) {
@@ -34,11 +33,11 @@ export class Nonce {
     this.view.setUint32(4, this.n, true)
   }
 
-  getBytes (): bytes {
+  getBytes (): Uint8Array {
     return this.bytes
   }
 
-  getUint64 (): uint64 {
+  getUint64 (): number {
     return this.n
   }
 
