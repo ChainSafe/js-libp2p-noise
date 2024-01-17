@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [15.0.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v14.1.0...v15.0.0) (2024-01-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* refactor codebase ([#407](https://github.com/ChainSafe/js-libp2p-noise/issues/407))
+
+### Features
+
+* refactor codebase ([#407](https://github.com/ChainSafe/js-libp2p-noise/issues/407)) ([9ebbfc5](https://github.com/ChainSafe/js-libp2p-noise/commit/9ebbfc5bdb12414e4930189ecc6073200514e8fd))
+
+
+### Bug Fixes
+
+* bump @libp2p/crypto from 3.0.4 to 4.0.0 ([#414](https://github.com/ChainSafe/js-libp2p-noise/issues/414)) ([0ffa85f](https://github.com/ChainSafe/js-libp2p-noise/commit/0ffa85f529c18aaa261c04ed884bb131b30abcd9))
+
 ## [14.1.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v14.0.0...v14.1.0) (2023-12-09)
 
 
