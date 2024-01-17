@@ -11,7 +11,7 @@ import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { pureJsCrypto } from '../src/crypto/js.js'
 import { Noise } from '../src/noise.js'
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
-import type { PeerId } from '@libp2p/interface/peer-id'
+import type { PeerId } from '@libp2p/interface'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
 describe('Noise', () => {

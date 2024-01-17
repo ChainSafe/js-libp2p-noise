@@ -7,7 +7,7 @@ import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { noise } from '../src/index.js'
 import { Noise } from '../src/noise.js'
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
-import type { Metrics } from '@libp2p/interface/metrics'
+import type { Metrics } from '@libp2p/interface'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
 function createCounterSpy (): ReturnType<typeof sinon.spy> {
