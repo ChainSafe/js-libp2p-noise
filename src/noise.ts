@@ -1,5 +1,5 @@
 import { unmarshalPrivateKey } from '@libp2p/crypto/keys'
-import { type MultiaddrConnection, type SecuredConnection, type PeerId, CodeError, type PrivateKey } from '@libp2p/interface'
+import { type MultiaddrConnection, type SecuredConnection, type PeerId, CodeError, type PrivateKey, serviceCapabilities } from '@libp2p/interface'
 import { peerIdFromKeys } from '@libp2p/peer-id'
 import { decode } from 'it-length-prefixed'
 import { lpStream, type LengthPrefixedStream } from 'it-length-prefixed-stream'
@@ -57,6 +57,13 @@ export class Noise implements INoiseConnection {
     }
     this.prologue = prologueBytes ?? uint8ArrayAlloc(0)
   }
+
+  readonly [Symbol.toStringTag] = '@chainsafe/libp2p-noise'
+
+  readonly [serviceCapabilities]: string[] = [
+    '@libp2p/connection-encryption',
+    '@chainsafe/libp2p-noise'
+  ]
 
   /**
    * Encrypt outgoing data to the remote party (handshake as initiator)
