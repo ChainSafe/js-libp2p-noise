@@ -27,7 +27,7 @@ async function createGoPeer (options: SpawnOptions): Promise<Daemon> {
     '-hostAddrs=/ip4/0.0.0.0/tcp/0'
   ]
 
-  if (options.noise === true) {
+  if (options.encryption === 'noise') {
     opts.push('-noise=true')
   }
 
