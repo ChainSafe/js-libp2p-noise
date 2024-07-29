@@ -96,7 +96,7 @@
     "@libp2p/tcp": "^9.0.0",
     "@multiformats/multiaddr": "^12.1.0",
     "@types/sinon": "^17.0.1",
-    "aegir": "^43.0.0",
+    "aegir": "^44.1.0",
     "benchmark": "^2.1.4",
     "execa": "^9.3.0",
     "go-libp2p": "^1.0.3",
