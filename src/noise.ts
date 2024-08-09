@@ -1,5 +1,5 @@
 import { unmarshalPrivateKey } from '@libp2p/crypto/keys'
-import { type MultiaddrConnection, type SecuredConnection, type PeerId, CodeError, type PrivateKey, serviceCapabilities } from '@libp2p/interface'
+import { type MultiaddrConnection, type SecuredConnection, type PeerId, CodeError, type PrivateKey, serviceCapabilities, isPeerId } from '@libp2p/interface'
 import { peerIdFromKeys } from '@libp2p/peer-id'
 import { decode } from 'it-length-prefixed'
 import { lpStream, type LengthPrefixedStream } from 'it-length-prefixed-stream'
@@ -73,6 +73,14 @@ export class Noise implements INoiseConnection {
    * @param remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer.
    */
   public async secureOutbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (localPeer: PeerId, connection: Stream, remotePeer?: PeerId): Promise<SecuredConnection<Stream, NoiseExtensions>> {
+    // handle upcoming changes in libp2p@2.x.x
+    // @see https://github.com/libp2p/js-libp2p/pull/2304
+    if (!isPeerId(localPeer)) {
+      remotePeer = connection as unknown as PeerId
+      connection = localPeer
+      localPeer = this.components.peerId
+    }
+
     const wrappedConnection = lpStream(
       connection,
       {
@@ -114,6 +122,14 @@ export class Noise implements INoiseConnection {
    * @param remotePeer - optional PeerId of the initiating peer, if known. This may only exist during transport upgrades.
    */
   public async secureInbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (localPeer: PeerId, connection: Stream, remotePeer?: PeerId): Promise<SecuredConnection<Stream, NoiseExtensions>> {
+    // handle upcoming changes in libp2p@2.x.x
+    // @see https://github.com/libp2p/js-libp2p/pull/2304
+    if (!isPeerId(localPeer)) {
+      remotePeer = connection as unknown as PeerId
+      connection = localPeer
+      localPeer = this.components.peerId
+    }
+
     const wrappedConnection = lpStream(
       connection,
       {
