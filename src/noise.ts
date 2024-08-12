@@ -72,14 +72,10 @@ export class Noise implements INoiseConnection {
    * @param connection - streaming iterable duplex that will be encrypted
    * @param remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer.
    */
-  public async secureOutbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (localPeer: PeerId, connection: Stream, remotePeer?: PeerId): Promise<SecuredConnection<Stream, NoiseExtensions>> {
-    // handle upcoming changes in libp2p@2.x.x
-    // @see https://github.com/libp2p/js-libp2p/pull/2304
-    if (!isPeerId(localPeer)) {
-      remotePeer = connection as unknown as PeerId
-      connection = localPeer
-      localPeer = this.components.peerId
-    }
+  public async secureOutbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (connection: Stream, remotePeer?: PeerId): Promise<SecuredConnection<Stream, NoiseExtensions>>
+  public async secureOutbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (localPeer: PeerId, connection: Stream, remotePeer?: PeerId): Promise<SecuredConnection<Stream, NoiseExtensions>>
+  public async secureOutbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (...args: any[]): Promise<SecuredConnection<Stream, NoiseExtensions>> {
+    const { localPeer, connection, remotePeer } = this.parseArgs<Stream>(args)
 
     const wrappedConnection = lpStream(
       connection,
@@ -121,14 +117,10 @@ export class Noise implements INoiseConnection {
    * @param connection - streaming iterable duplex that will be encrypted.
    * @param remotePeer - optional PeerId of the initiating peer, if known. This may only exist during transport upgrades.
    */
-  public async secureInbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (localPeer: PeerId, connection: Stream, remotePeer?: PeerId): Promise<SecuredConnection<Stream, NoiseExtensions>> {
-    // handle upcoming changes in libp2p@2.x.x
-    // @see https://github.com/libp2p/js-libp2p/pull/2304
-    if (!isPeerId(localPeer)) {
-      remotePeer = connection as unknown as PeerId
-      connection = localPeer
-      localPeer = this.components.peerId
-    }
+  public async secureInbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (connection: Stream, remotePeer?: PeerId): Promise<SecuredConnection<Stream, NoiseExtensions>>
+  public async secureInbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (localPeer: PeerId, connection: Stream, remotePeer?: PeerId): Promise<SecuredConnection<Stream, NoiseExtensions>>
+  public async secureInbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (...args: any[]): Promise<SecuredConnection<Stream, NoiseExtensions>> {
+    const { localPeer, connection, remotePeer } = this.parseArgs<Stream>(args)
 
     const wrappedConnection = lpStream(
       connection,
@@ -241,5 +233,31 @@ export class Noise implements INoiseConnection {
     )
 
     return user
+  }
+
+  /**
+   * Detect call signature in `libp2p@1.x.x` or `libp2p@2.x.x` style.
+   *
+   * TODO: remove this after `libp2p@2.x.x` is released and only support the
+   * newer style
+   */
+  private parseArgs <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (args: any[]): { localPeer: PeerId, connection: Stream, remotePeer?: PeerId } {
+    // if the first argument is a peer id, we're using the libp2p@1.x.x style
+    if (isPeerId(args[0])) {
+      return {
+        localPeer: args[0],
+        connection: args[1],
+        remotePeer: args[2]
+      }
+    } else {
+      // handle upcoming changes in libp2p@2.x.x where the first argument is the
+      // connection and the second is optionally the remote peer
+      // @see https://github.com/libp2p/js-libp2p/pull/2304
+      return {
+        localPeer: this.components.peerId,
+        connection: args[0],
+        remotePeer: args[1]
+      }
+    }
   }
 }
