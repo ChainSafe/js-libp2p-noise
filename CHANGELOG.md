@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [15.1.1](https://github.com/ChainSafe/js-libp2p-noise/compare/v15.1.0...v15.1.1) (2024-08-13)
+
+
+### Bug Fixes
+
+* bump @noble/ciphers from 0.5.3 to 0.6.0 ([#437](https://github.com/ChainSafe/js-libp2p-noise/issues/437)) ([0a349b6](https://github.com/ChainSafe/js-libp2p-noise/commit/0a349b63dd0ecc7b2167ef36ae43d4650cd72716))
+* make local peer id optional ([#440](https://github.com/ChainSafe/js-libp2p-noise/issues/440)) ([5f92b50](https://github.com/ChainSafe/js-libp2p-noise/commit/5f92b50e88fbe8406236c479d3e710ab4d1c4421))
+
 ## [15.1.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v15.0.0...v15.1.0) (2024-06-24)
 
 
