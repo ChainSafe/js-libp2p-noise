@@ -179,4 +179,31 @@ describe('Noise', () => {
       assert(false, err.message)
     }
   })
+
+  it('should abort noise handshake', async () => {
+    const abortController = new AbortController()
+    abortController.abort()
+
+    const noiseInit = new Noise({
+      peerId: localPeer,
+      logger: defaultLogger()
+    }, { staticNoiseKey: undefined, extensions: undefined })
+    const noiseResp = new Noise({
+      peerId: remotePeer,
+      logger: defaultLogger()
+    }, { staticNoiseKey: undefined, extensions: undefined })
+
+    const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
+
+    await expect(Promise.all([
+      noiseInit.secureOutbound(outboundConnection, {
+        remotePeer,
+        signal: abortController.signal
+      }),
+      noiseResp.secureInbound(inboundConnection, {
+        remotePeer: localPeer
+      })
+    ])).to.eventually.be.rejected
+      .with.property('name', 'AbortError')
+  })
 })

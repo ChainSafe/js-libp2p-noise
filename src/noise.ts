@@ -1,5 +1,5 @@
 import { unmarshalPrivateKey } from '@libp2p/crypto/keys'
-import { type MultiaddrConnection, type SecuredConnection, type PeerId, CodeError, type PrivateKey, serviceCapabilities, isPeerId } from '@libp2p/interface'
+import { type MultiaddrConnection, type SecuredConnection, type PeerId, CodeError, type PrivateKey, serviceCapabilities, isPeerId, type AbortOptions } from '@libp2p/interface'
 import { peerIdFromKeys } from '@libp2p/peer-id'
 import { decode } from 'it-length-prefixed'
 import { lpStream, type LengthPrefixedStream } from 'it-length-prefixed-stream'
@@ -72,10 +72,10 @@ export class Noise implements INoiseConnection {
    * @param connection - streaming iterable duplex that will be encrypted
    * @param remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer.
    */
-  public async secureOutbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (connection: Stream, remotePeer?: PeerId): Promise<SecuredConnection<Stream, NoiseExtensions>>
+  public async secureOutbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (connection: Stream, options?: { remotePeer?: PeerId, signal?: AbortSignal }): Promise<SecuredConnection<Stream, NoiseExtensions>>
   public async secureOutbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (localPeer: PeerId, connection: Stream, remotePeer?: PeerId): Promise<SecuredConnection<Stream, NoiseExtensions>>
   public async secureOutbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (...args: any[]): Promise<SecuredConnection<Stream, NoiseExtensions>> {
-    const { localPeer, connection, remotePeer } = this.parseArgs<Stream>(args)
+    const { localPeer, connection, remotePeer, signal } = this.parseArgs<Stream>(args)
 
     const wrappedConnection = lpStream(
       connection,
@@ -96,7 +96,9 @@ export class Noise implements INoiseConnection {
     const handshake = await this.performHandshakeInitiator(
       wrappedConnection,
       privateKey,
-      remoteIdentityKey
+      remoteIdentityKey, {
+        signal
+      }
     )
     const conn = await this.createSecureConnection(wrappedConnection, handshake)
 
@@ -117,10 +119,10 @@ export class Noise implements INoiseConnection {
    * @param connection - streaming iterable duplex that will be encrypted.
    * @param remotePeer - optional PeerId of the initiating peer, if known. This may only exist during transport upgrades.
    */
-  public async secureInbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (connection: Stream, remotePeer?: PeerId): Promise<SecuredConnection<Stream, NoiseExtensions>>
+  public async secureInbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (connection: Stream, options?: { remotePeer?: PeerId, signal?: AbortSignal }): Promise<SecuredConnection<Stream, NoiseExtensions>>
   public async secureInbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (localPeer: PeerId, connection: Stream, remotePeer?: PeerId): Promise<SecuredConnection<Stream, NoiseExtensions>>
   public async secureInbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (...args: any[]): Promise<SecuredConnection<Stream, NoiseExtensions>> {
-    const { localPeer, connection, remotePeer } = this.parseArgs<Stream>(args)
+    const { localPeer, connection, remotePeer, signal } = this.parseArgs<Stream>(args)
 
     const wrappedConnection = lpStream(
       connection,
@@ -141,7 +143,9 @@ export class Noise implements INoiseConnection {
     const handshake = await this.performHandshakeResponder(
       wrappedConnection,
       privateKey,
-      remoteIdentityKey
+      remoteIdentityKey, {
+        signal
+      }
     )
     const conn = await this.createSecureConnection(wrappedConnection, handshake)
 
@@ -162,7 +166,8 @@ export class Noise implements INoiseConnection {
     connection: LengthPrefixedStream,
     // TODO: pass private key in noise constructor via Components
     privateKey: PrivateKey,
-    remoteIdentityKey?: Uint8Array | Uint8ArrayList
+    remoteIdentityKey?: Uint8Array | Uint8ArrayList,
+    options?: AbortOptions
   ): Promise<HandshakeResult> {
     let result: HandshakeResult
     try {
@@ -175,7 +180,7 @@ export class Noise implements INoiseConnection {
         prologue: this.prologue,
         s: this.staticKey,
         extensions: this.extensions
-      })
+      }, options)
       this.metrics?.xxHandshakeSuccesses.increment()
     } catch (e: unknown) {
       this.metrics?.xxHandshakeErrors.increment()
@@ -192,7 +197,8 @@ export class Noise implements INoiseConnection {
     connection: LengthPrefixedStream,
     // TODO: pass private key in noise constructor via Components
     privateKey: PrivateKey,
-    remoteIdentityKey?: Uint8Array | Uint8ArrayList
+    remoteIdentityKey?: Uint8Array | Uint8ArrayList,
+    options?: AbortOptions
   ): Promise<HandshakeResult> {
     let result: HandshakeResult
     try {
@@ -205,7 +211,7 @@ export class Noise implements INoiseConnection {
         prologue: this.prologue,
         s: this.staticKey,
         extensions: this.extensions
-      })
+      }, options)
       this.metrics?.xxHandshakeSuccesses.increment()
     } catch (e: unknown) {
       this.metrics?.xxHandshakeErrors.increment()
@@ -241,7 +247,7 @@ export class Noise implements INoiseConnection {
    * TODO: remove this after `libp2p@2.x.x` is released and only support the
    * newer style
    */
-  private parseArgs <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (args: any[]): { localPeer: PeerId, connection: Stream, remotePeer?: PeerId } {
+  private parseArgs <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (args: any[]): { localPeer: PeerId, connection: Stream, remotePeer?: PeerId, signal?: AbortSignal } {
     // if the first argument is a peer id, we're using the libp2p@1.x.x style
     if (isPeerId(args[0])) {
       return {
@@ -256,7 +262,8 @@ export class Noise implements INoiseConnection {
       return {
         localPeer: this.components.peerId,
         connection: args[0],
-        remotePeer: args[1]
+        remotePeer: args[1]?.remotePeer,
+        signal: args[1]?.signal
       }
     }
   }
