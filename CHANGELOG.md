@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [15.1.2](https://github.com/ChainSafe/js-libp2p-noise/compare/v15.1.1...v15.1.2) (2024-08-29)
+
+
+### Bug Fixes
+
+* make handshake abortable ([#442](https://github.com/ChainSafe/js-libp2p-noise/issues/442)) ([35ce15d](https://github.com/ChainSafe/js-libp2p-noise/commit/35ce15dd2e769c2fb0a517c804a095f30556faf8))
+
 ## [15.1.1](https://github.com/ChainSafe/js-libp2p-noise/compare/v15.1.0...v15.1.1) (2024-08-13)
 
 
