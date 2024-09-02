@@ -1,11 +1,11 @@
 import fs from 'fs'
 import { yamux } from '@chainsafe/libp2p-yamux'
-import { unmarshalPrivateKey } from '@libp2p/crypto/keys'
+import { privateKeyFromProtobuf } from '@libp2p/crypto/keys'
 import { createClient } from '@libp2p/daemon-client'
 import { createServer } from '@libp2p/daemon-server'
 import { connectInteropTests } from '@libp2p/interop'
 import { logger } from '@libp2p/logger'
-import { peerIdFromKeys } from '@libp2p/peer-id'
+import { peerIdFromPrivateKey } from '@libp2p/peer-id'
 import { tcp } from '@libp2p/tcp'
 import { multiaddr } from '@multiformats/multiaddr'
 import { execa } from 'execa'
@@ -67,8 +67,8 @@ async function createJsPeer (options: SpawnOptions): Promise<Daemon> {
 
   if (options.key != null) {
     const keyFile = fs.readFileSync(options.key)
-    const privateKey = await unmarshalPrivateKey(keyFile)
-    peerId = await peerIdFromKeys(privateKey.public.bytes, privateKey.bytes)
+    const privateKey = privateKeyFromProtobuf(keyFile)
+    peerId = peerIdFromPrivateKey(privateKey)
   }
 
   const opts: Libp2pOptions = {

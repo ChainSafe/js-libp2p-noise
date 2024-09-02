@@ -1,5 +1,7 @@
-import { createEd25519PeerId, createFromJSON } from '@libp2p/peer-id-factory'
-import type { PeerId } from '@libp2p/interface'
+import { generateKeyPair, privateKeyFromProtobuf } from '@libp2p/crypto/keys'
+import { peerIdFromPrivateKey } from '@libp2p/peer-id'
+import { base64pad } from 'multiformats/bases/base64'
+import type { PeerId, PrivateKey } from '@libp2p/interface'
 
 // ed25519 keys
 const peers = [{
@@ -20,16 +22,24 @@ const peers = [{
   pubKey: 'CAESIMbnikZaPciAMZhUXqDRVCs7VFOBtmlIk26g0GgOotDA'
 }]
 
-export async function createPeerIdsFromFixtures (length: number): Promise<PeerId[]> {
+export async function createPeerIdsFromFixtures (length: number): Promise<Array<{ peerId: PeerId, privateKey: PrivateKey }>> {
   return Promise.all(
-    Array.from({ length }).map(async (_, i) => createFromJSON(peers[i]))
+    Array.from({ length }).map(async (_, i) => {
+      const privateKey = privateKeyFromProtobuf(base64pad.decode(`M${peers[i].privKey}`))
+
+      return {
+        privateKey,
+        peerId: peerIdFromPrivateKey(privateKey)
+      }
+    })
   )
 }
 
 export async function createPeerIds (length: number): Promise<PeerId[]> {
   const peerIds: PeerId[] = []
   for (let i = 0; i < length; i++) {
-    const id = await createEd25519PeerId()
+    const privateKey = await generateKeyPair('Ed25519')
+    const id = peerIdFromPrivateKey(privateKey)
     peerIds.push(id)
   }
 

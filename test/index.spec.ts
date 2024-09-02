@@ -1,5 +1,6 @@
+import { generateKeyPair } from '@libp2p/crypto/keys'
 import { defaultLogger } from '@libp2p/logger'
-import { createEd25519PeerId } from '@libp2p/peer-id-factory'
+import { peerIdFromPrivateKey } from '@libp2p/peer-id'
 import { expect } from 'aegir/chai'
 import { lpStream } from 'it-length-prefixed-stream'
 import { duplexPair } from 'it-pair/duplex'
@@ -7,7 +8,6 @@ import sinon from 'sinon'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { noise } from '../src/index.js'
 import { Noise } from '../src/noise.js'
-import { createPeerIdsFromFixtures } from './fixtures/peer.js'
 import type { Metrics } from '@libp2p/interface'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
@@ -20,8 +20,12 @@ function createCounterSpy (): ReturnType<typeof sinon.spy> {
 
 describe('Index', () => {
   it('should expose class with tag and required functions', async () => {
+    const privateKey = await generateKeyPair('Ed25519')
+    const peerId = peerIdFromPrivateKey(privateKey)
+
     const noiseInstance = noise()({
-      peerId: await createEd25519PeerId(),
+      privateKey,
+      peerId,
       logger: defaultLogger()
     })
     expect(noiseInstance.protocol).to.equal('/noise')
@@ -30,7 +34,6 @@ describe('Index', () => {
   })
 
   it('should collect metrics', async () => {
-    const [localPeer, remotePeer] = await createPeerIdsFromFixtures(2)
     const metricsRegistry = new Map<string, ReturnType<typeof createCounterSpy>>()
     const metrics = {
       registerCounter: (name: string) => {
@@ -39,20 +42,32 @@ describe('Index', () => {
         return counter
       }
     }
+
+    const privateKeyInit = await generateKeyPair('Ed25519')
+    const peerIdInit = peerIdFromPrivateKey(privateKeyInit)
     const noiseInit = new Noise({
-      peerId: await createEd25519PeerId(),
+      privateKey: privateKeyInit,
+      peerId: peerIdInit,
       logger: defaultLogger(),
       metrics: metrics as any as Metrics
     })
+
+    const privateKeyResp = await generateKeyPair('Ed25519')
+    const peerIdResp = peerIdFromPrivateKey(privateKeyResp)
     const noiseResp = new Noise({
-      peerId: await createEd25519PeerId(),
+      privateKey: privateKeyResp,
+      peerId: peerIdResp,
       logger: defaultLogger()
     })
 
     const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
     const [outbound, inbound] = await Promise.all([
-      noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
-      noiseResp.secureInbound(remotePeer, inboundConnection, localPeer)
+      noiseInit.secureOutbound(outboundConnection, {
+        remotePeer: peerIdResp
+      }),
+      noiseResp.secureInbound(inboundConnection, {
+        remotePeer: peerIdInit
+      })
     ])
     const wrappedInbound = lpStream(inbound.conn)
     const wrappedOutbound = lpStream(outbound.conn)
