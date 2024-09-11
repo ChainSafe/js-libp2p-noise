@@ -1,6 +1,6 @@
 import type { Nonce } from './nonce'
 import type { NoiseExtensions, NoiseHandshakePayload } from './proto/payload'
-import type { ConnectionEncrypter, Logger, PrivateKey } from '@libp2p/interface'
+import type { ConnectionEncrypter, Logger, PrivateKey, PublicKey } from '@libp2p/interface'
 import type { LengthPrefixedStream } from 'it-length-prefixed-stream'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
@@ -22,7 +22,7 @@ export interface HandshakeParams {
   prologue: Uint8Array
   /** static keypair */
   s: KeyPair
-  remoteIdentityKey?: Uint8Array | Uint8ArrayList
+  remoteIdentityKey?: PublicKey
   extensions?: NoiseExtensions
 }
 
