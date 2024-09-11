@@ -1,3 +1,13 @@
+## [16.0.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v15.1.2...v16.0.0) (2024-09-11)
+
+### ⚠ BREAKING CHANGES
+
+* Can only be used with `libp2p@2.x.x` or later
+
+### Features
+
+* update to libp2p@2.x.x ([#444](https://github.com/ChainSafe/js-libp2p-noise/issues/444)) ([8a5321b](https://github.com/ChainSafe/js-libp2p-noise/commit/8a5321bf280bdd7d650112ba82503ea599782d59))
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
