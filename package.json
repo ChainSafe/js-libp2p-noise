@@ -1,6 +1,7 @@
 {
   "name": "@chainsafe/libp2p-noise",
   "version": "15.1.2",
+  "description": "Noise libp2p handshake for js-libp2p",
   "author": "ChainSafe <info@chainsafe.io>",
   "license": "Apache-2.0 OR MIT",
   "homepage": "https://github.com/ChainSafe/js-libp2p-noise#readme",
@@ -11,15 +12,15 @@
   "bugs": {
     "url": "https://github.com/ChainSafe/js-libp2p-noise/issues"
   },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "keywords": [
     "crypto",
     "libp2p",
     "noise"
   ],
-  "engines": {
-    "node": ">=16.0.0",
-    "npm": ">=7.0.0"
-  },
   "type": "module",
   "types": "./dist/src/index.d.ts",
   "files": [
@@ -37,6 +38,7 @@
   "eslintConfig": {
     "extends": "ipfs",
     "parserOptions": {
+      "project": true,
       "sourceType": "module"
     },
     "rules": {
@@ -48,6 +50,91 @@
       "src/proto/payload.js",
       "src/proto/payload.d.ts",
       "test/fixtures/node-globals.js"
+    ]
+  },
+  "release": {
+    "branches": [
+      "master"
+    ],
+    "plugins": [
+      [
+        "@semantic-release/commit-analyzer",
+        {
+          "preset": "conventionalcommits",
+          "releaseRules": [
+            {
+              "breaking": true,
+              "release": "major"
+            },
+            {
+              "revert": true,
+              "release": "patch"
+            },
+            {
+              "type": "feat",
+              "release": "minor"
+            },
+            {
+              "type": "fix",
+              "release": "patch"
+            },
+            {
+              "type": "docs",
+              "release": "patch"
+            },
+            {
+              "type": "test",
+              "release": "patch"
+            },
+            {
+              "type": "deps",
+              "release": "patch"
+            },
+            {
+              "scope": "no-release",
+              "release": false
+            }
+          ]
+        }
+      ],
+      [
+        "@semantic-release/release-notes-generator",
+        {
+          "preset": "conventionalcommits",
+          "presetConfig": {
+            "types": [
+              {
+                "type": "feat",
+                "section": "Features"
+              },
+              {
+                "type": "fix",
+                "section": "Bug Fixes"
+              },
+              {
+                "type": "chore",
+                "section": "Trivial Changes"
+              },
+              {
+                "type": "docs",
+                "section": "Documentation"
+              },
+              {
+                "type": "deps",
+                "section": "Dependencies"
+              },
+              {
+                "type": "test",
+                "section": "Tests"
+              }
+            ]
+          }
+        }
+      ],
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      "@semantic-release/github",
+      "@semantic-release/git"
     ]
   },
   "scripts": {
@@ -64,7 +151,8 @@
     "test:interop": "aegir test -t node -f dist/test/interop.js",
     "docs": "aegir docs",
     "proto:gen": "protons ./src/proto/payload.proto",
-    "prepublish": "npm run build"
+    "prepublish": "npm run build",
+    "release": "aegir release"
   },
   "dependencies": {
     "@chainsafe/as-chacha20poly1305": "^0.1.0",
@@ -80,7 +168,7 @@
     "it-pair": "^2.0.6",
     "it-pipe": "^3.0.1",
     "it-stream-types": "^2.0.1",
-    "protons-runtime": "^5.0.0",
+    "protons-runtime": "^5.5.0",
     "uint8arraylist": "^2.4.3",
     "uint8arrays": "^5.0.0",
     "wherearewe": "^2.0.1"
@@ -105,7 +193,7 @@
     "mkdirp": "^3.0.0",
     "multiformats": "^13.2.2",
     "p-defer": "^4.0.0",
-    "protons": "^7.0.0",
+    "protons": "^7.6.0",
     "sinon": "^18.0.0"
   },
   "browser": {
