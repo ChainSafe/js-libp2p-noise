@@ -93,7 +93,7 @@
     "@libp2p/interop": "^12.1.0",
     "@libp2p/logger": "^4.0.0",
     "@libp2p/peer-id-factory": "^4.0.4",
-    "@libp2p/tcp": "^9.0.0",
+    "@libp2p/tcp": "^10.0.0",
     "@multiformats/multiaddr": "^12.1.0",
     "@types/sinon": "^17.0.1",
     "aegir": "^44.1.1",
