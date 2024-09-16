@@ -194,7 +194,7 @@
     "multiformats": "^13.2.2",
     "p-defer": "^4.0.0",
     "protons": "^7.6.0",
-    "sinon": "^18.0.0"
+    "sinon": "^19.0.2"
   },
   "browser": {
     "./dist/src/crypto/index.js": "./dist/src/crypto/index.browser.js"
