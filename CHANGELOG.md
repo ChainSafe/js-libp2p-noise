@@ -1,9 +1,40 @@
+## [16.0.1](https://github.com/ChainSafe/js-libp2p-noise/compare/v16.0.0...v16.0.1) (2025-01-21)
+
+### Bug Fixes
+
+* update as-sha256 ([#463](https://github.com/ChainSafe/js-libp2p-noise/issues/463)) ([107fd3e](https://github.com/ChainSafe/js-libp2p-noise/commit/107fd3ed74218647ac7666a3e71aaf8c1912c728))
+
+## [16.0.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v15.1.2...v16.0.0) (2024-09-11)
+
+### ⚠ BREAKING CHANGES
+
+* Can only be used with `libp2p@2.x.x` or later
+
+### Features
+
+* update to libp2p@2.x.x ([#444](https://github.com/ChainSafe/js-libp2p-noise/issues/444)) ([8a5321b](https://github.com/ChainSafe/js-libp2p-noise/commit/8a5321bf280bdd7d650112ba82503ea599782d59))
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [15.1.2](https://github.com/ChainSafe/js-libp2p-noise/compare/v15.1.1...v15.1.2) (2024-08-29)
+
+
+### Bug Fixes
+
+* make handshake abortable ([#442](https://github.com/ChainSafe/js-libp2p-noise/issues/442)) ([35ce15d](https://github.com/ChainSafe/js-libp2p-noise/commit/35ce15dd2e769c2fb0a517c804a095f30556faf8))
+
+## [15.1.1](https://github.com/ChainSafe/js-libp2p-noise/compare/v15.1.0...v15.1.1) (2024-08-13)
+
+
+### Bug Fixes
+
+* bump @noble/ciphers from 0.5.3 to 0.6.0 ([#437](https://github.com/ChainSafe/js-libp2p-noise/issues/437)) ([0a349b6](https://github.com/ChainSafe/js-libp2p-noise/commit/0a349b63dd0ecc7b2167ef36ae43d4650cd72716))
+* make local peer id optional ([#440](https://github.com/ChainSafe/js-libp2p-noise/issues/440)) ([5f92b50](https://github.com/ChainSafe/js-libp2p-noise/commit/5f92b50e88fbe8406236c479d3e710ab4d1c4421))
 
 ## [15.1.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v15.0.0...v15.1.0) (2024-06-24)
 

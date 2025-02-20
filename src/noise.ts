@@ -1,6 +1,6 @@
-import { unmarshalPrivateKey } from '@libp2p/crypto/keys'
-import { type MultiaddrConnection, type SecuredConnection, type PeerId, CodeError, type PrivateKey, serviceCapabilities } from '@libp2p/interface'
-import { peerIdFromKeys } from '@libp2p/peer-id'
+import { publicKeyFromProtobuf } from '@libp2p/crypto/keys'
+import { serviceCapabilities } from '@libp2p/interface'
+import { peerIdFromPublicKey } from '@libp2p/peer-id'
 import { decode } from 'it-length-prefixed'
 import { lpStream, type LengthPrefixedStream } from 'it-length-prefixed-stream'
 import { duplexPair } from 'it-pair/duplex'
@@ -16,6 +16,7 @@ import { decryptStream, encryptStream } from './streaming.js'
 import type { NoiseComponents } from './index.js'
 import type { NoiseExtensions } from './proto/payload.js'
 import type { HandshakeResult, ICrypto, INoiseConnection, KeyPair } from './types.js'
+import type { MultiaddrConnection, SecuredConnection, PeerId, PrivateKey, PublicKey, AbortOptions } from '@libp2p/interface'
 import type { Duplex } from 'it-stream-types'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
@@ -68,11 +69,12 @@ export class Noise implements INoiseConnection {
   /**
    * Encrypt outgoing data to the remote party (handshake as initiator)
    *
-   * @param localPeer - PeerId of the receiving peer
    * @param connection - streaming iterable duplex that will be encrypted
-   * @param remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer.
+   * @param options
+   * @param options.remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer
+   * @param options.signal - Used to abort the operation
    */
-  public async secureOutbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (localPeer: PeerId, connection: Stream, remotePeer?: PeerId): Promise<SecuredConnection<Stream, NoiseExtensions>> {
+  public async secureOutbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (connection: Stream, options?: { remotePeer?: PeerId, signal?: AbortSignal }): Promise<SecuredConnection<Stream, NoiseExtensions>> {
     const wrappedConnection = lpStream(
       connection,
       {
@@ -82,38 +84,35 @@ export class Noise implements INoiseConnection {
       }
     )
 
-    if (!localPeer.privateKey) {
-      throw new CodeError('local peerId does not contain private key', 'ERR_NO_PRIVATE_KEY')
-    }
-    const privateKey = await unmarshalPrivateKey(localPeer.privateKey)
-
-    const remoteIdentityKey = remotePeer?.publicKey
-
     const handshake = await this.performHandshakeInitiator(
       wrappedConnection,
-      privateKey,
-      remoteIdentityKey
+      this.components.privateKey,
+      options?.remotePeer?.publicKey,
+      options
     )
     const conn = await this.createSecureConnection(wrappedConnection, handshake)
 
     connection.source = conn.source
     connection.sink = conn.sink
 
+    const publicKey = publicKeyFromProtobuf(handshake.payload.identityKey)
+
     return {
       conn: connection,
       remoteExtensions: handshake.payload.extensions,
-      remotePeer: await peerIdFromKeys(handshake.payload.identityKey)
+      remotePeer: peerIdFromPublicKey(publicKey)
     }
   }
 
   /**
    * Decrypt incoming data (handshake as responder).
    *
-   * @param localPeer - PeerId of the receiving peer.
-   * @param connection - streaming iterable duplex that will be encrypted.
-   * @param remotePeer - optional PeerId of the initiating peer, if known. This may only exist during transport upgrades.
+   * @param connection - streaming iterable duplex that will be encrypted
+   * @param options
+   * @param options.remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer
+   * @param options.signal - Used to abort the operation
    */
-  public async secureInbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (localPeer: PeerId, connection: Stream, remotePeer?: PeerId): Promise<SecuredConnection<Stream, NoiseExtensions>> {
+  public async secureInbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (connection: Stream, options?: { remotePeer?: PeerId, signal?: AbortSignal }): Promise<SecuredConnection<Stream, NoiseExtensions>> {
     const wrappedConnection = lpStream(
       connection,
       {
@@ -123,27 +122,23 @@ export class Noise implements INoiseConnection {
       }
     )
 
-    if (!localPeer.privateKey) {
-      throw new CodeError('local peerId does not contain private key', 'ERR_NO_PRIVATE_KEY')
-    }
-    const privateKey = await unmarshalPrivateKey(localPeer.privateKey)
-
-    const remoteIdentityKey = remotePeer?.publicKey
-
     const handshake = await this.performHandshakeResponder(
       wrappedConnection,
-      privateKey,
-      remoteIdentityKey
+      this.components.privateKey,
+      options?.remotePeer?.publicKey,
+      options
     )
     const conn = await this.createSecureConnection(wrappedConnection, handshake)
 
     connection.source = conn.source
     connection.sink = conn.sink
 
+    const publicKey = publicKeyFromProtobuf(handshake.payload.identityKey)
+
     return {
       conn: connection,
       remoteExtensions: handshake.payload.extensions,
-      remotePeer: await peerIdFromKeys(handshake.payload.identityKey)
+      remotePeer: peerIdFromPublicKey(publicKey)
     }
   }
 
@@ -154,7 +149,8 @@ export class Noise implements INoiseConnection {
     connection: LengthPrefixedStream,
     // TODO: pass private key in noise constructor via Components
     privateKey: PrivateKey,
-    remoteIdentityKey?: Uint8Array | Uint8ArrayList
+    remoteIdentityKey?: PublicKey,
+    options?: AbortOptions
   ): Promise<HandshakeResult> {
     let result: HandshakeResult
     try {
@@ -167,7 +163,7 @@ export class Noise implements INoiseConnection {
         prologue: this.prologue,
         s: this.staticKey,
         extensions: this.extensions
-      })
+      }, options)
       this.metrics?.xxHandshakeSuccesses.increment()
     } catch (e: unknown) {
       this.metrics?.xxHandshakeErrors.increment()
@@ -182,9 +178,9 @@ export class Noise implements INoiseConnection {
    */
   private async performHandshakeResponder (
     connection: LengthPrefixedStream,
-    // TODO: pass private key in noise constructor via Components
     privateKey: PrivateKey,
-    remoteIdentityKey?: Uint8Array | Uint8ArrayList
+    remoteIdentityKey?: PublicKey,
+    options?: AbortOptions
   ): Promise<HandshakeResult> {
     let result: HandshakeResult
     try {
@@ -197,7 +193,7 @@ export class Noise implements INoiseConnection {
         prologue: this.prologue,
         s: this.staticKey,
         extensions: this.extensions
-      })
+      }, options)
       this.metrics?.xxHandshakeSuccesses.increment()
     } catch (e: unknown) {
       this.metrics?.xxHandshakeErrors.increment()

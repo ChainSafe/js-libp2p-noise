@@ -1,10 +1,8 @@
 import { Buffer } from 'buffer'
-import { unmarshalPrivateKey } from '@libp2p/crypto/keys'
 import { defaultLogger } from '@libp2p/logger'
 import { assert, expect } from 'aegir/chai'
 import { lpStream } from 'it-length-prefixed-stream'
 import { duplexPair } from 'it-pair/duplex'
-import { toString as uint8ArrayToString } from 'uint8arrays'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { defaultCrypto } from '../src/crypto/index.js'
 import { wrapCrypto } from '../src/crypto.js'
@@ -13,14 +11,13 @@ import { createPeerIdsFromFixtures } from './fixtures/peer.js'
 import type { PrivateKey, PeerId } from '@libp2p/interface'
 
 describe('performHandshake', () => {
-  let peerA: PeerId, peerB: PeerId, fakePeer: PeerId
-  let privateKeyA: PrivateKey, privateKeyB: PrivateKey
+  let peerA: { peerId: PeerId, privateKey: PrivateKey }
+  let peerB: { peerId: PeerId, privateKey: PrivateKey }
+  let fakePeer: { peerId: PeerId, privateKey: PrivateKey }
 
   before(async () => {
     [peerA, peerB, fakePeer] = await createPeerIdsFromFixtures(3)
     if (!peerA.privateKey || !peerB.privateKey || !fakePeer.privateKey) throw new Error('unreachable')
-    privateKeyA = await unmarshalPrivateKey(peerA.privateKey)
-    privateKeyB = await unmarshalPrivateKey(peerB.privateKey)
   })
 
   it('should propose, exchange and finish handshake', async () => {
@@ -37,18 +34,18 @@ describe('performHandshake', () => {
         log: defaultLogger().forComponent('test'),
         connection: connectionInitiator,
         crypto: wrapCrypto(defaultCrypto),
-        privateKey: privateKeyA,
+        privateKey: peerA.privateKey,
         prologue,
-        remoteIdentityKey: peerB.publicKey,
+        remoteIdentityKey: peerB.privateKey.publicKey,
         s: staticKeysInitiator
       }),
       performHandshakeResponder({
         log: defaultLogger().forComponent('test'),
         connection: connectionResponder,
         crypto: wrapCrypto(defaultCrypto),
-        privateKey: privateKeyB,
+        privateKey: peerB.privateKey,
         prologue,
-        remoteIdentityKey: peerA.publicKey,
+        remoteIdentityKey: peerA.privateKey.publicKey,
         s: staticKeysResponder
       })
     ])
@@ -74,18 +71,18 @@ describe('performHandshake', () => {
           log: defaultLogger().forComponent('test'),
           connection: connectionInitiator,
           crypto: wrapCrypto(defaultCrypto),
-          privateKey: privateKeyA,
+          privateKey: peerA.privateKey,
           prologue,
-          remoteIdentityKey: fakePeer.publicKey, // <----- look here
+          remoteIdentityKey: fakePeer.privateKey.publicKey, // <----- look here
           s: staticKeysInitiator
         }),
         performHandshakeResponder({
           log: defaultLogger().forComponent('test'),
           connection: connectionResponder,
           crypto: wrapCrypto(defaultCrypto),
-          privateKey: privateKeyB,
+          privateKey: peerB.privateKey,
           prologue,
-          remoteIdentityKey: peerA.publicKey,
+          remoteIdentityKey: peerA.privateKey.publicKey,
           s: staticKeysResponder
         })
       ])
@@ -93,7 +90,7 @@ describe('performHandshake', () => {
       assert(false, 'Should throw exception')
     } catch (e) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      expect((e as Error).message).equals(`Payload identity key ${uint8ArrayToString(peerB.publicKey!, 'hex')} does not match expected remote identity key ${uint8ArrayToString(fakePeer.publicKey!, 'hex')}`)
+      expect((e as Error).message).equals(`Payload identity key ${peerB.privateKey.publicKey} does not match expected remote identity key ${fakePeer.privateKey.publicKey}`)
     }
   })
 
@@ -112,18 +109,18 @@ describe('performHandshake', () => {
           log: defaultLogger().forComponent('test'),
           connection: connectionInitiator,
           crypto: wrapCrypto(defaultCrypto),
-          privateKey: privateKeyA,
+          privateKey: peerA.privateKey,
           prologue,
-          remoteIdentityKey: peerB.publicKey,
+          remoteIdentityKey: peerB.privateKey.publicKey,
           s: staticKeysInitiator
         }),
         performHandshakeResponder({
           log: defaultLogger().forComponent('test'),
           connection: connectionResponder,
           crypto: wrapCrypto(defaultCrypto),
-          privateKey: privateKeyB,
+          privateKey: peerB.privateKey,
           prologue,
-          remoteIdentityKey: fakePeer.publicKey,
+          remoteIdentityKey: fakePeer.privateKey.publicKey,
           s: staticKeysResponder
         })
       ])
@@ -131,7 +128,7 @@ describe('performHandshake', () => {
       assert(false, 'Should throw exception')
     } catch (e) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      expect((e as Error).message).equals(`Payload identity key ${uint8ArrayToString(peerA.publicKey!, 'hex')} does not match expected remote identity key ${uint8ArrayToString(fakePeer.publicKey!, 'hex')}`)
+      expect((e as Error).message).equals(`Payload identity key ${peerA.privateKey.publicKey} does not match expected remote identity key ${fakePeer.privateKey.publicKey}`)
     }
   })
 })

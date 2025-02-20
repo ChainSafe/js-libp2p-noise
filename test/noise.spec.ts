@@ -11,11 +11,12 @@ import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { pureJsCrypto } from '../src/crypto/js.js'
 import { Noise } from '../src/noise.js'
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
-import type { PeerId } from '@libp2p/interface'
+import type { PeerId, PrivateKey } from '@libp2p/interface'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
 describe('Noise', () => {
-  let remotePeer: PeerId, localPeer: PeerId
+  let remotePeer: { peerId: PeerId, privateKey: PrivateKey }
+  let localPeer: { peerId: PeerId, privateKey: PrivateKey }
   const sandbox = sinon.createSandbox()
 
   before(async () => {
@@ -28,13 +29,23 @@ describe('Noise', () => {
 
   it('should communicate through encrypted streams without noise pipes', async () => {
     try {
-      const noiseInit = new Noise({ logger: defaultLogger() }, { staticNoiseKey: undefined, extensions: undefined })
-      const noiseResp = new Noise({ logger: defaultLogger() }, { staticNoiseKey: undefined, extensions: undefined })
+      const noiseInit = new Noise({
+        ...localPeer,
+        logger: defaultLogger()
+      }, { staticNoiseKey: undefined, extensions: undefined })
+      const noiseResp = new Noise({
+        ...remotePeer,
+        logger: defaultLogger()
+      }, { staticNoiseKey: undefined, extensions: undefined })
 
       const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
       const [outbound, inbound] = await Promise.all([
-        noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
-        noiseResp.secureInbound(remotePeer, inboundConnection, localPeer)
+        noiseInit.secureOutbound(outboundConnection, {
+          remotePeer: remotePeer.peerId
+        }),
+        noiseResp.secureInbound(inboundConnection, {
+          remotePeer: localPeer.peerId
+        })
       ])
       const wrappedInbound = lpStream(inbound.conn)
       const wrappedOutbound = lpStream(outbound.conn)
@@ -51,13 +62,23 @@ describe('Noise', () => {
   it('should test large payloads', async function () {
     this.timeout(10000)
     try {
-      const noiseInit = new Noise({ logger: defaultLogger() }, { staticNoiseKey: undefined })
-      const noiseResp = new Noise({ logger: defaultLogger() }, { staticNoiseKey: undefined })
+      const noiseInit = new Noise({
+        ...localPeer,
+        logger: defaultLogger()
+      }, { staticNoiseKey: undefined })
+      const noiseResp = new Noise({
+        ...remotePeer,
+        logger: defaultLogger()
+      }, { staticNoiseKey: undefined })
 
       const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
       const [outbound, inbound] = await Promise.all([
-        noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
-        noiseResp.secureInbound(remotePeer, inboundConnection, localPeer)
+        noiseInit.secureOutbound(outboundConnection, {
+          remotePeer: remotePeer.peerId
+        }),
+        noiseResp.secureInbound(inboundConnection, {
+          remotePeer: localPeer.peerId
+        })
       ])
       const wrappedInbound = byteStream(inbound.conn)
       const wrappedOutbound = lpStream(outbound.conn)
@@ -76,14 +97,22 @@ describe('Noise', () => {
   it('should working without remote peer provided in incoming connection', async () => {
     try {
       const staticKeysInitiator = pureJsCrypto.generateX25519KeyPair()
-      const noiseInit = new Noise({ logger: defaultLogger() }, { staticNoiseKey: staticKeysInitiator.privateKey })
+      const noiseInit = new Noise({
+        ...localPeer,
+        logger: defaultLogger()
+      }, { staticNoiseKey: staticKeysInitiator.privateKey })
       const staticKeysResponder = pureJsCrypto.generateX25519KeyPair()
-      const noiseResp = new Noise({ logger: defaultLogger() }, { staticNoiseKey: staticKeysResponder.privateKey })
+      const noiseResp = new Noise({
+        ...remotePeer,
+        logger: defaultLogger()
+      }, { staticNoiseKey: staticKeysResponder.privateKey })
 
       const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
       const [outbound, inbound] = await Promise.all([
-        noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
-        noiseResp.secureInbound(remotePeer, inboundConnection)
+        noiseInit.secureOutbound(outboundConnection, {
+          remotePeer: remotePeer.peerId
+        }),
+        noiseResp.secureInbound(inboundConnection)
       ])
       const wrappedInbound = lpStream(inbound.conn)
       const wrappedOutbound = lpStream(outbound.conn)
@@ -92,13 +121,13 @@ describe('Noise', () => {
       const response = await wrappedInbound.read()
       expect(uint8ArrayToString(response.slice())).equal('test v2')
 
-      if (inbound.remotePeer.publicKey == null || localPeer.publicKey == null ||
-        outbound.remotePeer.publicKey == null || remotePeer.publicKey == null) {
+      if (inbound.remotePeer.publicKey == null || localPeer.peerId.publicKey == null ||
+        outbound.remotePeer.publicKey == null || remotePeer.peerId.publicKey == null) {
         throw new Error('Public key missing from PeerId')
       }
 
-      assert(uint8ArrayEquals(inbound.remotePeer.publicKey, localPeer.publicKey))
-      assert(uint8ArrayEquals(outbound.remotePeer.publicKey, remotePeer.publicKey))
+      expect(inbound.remotePeer.publicKey?.raw).to.equalBytes(localPeer.peerId.publicKey.raw)
+      expect(outbound.remotePeer.publicKey?.raw).to.equalBytes(remotePeer.peerId.publicKey.raw)
     } catch (e) {
       const err = e as Error
       assert(false, err.message)
@@ -109,15 +138,23 @@ describe('Noise', () => {
     try {
       const certhashInit = Buffer.from('certhash data from init')
       const staticKeysInitiator = pureJsCrypto.generateX25519KeyPair()
-      const noiseInit = new Noise({ logger: defaultLogger() }, { staticNoiseKey: staticKeysInitiator.privateKey, extensions: { webtransportCerthashes: [certhashInit] } })
+      const noiseInit = new Noise({
+        ...localPeer,
+        logger: defaultLogger()
+      }, { staticNoiseKey: staticKeysInitiator.privateKey, extensions: { webtransportCerthashes: [certhashInit] } })
       const staticKeysResponder = pureJsCrypto.generateX25519KeyPair()
       const certhashResp = Buffer.from('certhash data from respon')
-      const noiseResp = new Noise({ logger: defaultLogger() }, { staticNoiseKey: staticKeysResponder.privateKey, extensions: { webtransportCerthashes: [certhashResp] } })
+      const noiseResp = new Noise({
+        ...remotePeer,
+        logger: defaultLogger()
+      }, { staticNoiseKey: staticKeysResponder.privateKey, extensions: { webtransportCerthashes: [certhashResp] } })
 
       const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
       const [outbound, inbound] = await Promise.all([
-        noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
-        noiseResp.secureInbound(remotePeer, inboundConnection)
+        noiseInit.secureOutbound(outboundConnection, {
+          remotePeer: remotePeer.peerId
+        }),
+        noiseResp.secureInbound(inboundConnection)
       ])
 
       assert(uint8ArrayEquals(inbound.remoteExtensions?.webtransportCerthashes[0] ?? new Uint8Array(), certhashInit))
@@ -130,13 +167,23 @@ describe('Noise', () => {
 
   it('should accept a prologue', async () => {
     try {
-      const noiseInit = new Noise({ logger: defaultLogger() }, { staticNoiseKey: undefined, crypto: pureJsCrypto, prologueBytes: Buffer.from('Some prologue') })
-      const noiseResp = new Noise({ logger: defaultLogger() }, { staticNoiseKey: undefined, crypto: pureJsCrypto, prologueBytes: Buffer.from('Some prologue') })
+      const noiseInit = new Noise({
+        ...localPeer,
+        logger: defaultLogger()
+      }, { staticNoiseKey: undefined, crypto: pureJsCrypto, prologueBytes: Buffer.from('Some prologue') })
+      const noiseResp = new Noise({
+        ...remotePeer,
+        logger: defaultLogger()
+      }, { staticNoiseKey: undefined, crypto: pureJsCrypto, prologueBytes: Buffer.from('Some prologue') })
 
       const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
       const [outbound, inbound] = await Promise.all([
-        noiseInit.secureOutbound(localPeer, outboundConnection, remotePeer),
-        noiseResp.secureInbound(remotePeer, inboundConnection, localPeer)
+        noiseInit.secureOutbound(outboundConnection, {
+          remotePeer: remotePeer.peerId
+        }),
+        noiseResp.secureInbound(inboundConnection, {
+          remotePeer: localPeer.peerId
+        })
       ])
       const wrappedInbound = lpStream(inbound.conn)
       const wrappedOutbound = lpStream(outbound.conn)
@@ -148,5 +195,32 @@ describe('Noise', () => {
       const err = e as Error
       assert(false, err.message)
     }
+  })
+
+  it('should abort noise handshake', async () => {
+    const abortController = new AbortController()
+    abortController.abort()
+
+    const noiseInit = new Noise({
+      ...localPeer,
+      logger: defaultLogger()
+    }, { staticNoiseKey: undefined, extensions: undefined })
+    const noiseResp = new Noise({
+      ...remotePeer,
+      logger: defaultLogger()
+    }, { staticNoiseKey: undefined, extensions: undefined })
+
+    const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
+
+    await expect(Promise.all([
+      noiseInit.secureOutbound(outboundConnection, {
+        remotePeer: remotePeer.peerId,
+        signal: abortController.signal
+      }),
+      noiseResp.secureInbound(inboundConnection, {
+        remotePeer: localPeer.peerId
+      })
+    ])).to.eventually.be.rejected
+      .with.property('name', 'AbortError')
   })
 })
