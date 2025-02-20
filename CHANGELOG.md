@@ -1,3 +1,11 @@
+## [16.0.2](https://github.com/ChainSafe/js-libp2p-noise/compare/v16.0.1...v16.0.2) (2025-02-20)
+
+### Dependencies
+
+* bump @noble/ciphers from 0.6.0 to 1.1.3 ([#461](https://github.com/ChainSafe/js-libp2p-noise/issues/461)) ([0b9ce35](https://github.com/ChainSafe/js-libp2p-noise/commit/0b9ce35afc50f40d28ce6a29fd8eec16c02a12bb))
+* **dev:** bump aegir from 44.1.4 to 45.0.8 ([#462](https://github.com/ChainSafe/js-libp2p-noise/issues/462)) ([2f07e64](https://github.com/ChainSafe/js-libp2p-noise/commit/2f07e6493b53a493fef832cc37f716b20264043b))
+* **dev:** bump sinon from 18.0.1 to 19.0.2 ([#454](https://github.com/ChainSafe/js-libp2p-noise/issues/454)) ([0b9c7bc](https://github.com/ChainSafe/js-libp2p-noise/commit/0b9c7bcd0bfbb1054be42697406c4a6b127f9123))
+
 ## [16.0.1](https://github.com/ChainSafe/js-libp2p-noise/compare/v16.0.0...v16.0.1) (2025-01-21)
 
 ### Bug Fixes
