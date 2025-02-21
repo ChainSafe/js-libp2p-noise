@@ -1,3 +1,9 @@
+## [16.0.3](https://github.com/ChainSafe/js-libp2p-noise/compare/v16.0.2...v16.0.3) (2025-02-21)
+
+### Bug Fixes
+
+* bump @chainsafe/as-sha256 from 0.4.2 to 1.0.0 ([#439](https://github.com/ChainSafe/js-libp2p-noise/issues/439)) ([50e080c](https://github.com/ChainSafe/js-libp2p-noise/commit/50e080c984389cc33751382175b0f4d1209daaf7))
+
 ## [16.0.2](https://github.com/ChainSafe/js-libp2p-noise/compare/v16.0.1...v16.0.2) (2025-02-20)
 
 ### Dependencies
