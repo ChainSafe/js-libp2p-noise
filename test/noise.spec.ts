@@ -6,12 +6,13 @@ import { byteStream } from 'it-byte-stream'
 import { lpStream } from 'it-length-prefixed-stream'
 import { duplexPair } from 'it-pair/duplex'
 import sinon from 'sinon'
+import { stubInterface } from 'sinon-ts'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { pureJsCrypto } from '../src/crypto/js.js'
 import { Noise } from '../src/noise.js'
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
-import type { PeerId, PrivateKey } from '@libp2p/interface'
+import type { StreamMuxerFactory, PeerId, PrivateKey, Upgrader } from '@libp2p/interface'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
 describe('Noise', () => {
@@ -31,11 +32,17 @@ describe('Noise', () => {
     try {
       const noiseInit = new Noise({
         ...localPeer,
-        logger: defaultLogger()
+        logger: defaultLogger(),
+        upgrader: stubInterface<Upgrader>({
+          getStreamMuxers: () => new Map()
+        })
       }, { staticNoiseKey: undefined, extensions: undefined })
       const noiseResp = new Noise({
         ...remotePeer,
-        logger: defaultLogger()
+        logger: defaultLogger(),
+        upgrader: stubInterface<Upgrader>({
+          getStreamMuxers: () => new Map()
+        })
       }, { staticNoiseKey: undefined, extensions: undefined })
 
       const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
@@ -47,6 +54,10 @@ describe('Noise', () => {
           remotePeer: localPeer.peerId
         })
       ])
+
+      expect(inbound).to.not.have.property('streamMuxer', 'inbound connection selected early muxer')
+      expect(outbound).to.not.have.property('streamMuxer', 'outbound connection selected early muxer')
+
       const wrappedInbound = lpStream(inbound.conn)
       const wrappedOutbound = lpStream(outbound.conn)
 
@@ -64,11 +75,17 @@ describe('Noise', () => {
     try {
       const noiseInit = new Noise({
         ...localPeer,
-        logger: defaultLogger()
+        logger: defaultLogger(),
+        upgrader: stubInterface<Upgrader>({
+          getStreamMuxers: () => new Map()
+        })
       }, { staticNoiseKey: undefined })
       const noiseResp = new Noise({
         ...remotePeer,
-        logger: defaultLogger()
+        logger: defaultLogger(),
+        upgrader: stubInterface<Upgrader>({
+          getStreamMuxers: () => new Map()
+        })
       }, { staticNoiseKey: undefined })
 
       const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
@@ -99,12 +116,18 @@ describe('Noise', () => {
       const staticKeysInitiator = pureJsCrypto.generateX25519KeyPair()
       const noiseInit = new Noise({
         ...localPeer,
-        logger: defaultLogger()
+        logger: defaultLogger(),
+        upgrader: stubInterface<Upgrader>({
+          getStreamMuxers: () => new Map()
+        })
       }, { staticNoiseKey: staticKeysInitiator.privateKey })
       const staticKeysResponder = pureJsCrypto.generateX25519KeyPair()
       const noiseResp = new Noise({
         ...remotePeer,
-        logger: defaultLogger()
+        logger: defaultLogger(),
+        upgrader: stubInterface<Upgrader>({
+          getStreamMuxers: () => new Map()
+        })
       }, { staticNoiseKey: staticKeysResponder.privateKey })
 
       const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
@@ -140,13 +163,19 @@ describe('Noise', () => {
       const staticKeysInitiator = pureJsCrypto.generateX25519KeyPair()
       const noiseInit = new Noise({
         ...localPeer,
-        logger: defaultLogger()
+        logger: defaultLogger(),
+        upgrader: stubInterface<Upgrader>({
+          getStreamMuxers: () => new Map()
+        })
       }, { staticNoiseKey: staticKeysInitiator.privateKey, extensions: { webtransportCerthashes: [certhashInit] } })
       const staticKeysResponder = pureJsCrypto.generateX25519KeyPair()
       const certhashResp = Buffer.from('certhash data from respon')
       const noiseResp = new Noise({
         ...remotePeer,
-        logger: defaultLogger()
+        logger: defaultLogger(),
+        upgrader: stubInterface<Upgrader>({
+          getStreamMuxers: () => new Map()
+        })
       }, { staticNoiseKey: staticKeysResponder.privateKey, extensions: { webtransportCerthashes: [certhashResp] } })
 
       const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
@@ -165,15 +194,93 @@ describe('Noise', () => {
     }
   })
 
+  it('should accept and return early muxer from remote peer', async () => {
+    try {
+      const streamMuxerProtocol = '/my-early-muxer'
+      const streamMuxer = stubInterface<StreamMuxerFactory>({
+        protocol: streamMuxerProtocol
+      })
+      const staticKeysInitiator = pureJsCrypto.generateX25519KeyPair()
+      const noiseInit = new Noise({
+        ...localPeer,
+        logger: defaultLogger(),
+        upgrader: stubInterface<Upgrader>({
+          getStreamMuxers: () => new Map([[streamMuxerProtocol, streamMuxer]])
+        })
+      }, { staticNoiseKey: staticKeysInitiator.privateKey })
+      const staticKeysResponder = pureJsCrypto.generateX25519KeyPair()
+      const noiseResp = new Noise({
+        ...remotePeer,
+        logger: defaultLogger(),
+        upgrader: stubInterface<Upgrader>({
+          getStreamMuxers: () => new Map([[streamMuxerProtocol, streamMuxer]])
+        })
+      }, { staticNoiseKey: staticKeysResponder.privateKey })
+
+      const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
+      const [outbound, inbound] = await Promise.all([
+        noiseInit.secureOutbound(outboundConnection, {
+          remotePeer: remotePeer.peerId
+        }),
+        noiseResp.secureInbound(inboundConnection)
+      ])
+
+      expect(inbound).to.have.nested.property('streamMuxer.protocol', streamMuxerProtocol, 'inbound connection did not select early muxer')
+      expect(outbound).to.have.nested.property('streamMuxer.protocol', streamMuxerProtocol, 'outbound connection did not select early muxer')
+    } catch (e) {
+      const err = e as Error
+      assert(false, err.message)
+    }
+  })
+
+  it('should fail to accept early muxer from remote peer', async () => {
+    const streamMuxerProtocol = '/my-early-muxer'
+    const otherStreamMuxerProtocol = '/my-other-early-muxer'
+    const staticKeysInitiator = pureJsCrypto.generateX25519KeyPair()
+    const noiseInit = new Noise({
+      ...localPeer,
+      logger: defaultLogger(),
+      upgrader: stubInterface<Upgrader>({
+        getStreamMuxers: () => new Map([[streamMuxerProtocol, stubInterface<StreamMuxerFactory>({
+          protocol: streamMuxerProtocol
+        })]])
+      })
+    }, { staticNoiseKey: staticKeysInitiator.privateKey })
+    const staticKeysResponder = pureJsCrypto.generateX25519KeyPair()
+    const noiseResp = new Noise({
+      ...remotePeer,
+      logger: defaultLogger(),
+      upgrader: stubInterface<Upgrader>({
+        getStreamMuxers: () => new Map([[otherStreamMuxerProtocol, stubInterface<StreamMuxerFactory>({
+          protocol: otherStreamMuxerProtocol
+        })]])
+      })
+    }, { staticNoiseKey: staticKeysResponder.privateKey })
+
+    const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
+    await expect(Promise.all([
+      noiseInit.secureOutbound(outboundConnection, {
+        remotePeer: remotePeer.peerId
+      }),
+      noiseResp.secureInbound(inboundConnection)
+    ])).to.eventually.be.rejectedWith(/no common muxers/)
+  })
+
   it('should accept a prologue', async () => {
     try {
       const noiseInit = new Noise({
         ...localPeer,
-        logger: defaultLogger()
+        logger: defaultLogger(),
+        upgrader: stubInterface<Upgrader>({
+          getStreamMuxers: () => new Map()
+        })
       }, { staticNoiseKey: undefined, crypto: pureJsCrypto, prologueBytes: Buffer.from('Some prologue') })
       const noiseResp = new Noise({
         ...remotePeer,
-        logger: defaultLogger()
+        logger: defaultLogger(),
+        upgrader: stubInterface<Upgrader>({
+          getStreamMuxers: () => new Map()
+        })
       }, { staticNoiseKey: undefined, crypto: pureJsCrypto, prologueBytes: Buffer.from('Some prologue') })
 
       const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
@@ -203,11 +310,17 @@ describe('Noise', () => {
 
     const noiseInit = new Noise({
       ...localPeer,
-      logger: defaultLogger()
+      logger: defaultLogger(),
+      upgrader: stubInterface<Upgrader>({
+        getStreamMuxers: () => new Map()
+      })
     }, { staticNoiseKey: undefined, extensions: undefined })
     const noiseResp = new Noise({
       ...remotePeer,
-      logger: defaultLogger()
+      logger: defaultLogger(),
+      upgrader: stubInterface<Upgrader>({
+        getStreamMuxers: () => new Map()
+      })
     }, { staticNoiseKey: undefined, extensions: undefined })
 
     const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()

@@ -5,10 +5,11 @@ import { expect } from 'aegir/chai'
 import { lpStream } from 'it-length-prefixed-stream'
 import { duplexPair } from 'it-pair/duplex'
 import sinon from 'sinon'
+import { stubInterface } from 'sinon-ts'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { noise } from '../src/index.js'
 import { Noise } from '../src/noise.js'
-import type { Metrics } from '@libp2p/interface'
+import type { Metrics, Upgrader } from '@libp2p/interface'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
 function createCounterSpy (): ReturnType<typeof sinon.spy> {
@@ -26,7 +27,10 @@ describe('Index', () => {
     const noiseInstance = noise()({
       privateKey,
       peerId,
-      logger: defaultLogger()
+      logger: defaultLogger(),
+      upgrader: stubInterface<Upgrader>({
+        getStreamMuxers: () => new Map()
+      })
     })
     expect(noiseInstance.protocol).to.equal('/noise')
     expect(typeof (noiseInstance.secureInbound)).to.equal('function')
@@ -49,7 +53,10 @@ describe('Index', () => {
       privateKey: privateKeyInit,
       peerId: peerIdInit,
       logger: defaultLogger(),
-      metrics: metrics as any as Metrics
+      metrics: metrics as any as Metrics,
+      upgrader: stubInterface<Upgrader>({
+        getStreamMuxers: () => new Map()
+      })
     })
 
     const privateKeyResp = await generateKeyPair('Ed25519')
@@ -57,7 +64,10 @@ describe('Index', () => {
     const noiseResp = new Noise({
       privateKey: privateKeyResp,
       peerId: peerIdResp,
-      logger: defaultLogger()
+      logger: defaultLogger(),
+      upgrader: stubInterface<Upgrader>({
+        getStreamMuxers: () => new Map()
+      })
     })
 
     const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()

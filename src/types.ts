@@ -81,4 +81,8 @@ export interface KeyPair {
   privateKey: Uint8Array
 }
 
-export interface INoiseConnection extends ConnectionEncrypter<NoiseExtensions> { }
+export interface INoiseExtensions {
+  webtransportCerthashes: Uint8Array[]
+}
+
+export interface INoiseConnection extends ConnectionEncrypter<INoiseExtensions> { }
