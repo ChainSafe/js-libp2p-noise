@@ -4,12 +4,13 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-boolean-literal-compare */
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
-import { type Codec, decodeMessage, encodeMessage, message } from 'protons-runtime'
+import { type Codec, decodeMessage, type DecodeOptions, encodeMessage, MaxLengthError, message } from 'protons-runtime'
 import { alloc as uint8ArrayAlloc } from 'uint8arrays/alloc'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
 export interface NoiseExtensions {
   webtransportCerthashes: Uint8Array[]
+  streamMuxers: string[]
 }
 
 export namespace NoiseExtensions {
@@ -29,12 +30,20 @@ export namespace NoiseExtensions {
           }
         }
 
+        if (obj.streamMuxers != null) {
+          for (const value of obj.streamMuxers) {
+            w.uint32(18)
+            w.string(value)
+          }
+        }
+
         if (opts.lengthDelimited !== false) {
           w.ldelim()
         }
-      }, (reader, length) => {
+      }, (reader, length, opts = {}) => {
         const obj: any = {
-          webtransportCerthashes: []
+          webtransportCerthashes: [],
+          streamMuxers: []
         }
 
         const end = length == null ? reader.len : reader.pos + length
@@ -44,7 +53,19 @@ export namespace NoiseExtensions {
 
           switch (tag >>> 3) {
             case 1: {
+              if (opts.limits?.webtransportCerthashes != null && obj.webtransportCerthashes.length === opts.limits.webtransportCerthashes) {
+                throw new MaxLengthError('Decode error - map field "webtransportCerthashes" had too many elements')
+              }
+
               obj.webtransportCerthashes.push(reader.bytes())
+              break
+            }
+            case 2: {
+              if (opts.limits?.streamMuxers != null && obj.streamMuxers.length === opts.limits.streamMuxers) {
+                throw new MaxLengthError('Decode error - map field "streamMuxers" had too many elements')
+              }
+
+              obj.streamMuxers.push(reader.string())
               break
             }
             default: {
@@ -65,8 +86,8 @@ export namespace NoiseExtensions {
     return encodeMessage(obj, NoiseExtensions.codec())
   }
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList): NoiseExtensions => {
-    return decodeMessage(buf, NoiseExtensions.codec())
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<NoiseExtensions>): NoiseExtensions => {
+    return decodeMessage(buf, NoiseExtensions.codec(), opts)
   }
 }
 
@@ -104,7 +125,7 @@ export namespace NoiseHandshakePayload {
         if (opts.lengthDelimited !== false) {
           w.ldelim()
         }
-      }, (reader, length) => {
+      }, (reader, length, opts = {}) => {
         const obj: any = {
           identityKey: uint8ArrayAlloc(0),
           identitySig: uint8ArrayAlloc(0)
@@ -125,7 +146,9 @@ export namespace NoiseHandshakePayload {
               break
             }
             case 4: {
-              obj.extensions = NoiseExtensions.codec().decode(reader, reader.uint32())
+              obj.extensions = NoiseExtensions.codec().decode(reader, reader.uint32(), {
+                limits: opts.limits?.extensions
+              })
               break
             }
             default: {
@@ -146,7 +169,7 @@ export namespace NoiseHandshakePayload {
     return encodeMessage(obj, NoiseHandshakePayload.codec())
   }
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList): NoiseHandshakePayload => {
-    return decodeMessage(buf, NoiseHandshakePayload.codec())
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<NoiseHandshakePayload>): NoiseHandshakePayload => {
+    return decodeMessage(buf, NoiseHandshakePayload.codec(), opts)
   }
 }

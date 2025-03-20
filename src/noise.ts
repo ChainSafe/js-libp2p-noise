@@ -1,5 +1,5 @@
 import { publicKeyFromProtobuf } from '@libp2p/crypto/keys'
-import { serviceCapabilities } from '@libp2p/interface'
+import { InvalidCryptoExchangeError, serviceCapabilities } from '@libp2p/interface'
 import { peerIdFromPublicKey } from '@libp2p/peer-id'
 import { decode } from 'it-length-prefixed'
 import { lpStream, type LengthPrefixedStream } from 'it-length-prefixed-stream'
@@ -14,18 +14,21 @@ import { type MetricsRegistry, registerMetrics } from './metrics.js'
 import { performHandshakeInitiator, performHandshakeResponder } from './performHandshake.js'
 import { decryptStream, encryptStream } from './streaming.js'
 import type { NoiseComponents } from './index.js'
-import type { NoiseExtensions } from './proto/payload.js'
 import type { HandshakeResult, ICrypto, INoiseConnection, KeyPair } from './types.js'
-import type { MultiaddrConnection, SecuredConnection, PeerId, PrivateKey, PublicKey, AbortOptions } from '@libp2p/interface'
+import type { MultiaddrConnection, SecuredConnection, PeerId, PrivateKey, PublicKey, AbortOptions, StreamMuxerFactory } from '@libp2p/interface'
 import type { Duplex } from 'it-stream-types'
 import type { Uint8ArrayList } from 'uint8arraylist'
+
+export interface NoiseExtensions {
+  webtransportCerthashes: Uint8Array[]
+}
 
 export interface NoiseInit {
   /**
    * x25519 private key, reuse for faster handshakes
    */
   staticNoiseKey?: Uint8Array
-  extensions?: NoiseExtensions
+  extensions?: Partial<NoiseExtensions>
   crypto?: ICryptoInterface
   prologueBytes?: Uint8Array
 }
@@ -47,7 +50,10 @@ export class Noise implements INoiseConnection {
     this.components = components
     const _crypto = crypto ?? defaultCrypto
     this.crypto = wrapCrypto(_crypto)
-    this.extensions = extensions
+    this.extensions = {
+      webtransportCerthashes: [],
+      ...extensions
+    }
     this.metrics = metrics ? registerMetrics(metrics) : undefined
 
     if (staticNoiseKey) {
@@ -100,7 +106,30 @@ export class Noise implements INoiseConnection {
     return {
       conn: connection,
       remoteExtensions: handshake.payload.extensions,
-      remotePeer: peerIdFromPublicKey(publicKey)
+      remotePeer: peerIdFromPublicKey(publicKey),
+      streamMuxer: this.getStreamMuxer(handshake.payload.extensions?.streamMuxers)
+    }
+  }
+
+  private getStreamMuxer (protocols?: string[]): StreamMuxerFactory | undefined {
+    if (protocols == null) {
+      return
+    }
+
+    const streamMuxers = this.components.upgrader.getStreamMuxers()
+
+    if (streamMuxers != null) {
+      for (const protocol of protocols) {
+        const streamMuxer = streamMuxers.get(protocol)
+
+        if (streamMuxer != null) {
+          return streamMuxer
+        }
+      }
+    }
+
+    if (protocols.length) {
+      throw new InvalidCryptoExchangeError('Early muxer negotiation was requested but the initiator and responder had no common muxers')
     }
   }
 
@@ -138,7 +167,8 @@ export class Noise implements INoiseConnection {
     return {
       conn: connection,
       remoteExtensions: handshake.payload.extensions,
-      remotePeer: peerIdFromPublicKey(publicKey)
+      remotePeer: peerIdFromPublicKey(publicKey),
+      streamMuxer: this.getStreamMuxer(handshake.payload.extensions?.streamMuxers)
     }
   }
 
@@ -162,7 +192,11 @@ export class Noise implements INoiseConnection {
         crypto: this.crypto,
         prologue: this.prologue,
         s: this.staticKey,
-        extensions: this.extensions
+        extensions: {
+          streamMuxers: [...this.components.upgrader.getStreamMuxers().keys()],
+          webtransportCerthashes: [],
+          ...this.extensions
+        }
       }, options)
       this.metrics?.xxHandshakeSuccesses.increment()
     } catch (e: unknown) {
@@ -192,7 +226,11 @@ export class Noise implements INoiseConnection {
         crypto: this.crypto,
         prologue: this.prologue,
         s: this.staticKey,
-        extensions: this.extensions
+        extensions: {
+          streamMuxers: [...this.components.upgrader.getStreamMuxers().keys()],
+          webtransportCerthashes: [],
+          ...this.extensions
+        }
       }, options)
       this.metrics?.xxHandshakeSuccesses.increment()
     } catch (e: unknown) {
