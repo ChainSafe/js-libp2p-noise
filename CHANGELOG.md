@@ -1,3 +1,9 @@
+## [16.1.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v16.0.3...v16.1.0) (2025-03-20)
+
+### Features
+
+* select early muxer ([#482](https://github.com/ChainSafe/js-libp2p-noise/issues/482)) ([58c9fb9](https://github.com/ChainSafe/js-libp2p-noise/commit/58c9fb997056060670ab98ddb3726469f6f833d6))
+
 ## [16.0.3](https://github.com/ChainSafe/js-libp2p-noise/compare/v16.0.2...v16.0.3) (2025-02-21)
 
 ### Bug Fixes
