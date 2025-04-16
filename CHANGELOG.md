@@ -1,3 +1,9 @@
+## [16.1.2](https://github.com/ChainSafe/js-libp2p-noise/compare/v16.1.1...v16.1.2) (2025-04-16)
+
+### Dependencies
+
+* **dev:** bump it-byte-stream from 1.1.0 to 2.0.1 ([#506](https://github.com/ChainSafe/js-libp2p-noise/issues/506)) ([1878931](https://github.com/ChainSafe/js-libp2p-noise/commit/1878931194b1fd832f3a2e1989c9fd138163b921))
+
 ## [16.1.1](https://github.com/ChainSafe/js-libp2p-noise/compare/v16.1.0...v16.1.1) (2025-04-16)
 
 ### Dependencies
