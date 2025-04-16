@@ -102,7 +102,9 @@ describe('Noise', () => {
 
       const largePlaintext = randomBytes(60000)
       await wrappedOutbound.write(Buffer.from(largePlaintext))
-      const response = await wrappedInbound.read(60000)
+      const response = await wrappedInbound.read({
+        bytes: 60000
+      })
 
       expect(response.length).equals(largePlaintext.length)
     } catch (e) {
