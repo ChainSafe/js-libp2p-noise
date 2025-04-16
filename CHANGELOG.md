@@ -1,3 +1,9 @@
+## [16.1.1](https://github.com/ChainSafe/js-libp2p-noise/compare/v16.1.0...v16.1.1) (2025-04-16)
+
+### Dependencies
+
+* bump it-length-prefixed-stream from 1.2.0 to 2.0.1 ([#508](https://github.com/ChainSafe/js-libp2p-noise/issues/508)) ([859f7f9](https://github.com/ChainSafe/js-libp2p-noise/commit/859f7f9114cff113c36916927858e46ceb4d1006))
+
 ## [16.1.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v16.0.3...v16.1.0) (2025-03-20)
 
 ### Features
