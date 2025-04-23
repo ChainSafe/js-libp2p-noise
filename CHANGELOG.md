@@ -1,3 +1,9 @@
+## [16.1.3](https://github.com/ChainSafe/js-libp2p-noise/compare/v16.1.2...v16.1.3) (2025-04-23)
+
+### Bug Fixes
+
+* support handshake-only with no muxers ([#519](https://github.com/ChainSafe/js-libp2p-noise/issues/519)) ([fd0e4f2](https://github.com/ChainSafe/js-libp2p-noise/commit/fd0e4f277c46d13bbcff0944611fcf38130a884f))
+
 ## [16.1.2](https://github.com/ChainSafe/js-libp2p-noise/compare/v16.1.1...v16.1.2) (2025-04-16)
 
 ### Dependencies
