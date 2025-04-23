@@ -15,7 +15,7 @@ import { performHandshakeInitiator, performHandshakeResponder } from './performH
 import { decryptStream, encryptStream } from './streaming.js'
 import type { NoiseComponents } from './index.js'
 import type { HandshakeResult, ICrypto, INoiseConnection, KeyPair } from './types.js'
-import type { MultiaddrConnection, SecuredConnection, PeerId, PrivateKey, PublicKey, AbortOptions, StreamMuxerFactory } from '@libp2p/interface'
+import type { MultiaddrConnection, SecuredConnection, PrivateKey, PublicKey, StreamMuxerFactory, SecureConnectionOptions } from '@libp2p/interface'
 import type { Duplex } from 'it-stream-types'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
@@ -80,7 +80,7 @@ export class Noise implements INoiseConnection {
    * @param options.remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer
    * @param options.signal - Used to abort the operation
    */
-  public async secureOutbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (connection: Stream, options?: { remotePeer?: PeerId, signal?: AbortSignal }): Promise<SecuredConnection<Stream, NoiseExtensions>> {
+  public async secureOutbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (connection: Stream, options?: SecureConnectionOptions): Promise<SecuredConnection<Stream, NoiseExtensions>> {
     const wrappedConnection = lpStream(
       connection,
       {
@@ -107,12 +107,12 @@ export class Noise implements INoiseConnection {
       conn: connection,
       remoteExtensions: handshake.payload.extensions,
       remotePeer: peerIdFromPublicKey(publicKey),
-      streamMuxer: this.getStreamMuxer(handshake.payload.extensions?.streamMuxers)
+      streamMuxer: options?.skipStreamMuxerNegotiation === true ? undefined : this.getStreamMuxer(handshake.payload.extensions?.streamMuxers)
     }
   }
 
   private getStreamMuxer (protocols?: string[]): StreamMuxerFactory | undefined {
-    if (protocols == null) {
+    if (protocols == null || protocols.length === 0) {
       return
     }
 
@@ -141,7 +141,7 @@ export class Noise implements INoiseConnection {
    * @param options.remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer
    * @param options.signal - Used to abort the operation
    */
-  public async secureInbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (connection: Stream, options?: { remotePeer?: PeerId, signal?: AbortSignal }): Promise<SecuredConnection<Stream, NoiseExtensions>> {
+  public async secureInbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (connection: Stream, options?: SecureConnectionOptions): Promise<SecuredConnection<Stream, NoiseExtensions>> {
     const wrappedConnection = lpStream(
       connection,
       {
@@ -168,7 +168,7 @@ export class Noise implements INoiseConnection {
       conn: connection,
       remoteExtensions: handshake.payload.extensions,
       remotePeer: peerIdFromPublicKey(publicKey),
-      streamMuxer: this.getStreamMuxer(handshake.payload.extensions?.streamMuxers)
+      streamMuxer: options?.skipStreamMuxerNegotiation === true ? undefined : this.getStreamMuxer(handshake.payload.extensions?.streamMuxers)
     }
   }
 
@@ -180,9 +180,11 @@ export class Noise implements INoiseConnection {
     // TODO: pass private key in noise constructor via Components
     privateKey: PrivateKey,
     remoteIdentityKey?: PublicKey,
-    options?: AbortOptions
+    options?: SecureConnectionOptions
   ): Promise<HandshakeResult> {
     let result: HandshakeResult
+    const streamMuxers = options?.skipStreamMuxerNegotiation === true ? [] : [...this.components.upgrader.getStreamMuxers().keys()]
+
     try {
       result = await performHandshakeInitiator({
         connection,
@@ -193,7 +195,7 @@ export class Noise implements INoiseConnection {
         prologue: this.prologue,
         s: this.staticKey,
         extensions: {
-          streamMuxers: [...this.components.upgrader.getStreamMuxers().keys()],
+          streamMuxers,
           webtransportCerthashes: [],
           ...this.extensions
         }
@@ -214,9 +216,11 @@ export class Noise implements INoiseConnection {
     connection: LengthPrefixedStream,
     privateKey: PrivateKey,
     remoteIdentityKey?: PublicKey,
-    options?: AbortOptions
+    options?: SecureConnectionOptions
   ): Promise<HandshakeResult> {
     let result: HandshakeResult
+    const streamMuxers = options?.skipStreamMuxerNegotiation === true ? [] : [...this.components.upgrader.getStreamMuxers().keys()]
+
     try {
       result = await performHandshakeResponder({
         connection,
@@ -227,7 +231,7 @@ export class Noise implements INoiseConnection {
         prologue: this.prologue,
         s: this.staticKey,
         extensions: {
-          streamMuxers: [...this.components.upgrader.getStreamMuxers().keys()],
+          streamMuxers,
           webtransportCerthashes: [],
           ...this.extensions
         }

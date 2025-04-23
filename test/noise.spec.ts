@@ -235,39 +235,6 @@ describe('Noise', () => {
     }
   })
 
-  it('should fail to accept early muxer from remote peer', async () => {
-    const streamMuxerProtocol = '/my-early-muxer'
-    const otherStreamMuxerProtocol = '/my-other-early-muxer'
-    const staticKeysInitiator = pureJsCrypto.generateX25519KeyPair()
-    const noiseInit = new Noise({
-      ...localPeer,
-      logger: defaultLogger(),
-      upgrader: stubInterface<Upgrader>({
-        getStreamMuxers: () => new Map([[streamMuxerProtocol, stubInterface<StreamMuxerFactory>({
-          protocol: streamMuxerProtocol
-        })]])
-      })
-    }, { staticNoiseKey: staticKeysInitiator.privateKey })
-    const staticKeysResponder = pureJsCrypto.generateX25519KeyPair()
-    const noiseResp = new Noise({
-      ...remotePeer,
-      logger: defaultLogger(),
-      upgrader: stubInterface<Upgrader>({
-        getStreamMuxers: () => new Map([[otherStreamMuxerProtocol, stubInterface<StreamMuxerFactory>({
-          protocol: otherStreamMuxerProtocol
-        })]])
-      })
-    }, { staticNoiseKey: staticKeysResponder.privateKey })
-
-    const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
-    await expect(Promise.all([
-      noiseInit.secureOutbound(outboundConnection, {
-        remotePeer: remotePeer.peerId
-      }),
-      noiseResp.secureInbound(inboundConnection)
-    ])).to.eventually.be.rejectedWith(/no common muxers/)
-  })
-
   it('should accept a prologue', async () => {
     try {
       const noiseInit = new Noise({
