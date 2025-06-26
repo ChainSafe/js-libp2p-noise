@@ -1,3 +1,9 @@
+## [16.1.4](https://github.com/ChainSafe/js-libp2p-noise/compare/v16.1.3...v16.1.4) (2025-06-26)
+
+### Bug Fixes
+
+* update project config and ts version ([#607](https://github.com/ChainSafe/js-libp2p-noise/issues/607)) ([bdf58d1](https://github.com/ChainSafe/js-libp2p-noise/commit/bdf58d1a17913ca6e2906e88b0f3fa84c0383724))
+
 ## [16.1.3](https://github.com/ChainSafe/js-libp2p-noise/compare/v16.1.2...v16.1.3) (2025-04-23)
 
 ### Bug Fixes
