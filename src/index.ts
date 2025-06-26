@@ -39,8 +39,11 @@
 import { Noise } from './noise.js'
 import type { NoiseInit, NoiseExtensions } from './noise.js'
 import type { ComponentLogger, ConnectionEncrypter, Metrics, PeerId, PrivateKey, Upgrader } from '@libp2p/interface'
-export type { ICryptoInterface } from './crypto.js'
+import type { KeyPair } from './types.js'
+
 export { pureJsCrypto } from './crypto/js.js'
+export type { ICryptoInterface } from './crypto.js'
+export type { NoiseInit, NoiseExtensions, KeyPair }
 
 export interface NoiseComponents {
   peerId: PeerId
