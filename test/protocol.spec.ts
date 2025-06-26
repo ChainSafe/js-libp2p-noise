@@ -5,7 +5,8 @@ import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { pureJsCrypto } from '../src/crypto/js.js'
 import { wrapCrypto } from '../src/crypto.js'
-import { type CipherState, type SymmetricState, XXHandshakeState, ZEROLEN } from '../src/protocol.js'
+import { XXHandshakeState, ZEROLEN } from '../src/protocol.js'
+import type { CipherState, SymmetricState } from '../src/protocol.js'
 
 describe('XXHandshakeState', () => {
   const prologue = Buffer.alloc(0)
@@ -63,9 +64,8 @@ describe('XXHandshakeState', () => {
     const nsInitSplit = nsInit.ss.split()
     const nsRespSplit = nsResp.ss.split()
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     assert(uint8ArrayEquals(nsInitSplit[0].k!, nsRespSplit[0].k!))
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
     assert(uint8ArrayEquals(nsInitSplit[1].k!, nsRespSplit[1].k!))
 
     return {

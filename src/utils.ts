@@ -1,9 +1,11 @@
 import { publicKeyFromProtobuf, publicKeyToProtobuf } from '@libp2p/crypto/keys'
-import { UnexpectedPeerError, type PrivateKey, type PublicKey } from '@libp2p/interface'
-import { type Uint8ArrayList } from 'uint8arraylist'
+import { UnexpectedPeerError } from '@libp2p/interface'
 import { concat as uint8ArrayConcat } from 'uint8arrays/concat'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
-import { type NoiseExtensions, NoiseHandshakePayload } from './proto/payload.js'
+import { NoiseHandshakePayload } from './proto/payload.js'
+import type { NoiseExtensions } from './proto/payload.js'
+import type { PrivateKey, PublicKey } from '@libp2p/interface'
+import type { Uint8ArrayList } from 'uint8arraylist'
 
 export async function createHandshakePayload (
   privateKey: PrivateKey,

@@ -1,10 +1,11 @@
 import { defaultLogger } from '@libp2p/logger'
 import { expect } from 'aegir/chai'
 import { duplexPair } from 'it-pair/duplex'
-import { stubInterface, type StubbedInstance } from 'sinon-ts'
+import { stubInterface } from 'sinon-ts'
 import { Noise } from '../src/noise.js'
 import { createPeerIdsFromFixtures } from './fixtures/peer.js'
 import type { StreamMuxerFactory, Upgrader, SecureConnectionOptions, SecuredConnection, PeerId, PrivateKey } from '@libp2p/interface'
+import type { StubbedInstance } from 'sinon-ts'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
 describe('early muxer selection', () => {

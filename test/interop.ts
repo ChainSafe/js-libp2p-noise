@@ -9,11 +9,12 @@ import { tcp } from '@libp2p/tcp'
 import { multiaddr } from '@multiformats/multiaddr'
 import { execa } from 'execa'
 import { path as p2pd } from 'go-libp2p'
-import { createLibp2p, type Libp2pOptions } from 'libp2p'
+import { createLibp2p } from 'libp2p'
 import pDefer from 'p-defer'
 import { noise } from '../src/index.js'
 import type { PrivateKey } from '@libp2p/interface'
 import type { SpawnOptions, Daemon, DaemonFactory } from '@libp2p/interop'
+import type { Libp2pOptions } from 'libp2p'
 
 async function createGoPeer (options: SpawnOptions): Promise<Daemon> {
   const controlPort = Math.floor(Math.random() * (50000 - 10000 + 1)) + 10000
