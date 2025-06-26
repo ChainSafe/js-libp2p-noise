@@ -17,7 +17,7 @@ describe('performHandshake', () => {
 
   before(async () => {
     [peerA, peerB, fakePeer] = await createPeerIdsFromFixtures(3)
-    if (!peerA.privateKey || !peerB.privateKey || !fakePeer.privateKey) throw new Error('unreachable')
+    if (!peerA.privateKey || !peerB.privateKey || !fakePeer.privateKey) { throw new Error('unreachable') }
   })
 
   it('should propose, exchange and finish handshake', async () => {
@@ -89,7 +89,6 @@ describe('performHandshake', () => {
 
       assert(false, 'Should throw exception')
     } catch (e) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       expect((e as Error).message).equals(`Payload identity key ${peerB.privateKey.publicKey} does not match expected remote identity key ${fakePeer.privateKey.publicKey}`)
     }
   })
@@ -127,7 +126,6 @@ describe('performHandshake', () => {
 
       assert(false, 'Should throw exception')
     } catch (e) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       expect((e as Error).message).equals(`Payload identity key ${peerA.privateKey.publicKey} does not match expected remote identity key ${fakePeer.privateKey.publicKey}`)
     }
   })

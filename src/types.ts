@@ -1,5 +1,5 @@
-import type { Nonce } from './nonce'
-import type { NoiseExtensions, NoiseHandshakePayload } from './proto/payload'
+import type { Nonce } from './nonce.js'
+import type { NoiseExtensions, NoiseHandshakePayload } from './proto/payload.js'
 import type { ConnectionEncrypter, Logger, PrivateKey, PublicKey } from '@libp2p/interface'
 import type { LengthPrefixedStream } from 'it-length-prefixed-stream'
 import type { Uint8ArrayList } from 'uint8arraylist'

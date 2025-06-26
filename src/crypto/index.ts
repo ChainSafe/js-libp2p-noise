@@ -199,12 +199,12 @@ export const defaultCrypto: ICryptoInterface = {
 
     return crypto.diffieHellman({
       publicKey: crypto.createPublicKey({
-        key: Buffer.from(publicKey, publicKey.byteOffset, publicKey.byteLength),
+        key: Buffer.from(publicKey.buffer, publicKey.byteOffset, publicKey.byteLength),
         type: 'spki',
         format: 'der'
       }),
       privateKey: crypto.createPrivateKey({
-        key: Buffer.from(privateKey, privateKey.byteOffset, privateKey.byteLength),
+        key: Buffer.from(privateKey.buffer, privateKey.byteOffset, privateKey.byteLength),
         type: 'pkcs8',
         format: 'der'
       })
