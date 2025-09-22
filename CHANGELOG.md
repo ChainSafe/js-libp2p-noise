@@ -1,3 +1,9 @@
+## [16.1.5](https://github.com/ChainSafe/js-libp2p-noise/compare/v16.1.4...v16.1.5) (2025-09-22)
+
+### Bug Fixes
+
+* expose crypto implementations ([#614](https://github.com/ChainSafe/js-libp2p-noise/issues/614)) ([143dee2](https://github.com/ChainSafe/js-libp2p-noise/commit/143dee26908ea835b0069bf1294bcdb958772927))
+
 ## [16.1.4](https://github.com/ChainSafe/js-libp2p-noise/compare/v16.1.3...v16.1.4) (2025-06-26)
 
 ### Bug Fixes
