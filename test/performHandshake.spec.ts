@@ -1,8 +1,7 @@
 import { Buffer } from 'buffer'
 import { defaultLogger } from '@libp2p/logger'
+import { multiaddrConnectionPair, lpStream } from '@libp2p/utils'
 import { assert, expect } from 'aegir/chai'
-import { lpStream } from 'it-length-prefixed-stream'
-import { duplexPair } from 'it-pair/duplex'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { defaultCrypto } from '../src/crypto/index.js'
 import { wrapCrypto } from '../src/crypto.js'
@@ -21,7 +20,7 @@ describe('performHandshake', () => {
   })
 
   it('should propose, exchange and finish handshake', async () => {
-    const duplex = duplexPair<Uint8Array>()
+    const duplex = multiaddrConnectionPair()
     const connectionInitiator = lpStream(duplex[0])
     const connectionResponder = lpStream(duplex[1])
 
@@ -51,14 +50,14 @@ describe('performHandshake', () => {
     ])
 
     // Test encryption and decryption
-    const encrypted = initiator.encrypt(Buffer.from('encryptthis'))
+    const encrypted = initiator.encrypt(Buffer.from('encrypt this'))
     const decrypted = responder.decrypt(encrypted)
-    assert(uint8ArrayEquals(decrypted.subarray(), Buffer.from('encryptthis')))
+    assert(uint8ArrayEquals(decrypted.subarray(), Buffer.from('encrypt this')))
   })
 
   it('Initiator should fail to exchange handshake if given wrong public key in payload', async () => {
     try {
-      const duplex = duplexPair<Uint8Array>()
+      const duplex = multiaddrConnectionPair()
       const connectionInitiator = lpStream(duplex[0])
       const connectionResponder = lpStream(duplex[1])
 
@@ -95,7 +94,7 @@ describe('performHandshake', () => {
 
   it('Responder should fail to exchange handshake if given wrong public key in payload', async () => {
     try {
-      const duplex = duplexPair<Uint8Array>()
+      const duplex = multiaddrConnectionPair()
       const connectionInitiator = lpStream(duplex[0])
       const connectionResponder = lpStream(duplex[1])
 

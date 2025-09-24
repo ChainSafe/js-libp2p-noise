@@ -1,10 +1,7 @@
 import { publicKeyFromProtobuf } from '@libp2p/crypto/keys'
 import { InvalidCryptoExchangeError, serviceCapabilities } from '@libp2p/interface'
 import { peerIdFromPublicKey } from '@libp2p/peer-id'
-import { decode } from 'it-length-prefixed'
-import { lpStream } from 'it-length-prefixed-stream'
-import { duplexPair } from 'it-pair/duplex'
-import { pipe } from 'it-pipe'
+import { lpStream } from '@libp2p/utils'
 import { alloc as uint8ArrayAlloc } from 'uint8arrays/alloc'
 import { NOISE_MSG_MAX_LENGTH_BYTES } from './constants.js'
 import { defaultCrypto } from './crypto/index.js'
@@ -12,15 +9,13 @@ import { wrapCrypto } from './crypto.js'
 import { uint16BEDecode, uint16BEEncode } from './encoder.js'
 import { registerMetrics } from './metrics.js'
 import { performHandshakeInitiator, performHandshakeResponder } from './performHandshake.js'
-import { decryptStream, encryptStream } from './streaming.js'
+import { toMessageStream } from './utils.ts'
 import type { ICryptoInterface } from './crypto.js'
 import type { NoiseComponents } from './index.js'
 import type { MetricsRegistry } from './metrics.js'
-import type { HandshakeResult, ICrypto, INoiseConnection, KeyPair } from './types.js'
-import type { MultiaddrConnection, SecuredConnection, PrivateKey, PublicKey, StreamMuxerFactory, SecureConnectionOptions } from '@libp2p/interface'
-import type { LengthPrefixedStream } from 'it-length-prefixed-stream'
-import type { Duplex } from 'it-stream-types'
-import type { Uint8ArrayList } from 'uint8arraylist'
+import type { HandshakeResult, ICrypto, INoiseConnection, INoiseExtensions, KeyPair } from './types.js'
+import type { SecuredConnection, PrivateKey, PublicKey, StreamMuxerFactory, SecureConnectionOptions, Logger, MessageStream } from '@libp2p/interface'
+import type { LengthPrefixedStream } from '@libp2p/utils'
 
 export interface NoiseExtensions {
   webtransportCerthashes: Uint8Array[]
@@ -45,12 +40,14 @@ export class Noise implements INoiseConnection {
   private readonly extensions?: NoiseExtensions
   private readonly metrics?: MetricsRegistry
   private readonly components: NoiseComponents
+  private readonly log: Logger
 
   constructor (components: NoiseComponents, init: NoiseInit = {}) {
     const { staticNoiseKey, extensions, crypto, prologueBytes } = init
     const { metrics } = components
 
     this.components = components
+    this.log = components.logger.forComponent('libp2p:noise')
     const _crypto = crypto ?? defaultCrypto
     this.crypto = wrapCrypto(_crypto)
     this.extensions = {
@@ -83,31 +80,25 @@ export class Noise implements INoiseConnection {
    * @param options.remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer
    * @param options.signal - Used to abort the operation
    */
-  public async secureOutbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (connection: Stream, options?: SecureConnectionOptions): Promise<SecuredConnection<Stream, NoiseExtensions>> {
-    const wrappedConnection = lpStream(
-      connection,
-      {
-        lengthEncoder: uint16BEEncode,
-        lengthDecoder: uint16BEDecode,
-        maxDataLength: NOISE_MSG_MAX_LENGTH_BYTES
-      }
-    )
+  async secureOutbound (connection: MessageStream, options?: SecureConnectionOptions): Promise<SecuredConnection<INoiseExtensions>> {
+    const log = connection.log?.newScope('noise') ?? this.log
+    const wrappedConnection = lpStream(connection, {
+      lengthEncoder: uint16BEEncode,
+      lengthDecoder: uint16BEDecode,
+      maxDataLength: NOISE_MSG_MAX_LENGTH_BYTES
+    })
 
     const handshake = await this.performHandshakeInitiator(
       wrappedConnection,
       this.components.privateKey,
+      log,
       options?.remotePeer?.publicKey,
       options
     )
-    const conn = await this.createSecureConnection(wrappedConnection, handshake)
-
-    connection.source = conn.source
-    connection.sink = conn.sink
-
     const publicKey = publicKeyFromProtobuf(handshake.payload.identityKey)
 
     return {
-      conn: connection,
+      connection: toMessageStream(wrappedConnection.unwrap(), handshake, this.metrics),
       remoteExtensions: handshake.payload.extensions,
       remotePeer: peerIdFromPublicKey(publicKey),
       streamMuxer: options?.skipStreamMuxerNegotiation === true ? undefined : this.getStreamMuxer(handshake.payload.extensions?.streamMuxers)
@@ -144,31 +135,25 @@ export class Noise implements INoiseConnection {
    * @param options.remotePeer - PeerId of the remote peer. Used to validate the integrity of the remote peer
    * @param options.signal - Used to abort the operation
    */
-  public async secureInbound <Stream extends Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>> = MultiaddrConnection> (connection: Stream, options?: SecureConnectionOptions): Promise<SecuredConnection<Stream, NoiseExtensions>> {
-    const wrappedConnection = lpStream(
-      connection,
-      {
-        lengthEncoder: uint16BEEncode,
-        lengthDecoder: uint16BEDecode,
-        maxDataLength: NOISE_MSG_MAX_LENGTH_BYTES
-      }
-    )
+  async secureInbound (connection: MessageStream, options?: SecureConnectionOptions): Promise<SecuredConnection<INoiseExtensions>> {
+    const log = connection.log?.newScope('noise') ?? this.log
+    const wrappedConnection = lpStream(connection, {
+      lengthEncoder: uint16BEEncode,
+      lengthDecoder: uint16BEDecode,
+      maxDataLength: NOISE_MSG_MAX_LENGTH_BYTES
+    })
 
     const handshake = await this.performHandshakeResponder(
       wrappedConnection,
       this.components.privateKey,
+      log,
       options?.remotePeer?.publicKey,
       options
     )
-    const conn = await this.createSecureConnection(wrappedConnection, handshake)
-
-    connection.source = conn.source
-    connection.sink = conn.sink
-
     const publicKey = publicKeyFromProtobuf(handshake.payload.identityKey)
 
     return {
-      conn: connection,
+      connection: toMessageStream(wrappedConnection.unwrap(), handshake, this.metrics),
       remoteExtensions: handshake.payload.extensions,
       remotePeer: peerIdFromPublicKey(publicKey),
       streamMuxer: options?.skipStreamMuxerNegotiation === true ? undefined : this.getStreamMuxer(handshake.payload.extensions?.streamMuxers)
@@ -182,6 +167,7 @@ export class Noise implements INoiseConnection {
     connection: LengthPrefixedStream,
     // TODO: pass private key in noise constructor via Components
     privateKey: PrivateKey,
+    log: Logger,
     remoteIdentityKey?: PublicKey,
     options?: SecureConnectionOptions
   ): Promise<HandshakeResult> {
@@ -193,7 +179,7 @@ export class Noise implements INoiseConnection {
         connection,
         privateKey,
         remoteIdentityKey,
-        log: this.components.logger.forComponent('libp2p:noise:xxhandshake'),
+        log: log.newScope('xxhandshake'),
         crypto: this.crypto,
         prologue: this.prologue,
         s: this.staticKey,
@@ -218,6 +204,7 @@ export class Noise implements INoiseConnection {
   private async performHandshakeResponder (
     connection: LengthPrefixedStream,
     privateKey: PrivateKey,
+    log: Logger,
     remoteIdentityKey?: PublicKey,
     options?: SecureConnectionOptions
   ): Promise<HandshakeResult> {
@@ -229,7 +216,7 @@ export class Noise implements INoiseConnection {
         connection,
         privateKey,
         remoteIdentityKey,
-        log: this.components.logger.forComponent('libp2p:noise:xxhandshake'),
+        log: log.newScope('xxhandshake'),
         crypto: this.crypto,
         prologue: this.prologue,
         s: this.staticKey,
@@ -246,25 +233,5 @@ export class Noise implements INoiseConnection {
     }
 
     return result
-  }
-
-  private async createSecureConnection (
-    connection: LengthPrefixedStream<Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>>>,
-    handshake: HandshakeResult
-  ): Promise<Duplex<AsyncGenerator<Uint8Array | Uint8ArrayList>>> {
-    // Create encryption box/unbox wrapper
-    const [secure, user] = duplexPair<Uint8Array | Uint8ArrayList>()
-    const network = connection.unwrap()
-
-    await pipe(
-      secure, // write to wrapper
-      encryptStream(handshake, this.metrics), // encrypt data + prefix with message length
-      network, // send to the remote peer
-      (source) => decode(source, { lengthDecoder: uint16BEDecode }), // read message length prefix
-      decryptStream(handshake, this.metrics), // decrypt the incoming data
-      secure // pipe to the wrapper
-    )
-
-    return user
   }
 }
