@@ -1,16 +1,14 @@
 import { generateKeyPair } from '@libp2p/crypto/keys'
 import { defaultLogger } from '@libp2p/logger'
 import { peerIdFromPrivateKey } from '@libp2p/peer-id'
+import { lpStream, multiaddrConnectionPair } from '@libp2p/utils'
 import { expect } from 'aegir/chai'
-import { lpStream } from 'it-length-prefixed-stream'
-import { duplexPair } from 'it-pair/duplex'
 import sinon from 'sinon'
 import { stubInterface } from 'sinon-ts'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { noise } from '../src/index.js'
 import { Noise } from '../src/noise.js'
 import type { Metrics, Upgrader } from '@libp2p/interface'
-import type { Uint8ArrayList } from 'uint8arraylist'
 
 function createCounterSpy (): ReturnType<typeof sinon.spy> {
   return sinon.spy({
@@ -70,7 +68,7 @@ describe('Index', () => {
       })
     })
 
-    const [inboundConnection, outboundConnection] = duplexPair<Uint8Array | Uint8ArrayList>()
+    const [inboundConnection, outboundConnection] = multiaddrConnectionPair()
     const [outbound, inbound] = await Promise.all([
       noiseInit.secureOutbound(outboundConnection, {
         remotePeer: peerIdResp
@@ -79,8 +77,8 @@ describe('Index', () => {
         remotePeer: peerIdInit
       })
     ])
-    const wrappedInbound = lpStream(inbound.conn)
-    const wrappedOutbound = lpStream(outbound.conn)
+    const wrappedInbound = lpStream(inbound.connection)
+    const wrappedOutbound = lpStream(outbound.connection)
 
     await wrappedOutbound.write(uint8ArrayFromString('test'))
     await wrappedInbound.read()
