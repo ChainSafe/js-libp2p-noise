@@ -10,6 +10,26 @@
 
 ### Bug Fixes
 
+* remove provenance ([#629](https://github.com/ChainSafe/js-libp2p-noise/issues/629)) ([7aa4d48](https://github.com/ChainSafe/js-libp2p-noise/commit/7aa4d48e37409859325aa29a8d4f7170b72c7028))
+* upate typesversions and typedoc ([#628](https://github.com/ChainSafe/js-libp2p-noise/issues/628)) ([91679d5](https://github.com/ChainSafe/js-libp2p-noise/commit/91679d5ea5e6c495d622ed86f189e1efa5317b4b))
+
+### Trivial Changes
+
+* **release:** 17.0.0 [skip ci] ([fe06799](https://github.com/ChainSafe/js-libp2p-noise/commit/fe067991709ce43b16c38e9d3514a3700beccf03))
+* **release:** 17.0.0 [skip ci] ([3c628a2](https://github.com/ChainSafe/js-libp2p-noise/commit/3c628a2641c8ddaf0738f25128c7dfb586bdca5b))
+
+## [17.0.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v16.1.5...v17.0.0) (2025-09-25)
+
+### ⚠ BREAKING CHANGES
+
+* Must be used with `libp2p@3.x.x`, it cannot be used with earlier versions
+
+### Features
+
+* update to libp2p v3 api ([#618](https://github.com/ChainSafe/js-libp2p-noise/issues/618)) ([6b79387](https://github.com/ChainSafe/js-libp2p-noise/commit/6b79387c423ef19e596e0dece44247a28731ca93))
+
+### Bug Fixes
+
 * upate typesversions and typedoc ([#628](https://github.com/ChainSafe/js-libp2p-noise/issues/628)) ([91679d5](https://github.com/ChainSafe/js-libp2p-noise/commit/91679d5ea5e6c495d622ed86f189e1efa5317b4b))
 
 ### Trivial Changes
