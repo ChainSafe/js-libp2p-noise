@@ -1,6 +1,6 @@
 {
   "name": "@chainsafe/libp2p-noise",
-  "version": "16.1.5",
+  "version": "17.0.0",
   "description": "Noise libp2p handshake for js-libp2p",
   "author": "ChainSafe <info@chainsafe.io>",
   "license": "Apache-2.0 OR MIT",
