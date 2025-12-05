@@ -163,7 +163,7 @@
     "test:interop": "aegir test -t node -f dist/test/interop.js",
     "docs": "aegir docs",
     "proto:gen": "protons ./src/proto/payload.proto",
-    "prepublish": "pnpm run build",
+    "prepublish": "npm run build",
     "release": "aegir release"
   },
   "dependencies": {
