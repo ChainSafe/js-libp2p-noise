@@ -53,7 +53,7 @@ importers:
         version: 8.0.1
       '@libp2p/daemon-client':
         specifier: ^10.0.0
-        version: 10.0.11
+        version: 10.0.12
       '@libp2p/daemon-server':
         specifier: ^9.0.0
         version: 9.0.11
@@ -1193,8 +1193,8 @@ packages:
   '@libp2p/crypto@5.1.13':
     resolution: {integrity: sha512-8NN9cQP3jDn+p9+QE9ByiEoZ2lemDFf/unTgiKmS3JF93ph240EUVdbCyyEgOMfykzb0okTM4gzvwfx9osJebQ==}
 
-  '@libp2p/daemon-client@10.0.11':
-    resolution: {integrity: sha512-NBDxPZSYOH8ZdJuUjCxIX0n7QxK5wPHiXgb4pgav9UXUqHKRapdA2JumFELD7zFu6DACuKMB4DqlLQefiPkcuA==}
+  '@libp2p/daemon-client@10.0.12':
+    resolution: {integrity: sha512-oud8MAcPhV8T7gYgGmcBLEP+SjTp97qULOIr7wuglZB4QwH9yE8xEQV1Q8RQgWnbyez+UBRmNBjigttw80vsLQ==}
 
   '@libp2p/daemon-protocol@8.0.3':
     resolution: {integrity: sha512-WpnxHjsR1aSttgppdHx34y3XI4kIysV8AvAdkczAQ/aj3+AkTyrdCFI0e5Jnj7dyQOnuiTmlNhCB9ECU+LqC/w==}
@@ -1274,11 +1274,17 @@ packages:
   '@libp2p/record@4.0.8':
     resolution: {integrity: sha512-ZsGKBA1zuzqiwNPO2q0PHFhZzAJi/p+YLDtYdkwLYW0FbIgeMb5FX7cmopDk5Aa8mM9UbINb+nK5xz4+Bz8ShQ==}
 
+  '@libp2p/tcp@11.0.10':
+    resolution: {integrity: sha512-vp1XvbRUU6JyVZMDfrr8UX+xs1sybT2r3PFoN5m07r3GSrMMPOKpWN2HkhT2pCBZWJG6ADQOy5+K0tBRE782oA==}
+
   '@libp2p/tcp@11.0.9':
     resolution: {integrity: sha512-/Fjy2TQR5rMBp0DbKYiP43wRM+CYsWVLc+hOpFrPp5EOS3yu/38/0F7EISFdk2vsijqll7iD0BA4+/Zt4U1kwQ==}
 
   '@libp2p/utils@6.7.2':
     resolution: {integrity: sha512-yglVPcYErb4al3MMTdedVLLsdUvr5KaqrrxohxTl/FXMFBvBs0o3w8lo29nfnTUpnNSHFhWZ9at0ZGNnpT/C/w==}
+
+  '@libp2p/utils@7.0.10':
+    resolution: {integrity: sha512-+mzD+7yLMoZ8+34y/iS9d1CnwHjJJ/qEsao9FckHf9T9tnVXEyLLu9TpzBCcGRm4fUK/QCSHK2AcZH50kkAFkw==}
 
   '@libp2p/utils@7.0.9':
     resolution: {integrity: sha512-2wYhsgfbFXfh5ui0ME9MNHc7uUIuZwpeZ/yagKmDSjIP7B+L3/9mj+vVXO14AhmjfwnKx2xUDQvzGZeq5to4ow==}
@@ -1615,6 +1621,9 @@ packages:
   '@types/node@24.10.1':
     resolution: {integrity: sha512-GNWcUTRBgIRJD5zj+Tq0fKOJ5XZajIiBroOF0yvj2bSU1WvNdYS/dn9UxwsujGW4JX06dnHyjV2y9rRaybH0iQ==}
 
+  '@types/node@24.10.9':
+    resolution: {integrity: sha512-ne4A0IpG3+2ETuREInjPNhUGis1SFjv1d5asp8MzEAGtOZeTeHVDOYqOgqfhvseqg/iXty2hjBf1zAOb7RNiNw==}
+
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
 
@@ -1916,6 +1925,10 @@ packages:
 
   any-signal@4.1.1:
     resolution: {integrity: sha512-iADenERppdC+A2YKbOXXB2WUeABLaM6qnpZ70kZbPZ1cZMMJ7eF+3CaYm+/PhBizgkzlvssC7QuHS30oOiQYWA==}
+    engines: {node: '>=16.0.0', npm: '>=7.0.0'}
+
+  any-signal@4.2.0:
+    resolution: {integrity: sha512-LndMvYuAPf4rC195lk7oSFuHOYFpOszIYrNYv0gHAvz+aEhE9qPZLhmrIz5pXP2BSsPOXvsuHDXEGaiQhIh9wA==}
     engines: {node: '>=16.0.0', npm: '>=7.0.0'}
 
   append-transform@2.0.0:
@@ -2239,6 +2252,10 @@ packages:
 
   cborg@4.3.2:
     resolution: {integrity: sha512-l+QzebEAG0vb09YKkaOrMi2zmm80UNjmbvocMIeW5hO7JOXWdrQ/H49yOKfYX0MBgrj/KWgatBnEgRXyNyKD+A==}
+    hasBin: true
+
+  cborg@4.4.1:
+    resolution: {integrity: sha512-mJ6KJfhqHQm5A6nVWBsqUdhDUek2apbF7PhhETwZCJIrgX/xVuR0AIGoGbmAIC86WOwCZmRDaGMz2gOtcPntuw==}
     hasBin: true
 
   ccount@2.0.1:
@@ -4819,6 +4836,10 @@ packages:
     resolution: {integrity: sha512-SI8GHTMMv6dAIMMHBG0g6PyZIEal+CCaKCje24NxkgEJrPvfdfEP0xXVoDC3OGxlfjM8qqSs/luTaobCkGdEUA==}
     engines: {node: '>=20'}
 
+  p-event@7.0.2:
+    resolution: {integrity: sha512-nDq4JpyYnNPDrndgY3z9vQsB0X1bdsOcDmMFbLvewcnt38Geda9x+gULX3+RiGzwJ1QvzqTwNB4EQp+OwMOVAA==}
+    engines: {node: '>=20'}
+
   p-filter@4.1.0:
     resolution: {integrity: sha512-37/tPdZ3oJwHaS3gNJdenCDB3Tz26i9sjhnguBtvN0vYlRIiDNnvTWkuh+0hETV9rLPdJ3rlL3yVOYPIAnM8rw==}
     engines: {node: '>=18'}
@@ -7377,14 +7398,14 @@ snapshots:
       uint8arraylist: 2.4.8
       uint8arrays: 5.1.0
 
-  '@libp2p/daemon-client@10.0.11':
+  '@libp2p/daemon-client@10.0.12':
     dependencies:
       '@libp2p/daemon-protocol': 8.0.3
       '@libp2p/interface': 3.1.0
       '@libp2p/logger': 6.2.2
       '@libp2p/peer-id': 6.0.4
-      '@libp2p/tcp': 11.0.9
-      '@libp2p/utils': 7.0.9
+      '@libp2p/tcp': 11.0.10
+      '@libp2p/utils': 7.0.10
       '@multiformats/multiaddr': 13.0.1
       multiformats: 13.4.1
 
@@ -7518,7 +7539,7 @@ snapshots:
 
   '@libp2p/interop@14.0.11(aegir@47.0.24(@babel/core@7.28.5)(@typescript-eslint/utils@8.48.1(eslint@9.39.1)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9))':
     dependencies:
-      '@libp2p/daemon-client': 10.0.11
+      '@libp2p/daemon-client': 10.0.12
       '@libp2p/interface': 3.1.0
       '@libp2p/utils': 7.0.9
       '@multiformats/multiaddr': 13.0.1
@@ -7707,6 +7728,18 @@ snapshots:
       uint8arraylist: 2.4.8
       uint8arrays: 5.1.0
 
+  '@libp2p/tcp@11.0.10':
+    dependencies:
+      '@libp2p/interface': 3.1.0
+      '@libp2p/utils': 7.0.10
+      '@multiformats/multiaddr': 13.0.1
+      '@multiformats/multiaddr-matcher': 3.0.1
+      '@types/sinon': 20.0.0
+      main-event: 1.0.1
+      p-event: 7.0.2
+      progress-events: 1.0.1
+      uint8arraylist: 2.4.8
+
   '@libp2p/tcp@11.0.9':
     dependencies:
       '@libp2p/interface': 3.1.0
@@ -7728,7 +7761,7 @@ snapshots:
       '@libp2p/logger': 5.2.0
       '@multiformats/multiaddr': 12.5.1
       '@sindresorhus/fnv1a': 3.1.0
-      any-signal: 4.1.1
+      any-signal: 4.2.0
       delay: 6.0.0
       get-iterator: 2.0.1
       is-loopback-addr: 2.0.2
@@ -7742,6 +7775,32 @@ snapshots:
       p-defer: 4.0.1
       race-event: 1.6.1
       race-signal: 1.1.3
+      uint8arraylist: 2.4.8
+      uint8arrays: 5.1.0
+
+  '@libp2p/utils@7.0.10':
+    dependencies:
+      '@chainsafe/is-ip': 2.1.0
+      '@chainsafe/netmask': 2.0.0
+      '@libp2p/crypto': 5.1.13
+      '@libp2p/interface': 3.1.0
+      '@libp2p/logger': 6.2.2
+      '@multiformats/multiaddr': 13.0.1
+      '@sindresorhus/fnv1a': 3.1.0
+      any-signal: 4.2.0
+      cborg: 4.4.1
+      delay: 7.0.0
+      is-loopback-addr: 2.0.2
+      it-length-prefixed: 10.0.1
+      it-pipe: 3.0.1
+      it-pushable: 3.2.3
+      it-stream-types: 2.0.2
+      main-event: 1.0.1
+      netmask: 2.0.2
+      p-defer: 4.0.1
+      p-event: 7.0.2
+      race-signal: 2.0.0
+      uint8-varint: 2.0.4
       uint8arraylist: 2.4.8
       uint8arrays: 5.1.0
 
@@ -8170,6 +8229,10 @@ snapshots:
     dependencies:
       undici-types: 7.16.0
 
+  '@types/node@24.10.9':
+    dependencies:
+      undici-types: 7.16.0
+
   '@types/normalize-package-data@2.4.4': {}
 
   '@types/parse-json@4.0.2': {}
@@ -8558,6 +8621,8 @@ snapshots:
 
   any-signal@4.1.1: {}
 
+  any-signal@4.2.0: {}
+
   append-transform@2.0.0:
     dependencies:
       default-require-extensions: 3.0.1
@@ -8914,6 +8979,8 @@ snapshots:
       lodash: 4.17.21
 
   cborg@4.3.2: {}
+
+  cborg@4.4.1: {}
 
   ccount@2.0.1: {}
 
@@ -12121,6 +12188,10 @@ snapshots:
     dependencies:
       p-timeout: 6.1.4
 
+  p-event@7.0.2:
+    dependencies:
+      p-timeout: 6.1.4
+
   p-filter@4.1.0:
     dependencies:
       p-map: 7.0.4
@@ -12499,7 +12570,7 @@ snapshots:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.0
-      '@types/node': 24.10.1
+      '@types/node': 24.10.9
       long: 5.3.2
 
   protons-runtime@5.6.0:
