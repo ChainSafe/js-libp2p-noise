@@ -1,3 +1,75 @@
+# Changelog
+
+## Unreleased
+
+### Added: Post-Quantum Hybrid Noise (XXhfs)
+
+This adds a second connection encrypter alongside the existing classical `noise()`: a post-quantum hybrid handshake based on the Noise HFS specification. Both encrypters live in the same package and can coexist in the same libp2p node.
+
+#### New exports
+
+| Export | Kind | Description |
+|--------|------|-------------|
+| `noiseHFS(init?)` | function | Factory for the XXhfs connection encrypter. Drop-in replacement for `noise()` in `connectionEncrypters`. |
+| `NoiseHFS` | class | The `ConnectionEncrypter` implementation for `/noise-pq/1.0.0`. |
+| `NoiseHFSInit` | type | Init options for `noiseHFS()`: `staticNoiseKey`, `kemBackend`, `extensions`, `crypto`, `prologueBytes`. |
+| `pqcKem` | object | Default X-Wing KEM backend (ML-KEM-768 + X25519) via `@noble/post-quantum`. |
+| `pqcCrypto` | object | Combined `ICryptoInterface` + `IKem` (pureJsCrypto + pqcKem). |
+| `IKem` | type | Interface for KEM backends. |
+| `KemKeyPair` | type | `{ publicKey: Uint8Array, secretKey: Uint8Array }` |
+| `KemEncapsulateResult` | type | `{ cipherText: Uint8Array, sharedSecret: Uint8Array }` |
+| `XXhfsHandshakeState` | class | The raw XXhfs handshake state machine (for advanced use and testing). |
+| `NOISE_HFS_PROTOCOL_NAME` | constant | `'Noise_XXhfs_25519+XWing_ChaChaPoly_SHA256'` |
+| `HfsHandshakeStateInit` | type | Constructor options for `XXhfsHandshakeState`. |
+| `HfsHandshakeParams` | type | Options for `performHandshakeHFSInitiator` / `performHandshakeHFSResponder`. |
+
+#### New files
+
+| File | Description |
+|------|-------------|
+| `src/kem.ts` | `IKem` interface and related types |
+| `src/crypto/pqc.ts` | X-Wing KEM implementation (pure JS via `@noble/post-quantum`) |
+| `src/crypto/pqc.node.ts` | Node.js backend slot for KEM (currently re-exports pqc.ts; native ML-KEM-768 TODO) |
+| `src/protocol-pqc.ts` | `XXhfsHandshakeState` state machine with `e1` and `ekem1` KEM tokens |
+| `src/performHandshake-hfs.ts` | Initiator and responder handshake orchestration for XXhfs |
+| `src/noise-hfs.ts` | `NoiseHFS` class and `noiseHFS()` factory |
+| `NOISE_HFS_SPEC.md` | Full wire format spec, token ordering, and security analysis |
+| `benchmarks/benchmark-pqc.js` | Benchmark comparing classical XX vs XXhfs |
+| `benchmarks/results.md` | Measured benchmark results (Node.js v22.17.1) |
+| `scripts/generate-pqc-vectors.js` | Deterministic test vector generator |
+| `test/fixtures/pqc-test-vectors.json` | Committed test vectors (5 vectors) |
+| `test/pqc-kem.spec.ts` | IKem unit tests |
+| `test/pqc-protocol.spec.ts` | XXhfsHandshakeState unit tests |
+| `test/pqc-noise.spec.ts` | Integration tests for NoiseHFS |
+| `test/pqc-vectors.spec.ts` | Test vector verification |
+
+#### Protocol details
+
+- **Protocol name:** `Noise_XXhfs_25519+XWing_ChaChaPoly_SHA256`
+- **libp2p protocol ID:** `/noise-pq/1.0.0`
+- **KEM:** X-Wing = ML-KEM-768 + X25519 (IETF draft-connolly-cfrg-xwing-kem)
+- **Wire overhead vs classical XX:** +2,352 bytes per handshake (empty payload)
+- **Latency overhead vs classical XX:** approximately +35 ms (pure JS, no WASM)
+- **Quantum safety:** forward secrecy is secure if either X25519 or ML-KEM-768 is unbroken
+
+#### Compatibility notes
+
+- `noiseHFS()` is **not** backward-compatible with `noise()`. Both peers must use `noiseHFS()`.
+- Identity authentication (Ed25519 signatures) is unchanged. Full post-quantum authentication via ML-DSA is tracked in upstream js-libp2p PR #3432. `NoiseHFS` will support it automatically when that lands.
+- Node.js v22 does not yet expose ML-KEM-768 via `node:crypto.subtle`. The KEM runs in pure JS for now. `src/crypto/pqc.node.ts` documents the native upgrade path.
+
+#### Benchmark reference
+
+Measured on Node.js v22.17.1, Windows 11 x64, pure JS:
+
+| | ops/s | ms/op |
+|--|------:|------:|
+| Classical XX handshake | 114 | 8.75 |
+| XXhfs handshake | 23 | 44.18 |
+| X-Wing full round-trip | 47 | 21.43 |
+
+---
+
 ## [17.0.0](https://github.com/ChainSafe/js-libp2p-noise/compare/v16.1.5...v17.0.0) (2025-09-25)
 
 ### ⚠ BREAKING CHANGES
