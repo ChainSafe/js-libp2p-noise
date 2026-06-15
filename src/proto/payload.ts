@@ -137,7 +137,7 @@ export namespace NoiseExtensions {
     value: string
   }
 
-  export function encode (obj: Partial<NoiseExtensions>): Uint8Array {
+  export function encode (obj: Partial<NoiseExtensions>): Uint8Array<ArrayBuffer> {
     return encodeMessage(obj, NoiseExtensions.codec())
   }
 
@@ -280,7 +280,7 @@ export namespace NoiseHandshakePayload {
     value: string
   }
 
-  export function encode (obj: Partial<NoiseHandshakePayload>): Uint8Array {
+  export function encode (obj: Partial<NoiseHandshakePayload>): Uint8Array<ArrayBuffer> {
     return encodeMessage(obj, NoiseHandshakePayload.codec())
   }
 

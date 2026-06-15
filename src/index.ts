@@ -36,13 +36,13 @@
  * The implementation must conform to the `ICryptoInterface`, defined in <https://github.com/ChainSafe/js-libp2p-noise/blob/master/src/crypto.ts>
  */
 
-import { Noise } from './noise.js'
-import type { NoiseInit, NoiseExtensions } from './noise.js'
-import type { KeyPair } from './types.js'
+import { Noise } from './noise.ts'
+import type { NoiseInit, NoiseExtensions } from './noise.ts'
+import type { KeyPair } from './types.ts'
 import type { ComponentLogger, ConnectionEncrypter, Metrics, PeerId, PrivateKey, Upgrader } from '@libp2p/interface'
 
-export { pureJsCrypto } from './crypto/js.js'
-export type { ICryptoInterface } from './crypto.js'
+export { pureJsCrypto } from './crypto/js.ts'
+export type { ICryptoInterface } from './crypto.ts'
 export type { NoiseInit, NoiseExtensions, KeyPair }
 
 export interface NoiseComponents {

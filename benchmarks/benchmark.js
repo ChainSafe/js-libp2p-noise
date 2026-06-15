@@ -1,6 +1,6 @@
 /* eslint-disable */
 
-import { noise } from '../dist/src/index.js'
+import { noise } from '../dist/src/index.ts'
 import benchmark from 'benchmark'
 import { duplexPair } from 'it-pair/duplex'
 import { base64pad } from 'multiformats/bases/base64'
