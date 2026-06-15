@@ -1,8 +1,8 @@
-import { Buffer } from 'buffer'
 import { defaultLogger } from '@libp2p/logger'
 import { multiaddrConnectionPair, lpStream } from '@libp2p/utils'
 import { assert, expect } from 'aegir/chai'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
+import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { defaultCrypto } from '../src/crypto/index.ts'
 import { wrapCrypto } from '../src/crypto.ts'
 import { performHandshakeInitiator, performHandshakeResponder } from '../src/performHandshake.ts'
@@ -24,7 +24,7 @@ describe('performHandshake', () => {
     const connectionInitiator = lpStream(duplex[0])
     const connectionResponder = lpStream(duplex[1])
 
-    const prologue = Buffer.alloc(0)
+    const prologue = new Uint8Array(0)
     const staticKeysInitiator = defaultCrypto.generateX25519KeyPair()
     const staticKeysResponder = defaultCrypto.generateX25519KeyPair()
 
@@ -50,9 +50,9 @@ describe('performHandshake', () => {
     ])
 
     // Test encryption and decryption
-    const encrypted = initiator.encrypt(Buffer.from('encrypt this'))
+    const encrypted = initiator.encrypt(uint8ArrayFromString('encrypt this'))
     const decrypted = responder.decrypt(encrypted)
-    assert(uint8ArrayEquals(decrypted.subarray(), Buffer.from('encrypt this')))
+    assert(uint8ArrayEquals(decrypted.subarray(), uint8ArrayFromString('encrypt this')))
   })
 
   it('Initiator should fail to exchange handshake if given wrong public key in payload', async () => {
@@ -61,7 +61,7 @@ describe('performHandshake', () => {
       const connectionInitiator = lpStream(duplex[0])
       const connectionResponder = lpStream(duplex[1])
 
-      const prologue = Buffer.alloc(0)
+      const prologue = new Uint8Array(0)
       const staticKeysInitiator = defaultCrypto.generateX25519KeyPair()
       const staticKeysResponder = defaultCrypto.generateX25519KeyPair()
 
@@ -98,7 +98,7 @@ describe('performHandshake', () => {
       const connectionInitiator = lpStream(duplex[0])
       const connectionResponder = lpStream(duplex[1])
 
-      const prologue = Buffer.alloc(0)
+      const prologue = new Uint8Array(0)
       const staticKeysInitiator = defaultCrypto.generateX25519KeyPair()
       const staticKeysResponder = defaultCrypto.generateX25519KeyPair()
 

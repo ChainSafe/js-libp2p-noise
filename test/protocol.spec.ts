@@ -1,7 +1,7 @@
-import { Buffer } from 'buffer'
 import { expect, assert } from 'aegir/chai'
 import { Uint8ArrayList } from 'uint8arraylist'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
+import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { pureJsCrypto } from '../src/crypto/js.ts'
 import { wrapCrypto } from '../src/crypto.ts'
@@ -9,7 +9,7 @@ import { XXHandshakeState, ZEROLEN } from '../src/protocol.ts'
 import type { CipherState, SymmetricState } from '../src/protocol.ts'
 
 describe('XXHandshakeState', () => {
-  const prologue = Buffer.alloc(0)
+  const prologue = new Uint8Array(0)
   const protocolName = 'Noise_XX_25519_ChaChaPoly_SHA256'
 
   it('Test creating new XX session', async () => {
@@ -22,10 +22,9 @@ describe('XXHandshakeState', () => {
   })
 
   it('Test get HKDF', () => {
-    const ckBytes = Buffer.from('4e6f6973655f58585f32353531395f58436861436861506f6c795f53484132353600000000000000000000000000000000000000000000000000000000000000', 'hex')
-    const ikm = Buffer.from('a3eae50ea37a47e8a7aa0c7cd8e16528670536dcd538cebfd724fb68ce44f1910ad898860666227d4e8dd50d22a9a64d1c0a6f47ace092510161e9e442953da3', 'hex')
-    const ck = Buffer.alloc(32)
-    ckBytes.copy(ck)
+    const ckBytes = uint8ArrayFromString('4e6f6973655f58585f32353531395f58436861436861506f6c795f53484132353600000000000000000000000000000000000000000000000000000000000000', 'hex')
+    const ikm = uint8ArrayFromString('a3eae50ea37a47e8a7aa0c7cd8e16528670536dcd538cebfd724fb68ce44f1910ad898860666227d4e8dd50d22a9a64d1c0a6f47ace092510161e9e442953da3', 'hex')
+    const ck = ckBytes.slice(0, 32)
 
     const [k1, k2, k3] = pureJsCrypto.getHKDF(ck, ikm)
     expect(uint8ArrayToString(k1, 'hex')).to.equal('cc5659adff12714982f806e2477a8d5ddd071def4c29bb38777b7e37046f6914')
@@ -77,14 +76,14 @@ describe('XXHandshakeState', () => {
   it('Test symmetric encrypt and decrypt', async () => {
     try {
       const { nsInit, nsResp } = await doHandshake()
-      const ad = Buffer.from('authenticated')
-      const message = Buffer.from('HelloCrypto')
+      const ad = uint8ArrayFromString('authenticated')
+      const message = uint8ArrayFromString('HelloCrypto')
 
       const ciphertext = nsInit.cs1.encryptWithAd(ad, message)
-      assert(!uint8ArrayEquals(Buffer.from('HelloCrypto'), ciphertext.subarray()), 'Encrypted message should not be same as plaintext.')
+      assert(!uint8ArrayEquals(uint8ArrayFromString('HelloCrypto'), ciphertext.subarray()), 'Encrypted message should not be same as plaintext.')
       const decrypted = nsResp.cs1.decryptWithAd(ad, ciphertext)
 
-      assert(uint8ArrayEquals(Buffer.from('HelloCrypto'), decrypted.subarray()), 'Decrypted text not equal to original message.')
+      assert(uint8ArrayEquals(uint8ArrayFromString('HelloCrypto'), decrypted.subarray()), 'Decrypted text not equal to original message.')
     } catch (e) {
       assert(false, (e as Error).message)
     }
@@ -92,11 +91,11 @@ describe('XXHandshakeState', () => {
 
   it('Test multiple messages encryption and decryption', async () => {
     const { nsInit, nsResp } = await doHandshake()
-    const ad = Buffer.from('authenticated')
+    const ad = uint8ArrayFromString('authenticated')
 
     for (let i = 0; i < 50; i++) {
       const strMessage = 'ethereum' + String(i)
-      const message = Buffer.from(strMessage)
+      const message = uint8ArrayFromString(strMessage)
       {
         const encrypted = nsInit.cs1.encryptWithAd(ad, message)
         const decrypted = nsResp.cs1.decryptWithAd(ad, encrypted)
