@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer'
 import { defaultLogger } from '@libp2p/logger'
 import { lpStream, byteStream, multiaddrConnectionPair } from '@libp2p/utils'
 import { assert, expect } from 'aegir/chai'
@@ -6,10 +5,11 @@ import { randomBytes } from 'iso-random-stream'
 import sinon from 'sinon'
 import { stubInterface } from 'sinon-ts'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
+import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
-import { pureJsCrypto } from '../src/crypto/js.js'
-import { Noise } from '../src/noise.js'
-import { createPeerIdsFromFixtures } from './fixtures/peer.js'
+import { pureJsCrypto } from '../src/crypto/js.ts'
+import { Noise } from '../src/noise.ts'
+import { createPeerIdsFromFixtures } from './fixtures/peer.ts'
 import type { StreamMuxerFactory, PeerId, PrivateKey, Upgrader } from '@libp2p/interface'
 
 describe('Noise', () => {
@@ -58,7 +58,7 @@ describe('Noise', () => {
       const wrappedInbound = lpStream(inbound.connection)
       const wrappedOutbound = lpStream(outbound.connection)
 
-      await wrappedOutbound.write(Buffer.from('test'))
+      await wrappedOutbound.write(uint8ArrayFromString('test'))
       const response = await wrappedInbound.read()
       expect(uint8ArrayToString(response.slice())).equal('test')
     } catch (e) {
@@ -98,7 +98,7 @@ describe('Noise', () => {
       const wrappedOutbound = lpStream(outbound.connection)
 
       const largePlaintext = randomBytes(60000)
-      await wrappedOutbound.write(Buffer.from(largePlaintext))
+      await wrappedOutbound.write(uint8ArrayFromString(largePlaintext))
       const response = await wrappedInbound.read({
         bytes: 60000
       })
@@ -139,7 +139,7 @@ describe('Noise', () => {
       const wrappedInbound = lpStream(inbound.connection)
       const wrappedOutbound = lpStream(outbound.connection)
 
-      await wrappedOutbound.write(Buffer.from('test v2'))
+      await wrappedOutbound.write(uint8ArrayFromString('test v2'))
       const response = await wrappedInbound.read()
       expect(uint8ArrayToString(response.slice())).equal('test v2')
 
@@ -158,7 +158,7 @@ describe('Noise', () => {
 
   it('should accept and return Noise extension from remote peer', async () => {
     try {
-      const certhashInit = Buffer.from('certhash data from init')
+      const certhashInit = uint8ArrayFromString('certhash data from init')
       const staticKeysInitiator = pureJsCrypto.generateX25519KeyPair()
       const noiseInit = new Noise({
         ...localPeer,
@@ -168,7 +168,7 @@ describe('Noise', () => {
         })
       }, { staticNoiseKey: staticKeysInitiator.privateKey, extensions: { webtransportCerthashes: [certhashInit] } })
       const staticKeysResponder = pureJsCrypto.generateX25519KeyPair()
-      const certhashResp = Buffer.from('certhash data from response')
+      const certhashResp = uint8ArrayFromString('certhash data from response')
       const noiseResp = new Noise({
         ...remotePeer,
         logger: defaultLogger(),
@@ -240,14 +240,14 @@ describe('Noise', () => {
         upgrader: stubInterface<Upgrader>({
           getStreamMuxers: () => new Map()
         })
-      }, { staticNoiseKey: undefined, crypto: pureJsCrypto, prologueBytes: Buffer.from('Some prologue') })
+      }, { staticNoiseKey: undefined, crypto: pureJsCrypto, prologueBytes: uint8ArrayFromString('Some prologue') })
       const noiseResp = new Noise({
         ...remotePeer,
         logger: defaultLogger(),
         upgrader: stubInterface<Upgrader>({
           getStreamMuxers: () => new Map()
         })
-      }, { staticNoiseKey: undefined, crypto: pureJsCrypto, prologueBytes: Buffer.from('Some prologue') })
+      }, { staticNoiseKey: undefined, crypto: pureJsCrypto, prologueBytes: uint8ArrayFromString('Some prologue') })
 
       const [inboundConnection, outboundConnection] = multiaddrConnectionPair()
       const [outbound, inbound] = await Promise.all([
@@ -261,7 +261,7 @@ describe('Noise', () => {
       const wrappedInbound = lpStream(inbound.connection)
       const wrappedOutbound = lpStream(outbound.connection)
 
-      await wrappedOutbound.write(Buffer.from('test'))
+      await wrappedOutbound.write(uint8ArrayFromString('test'))
       const response = await wrappedInbound.read()
       expect(uint8ArrayToString(response.slice())).equal('test')
     } catch (e) {

@@ -152,7 +152,7 @@
   "scripts": {
     "bench": "node benchmarks/benchmark.js",
     "clean": "aegir clean",
-    "dep-check": "aegir dep-check",
+    "dep-check": "aegir dep-check -i mocha",
     "build": "aegir build",
     "lint": "aegir lint",
     "lint:fix": "aegir lint --fix",
@@ -176,9 +176,9 @@
     "@noble/ciphers": "^2.0.1",
     "@noble/curves": "^2.0.1",
     "@noble/hashes": "^2.0.1",
-    "protons-runtime": "^5.6.0",
-    "uint8arraylist": "^2.4.8",
-    "uint8arrays": "^5.1.0",
+    "protons-runtime": "^7.0.0",
+    "uint8arraylist": "^3.0.2",
+    "uint8arrays": "^6.1.1",
     "wherearewe": "^2.0.1"
   },
   "devDependencies": {
@@ -193,7 +193,7 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "^24.10.1",
     "@types/sinon": "^17.0.4",
-    "aegir": "^47.0.22",
+    "aegir": "^48.0.12",
     "benchmark": "^2.1.4",
     "execa": "^9.6.0",
     "go-libp2p": "^1.6.0",
@@ -201,9 +201,10 @@
     "it-pair": "^2.0.6",
     "libp2p": "^3.0.0",
     "mkdirp": "^3.0.1",
-    "multiformats": "^13.4.0",
+    "mocha": "^11.7.6",
+    "multiformats": "^14.0.0",
     "p-defer": "^4.0.1",
-    "protons": "^7.7.0",
+    "protons": "^9.0.1",
     "sinon": "^21.0.0",
     "sinon-ts": "^2.0.0"
   },
