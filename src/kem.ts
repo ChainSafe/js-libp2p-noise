@@ -14,18 +14,17 @@
  */
 
 export interface KemKeyPair {
-  /** KEM encapsulation (public) key — 1216 bytes for X-Wing */
+  /** KEM encapsulation (public) key — 1184 bytes for ML-KEM-768 */
   publicKey: Uint8Array
   /**
-   * KEM decapsulation (secret) key — stored as a 32-byte seed for X-Wing.
-   * The library derives the full expanded key on demand via XWing.getPublicKey().
+   * KEM decapsulation (secret) key — 2400-byte decapsulation key for ML-KEM-768.
    * Named secretKey (not privateKey) to clearly distinguish from X25519 KeyPair.
    */
   secretKey: Uint8Array
 }
 
 export interface KemEncapsulateResult {
-  /** Ciphertext to transmit to the holder of the decapsulation key (1120 bytes for X-Wing) */
+  /** Ciphertext to transmit to the holder of the decapsulation key (1088 bytes for ML-KEM-768) */
   cipherText: Uint8Array
   /** Shared secret — 32 bytes, derivable only by the holder of the matching secretKey */
   sharedSecret: Uint8Array
@@ -34,7 +33,7 @@ export interface KemEncapsulateResult {
 /**
  * Key Encapsulation Mechanism — the PQC extension point for Noise HFS.
  *
- * Implementations: pqcKem (X-Wing = ML-KEM-768 + X25519, from @noble/post-quantum)
+ * Implementations: pqcKem (raw ML-KEM-768 via @noble/post-quantum/ml-kem.js)
  */
 export interface IKem {
   /** Generate a KEM ephemeral key pair for use as the e1 token */

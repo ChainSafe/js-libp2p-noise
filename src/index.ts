@@ -4,7 +4,7 @@
  * This package contains a TypeScript implementation of the Noise protocol for use in libp2p. It ships two connection encrypters:
  *
  * - `noise()` - classical `Noise_XX_25519_ChaChaPoly_SHA256`, the default libp2p encryption
- * - `noiseHFS()` - post-quantum hybrid `Noise_XXhfs_25519+XWing_ChaChaPoly_SHA256` (quantum-safe forward secrecy via X-Wing KEM)
+ * - `noiseHFS()` - post-quantum hybrid `Noise_XXhfs_25519+ML-KEM-768_ChaChaPoly_SHA256` (quantum-safe forward secrecy via ML-KEM-768)
  *
  * ## Usage (classical)
  *
@@ -36,7 +36,7 @@
  * })
  * ```
  *
- * The libp2p protocol ID is `/noise-pq/1.0.0`. Connections negotiated with `noiseHFS()` have quantum-safe forward secrecy: the handshake is secure if either X25519 or ML-KEM-768 (the underlying KEMs in X-Wing) is unbroken.
+ * The libp2p protocol ID is `/noise-mlkem768-hfs/0.1.0`. Connections negotiated with `noiseHFS()` have quantum-safe forward secrecy: the handshake is secure if either X25519 or ML-KEM-768 is unbroken.
  *
  * ### Custom KEM backend
  *

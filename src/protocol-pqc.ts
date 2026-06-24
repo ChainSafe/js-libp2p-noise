@@ -148,7 +148,7 @@ export class XXhfsHandshakeState extends AbstractHandshakeState {
    *   [1184 bytes] e1.publicKey    (KEM ephemeral, plaintext — no cipher key yet)
    *   [payload]    encryptAndHash(payload)  (empty in standard handshake)
    *
-   * Total (empty payload): 1216 bytes
+   * Total (empty payload): 32+1184 bytes (DH ephemeral + KEM public key)
    */
   writeMessageA (payload: Uint8Array | Uint8ArrayList): Uint8Array | Uint8ArrayList {
     const e = this.writeE()    // 32 bytes
@@ -163,7 +163,7 @@ export class XXhfsHandshakeState extends AbstractHandshakeState {
   readMessageA (message: Uint8ArrayList): Uint8Array | Uint8ArrayList {
     try {
       this.readE(message, 0)                                            // 32 bytes
-      this.readE1(message, 32)                                          // 1216 bytes
+      this.readE1(message, 32)                                          // 1184 bytes
       return this.ss.decryptAndHash(message.sublist(32 + this.kem.PUBKEY_LEN))
     } catch (e) {
       throw new InvalidCryptoExchangeError(`pq-handshake stage 0: ${(e as Error).message}`)
