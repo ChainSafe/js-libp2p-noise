@@ -77,24 +77,24 @@ describe('XXhfsHandshakeState', () => {
     })
 
     it('exposes correct protocol name constant', () => {
-      expect(NOISE_HFS_PROTOCOL_NAME).to.equal('Noise_XXhfs_25519+XWing_ChaChaPoly_SHA256')
+      expect(NOISE_HFS_PROTOCOL_NAME).to.equal('Noise_XXhfs_25519+ML-KEM-768_ChaChaPoly_SHA256')
     })
   })
 
   describe('Message A (e, e1) — byte layout', () => {
-    it('is exactly 1248 bytes with empty payload (32 DH + 1216 KEM)', () => {
+    it('is exactly 1216 bytes with empty payload (32 DH + 1184 KEM)', () => {
       const { initiator } = makeHandshakePair()
       const msgA = initiator.writeMessageA(ZEROLEN)
-      // 32 (e.pubkey) + 1216 (e1.pubkey) + 0 (empty payload, no AEAD tag — no key yet)
-      expect(msgA.subarray().byteLength).to.equal(1248)
+      // 32 (e.pubkey) + 1184 (e1.pubkey) + 0 (empty payload, no AEAD tag — no key yet)
+      expect(msgA.subarray().byteLength).to.equal(1216)
     })
 
     it('initiator e1 keypair is set after writeMessageA', () => {
       const { initiator } = makeHandshakePair()
       initiator.writeMessageA(ZEROLEN)
       expect(initiator.e1).to.not.be.undefined
-      expect(initiator.e1?.publicKey.byteLength).to.equal(1216)
-      expect(initiator.e1?.secretKey.byteLength).to.equal(32)
+      expect(initiator.e1?.publicKey.byteLength).to.equal(1184)
+      expect(initiator.e1?.secretKey.byteLength).to.equal(2400)
     })
 
     it('responder re1 is set after readMessageA', () => {
@@ -102,7 +102,7 @@ describe('XXhfsHandshakeState', () => {
       const msgA = initiator.writeMessageA(ZEROLEN)
       responder.readMessageA(new Uint8ArrayList(msgA))
       expect(responder.re1).to.not.be.undefined
-      expect(responder.re1?.byteLength).to.equal(1216)
+      expect(responder.re1?.byteLength).to.equal(1184)
     })
 
     it('responder re1 matches initiator e1.publicKey', () => {
@@ -114,13 +114,13 @@ describe('XXhfsHandshakeState', () => {
   })
 
   describe('Message B (e, ee, ekem1, s, es) — byte layout', () => {
-    it('is approximately 1232 bytes overhead with empty payload (32+1136+48+16)', () => {
+    it('is exactly 1200 bytes overhead with empty payload (32+1104+48+16)', () => {
       const { initiator, responder } = makeHandshakePair()
       const msgA = initiator.writeMessageA(ZEROLEN)
       responder.readMessageA(new Uint8ArrayList(msgA))
       const msgB = responder.writeMessageB(ZEROLEN)
-      // 32 (e) + 1136 (ekem1: 1120ct+16tag) + 48 (encS: 32+16tag) + 16 (empty payload tag)
-      expect(msgB.subarray().byteLength).to.equal(1232)
+      // 32 (e) + 1104 (ekem1: 1088ct+16tag) + 48 (encS: 32+16tag) + 16 (empty payload tag)
+      expect(msgB.subarray().byteLength).to.equal(1200)
     })
   })
 
@@ -223,8 +223,8 @@ describe('XXhfsHandshakeState', () => {
       const msgB = responder.writeMessageB(ZEROLEN)
       const bytes = msgB.subarray()
       // ekem1 starts at offset 32 (after e ephemeral); tamper the AEAD tag
-      // The tag is the last 16 bytes of the ekem1 field (bytes 32+1120..32+1136)
-      bytes[32 + 1120] ^= 0xff
+      // The tag is the last 16 bytes of the ekem1 field (bytes 32+1088..32+1104)
+      bytes[32 + 1088] ^= 0xff
       expect(() => initiator.readMessageB(new Uint8ArrayList(bytes))).to.throw()
     })
 

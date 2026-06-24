@@ -1,70 +1,50 @@
 /**
- * PQC crypto backend: classical ICryptoInterface + X-Wing KEM (IKem).
+ * PQC crypto backend: classical ICryptoInterface + ML-KEM-768 KEM (IKem).
  *
- * pqcKem  — standalone IKem implementation (X-Wing via @noble/post-quantum)
+ * pqcKem  — standalone IKem implementation (raw ML-KEM-768 via @noble/post-quantum)
  * pqcCrypto — ICryptoInterface & IKem composite for use with XXhfsHandshakeState
  *
- * X-Wing = ML-KEM-768 + X25519, combined with a SHA3-256 based combiner.
- * IETF draft: draft-connolly-cfrg-xwing-kem
- * Library:    @noble/post-quantum v0.6.0 (MIT, Paul Miller)
+ * ML-KEM-768 is FIPS 203 (August 2024). The KEM slot in Noise XXhfs is a pure
+ * KEM — no X25519 wrapper is needed because the hybrid security already comes
+ * from the protocol's own DH tokens (ee, es, se).
  *
  * Key sizes:
- *   publicKey (encapsulation key): 1216 bytes
- *   secretKey (decapsulation seed): 32 bytes (seed-based; expanded internally)
- *   cipherText:                     1120 bytes
+ *   publicKey (encapsulation key): 1184 bytes
+ *   secretKey (decapsulation key): 2400 bytes
+ *   cipherText:                    1088 bytes
  *   sharedSecret:                    32 bytes
  */
 
-import { XWing } from '@noble/post-quantum/hybrid.js'
+import { ml_kem768 } from '@noble/post-quantum/ml-kem.js'
 import { pureJsCrypto } from './js.js'
 import type { ICryptoInterface } from '../crypto.js'
 import type { IKem, KemKeyPair, KemEncapsulateResult } from '../kem.js'
 
-/**
- * X-Wing KEM implementation of IKem.
- *
- * X-Wing is a hybrid KEM that binds an ML-KEM-768 shared secret and an X25519
- * shared secret together via a SHA3-256 based combiner, giving security as long
- * as either component is secure.
- */
-// IETF X-Wing key sizes (draft-connolly-cfrg-xwing-kem, fixed by spec)
-const XWING_PUBKEY_LEN = 1216 // ML-KEM-768 pubkey (1184) + X25519 pubkey (32)
-const XWING_CT_LEN = 1120     // ML-KEM-768 ciphertext (1088) + X25519 ephemeral (32)
-const XWING_SS_LEN = 32       // SHA3-256 output of the XWing combiner
-const XWING_SK_LEN = 32       // Stored as a 32-byte seed (expanded internally)
+// ML-KEM-768 key sizes (FIPS 203, fixed by spec)
+const MLKEM768_PUBKEY_LEN = 1184
+const MLKEM768_CT_LEN = 1088
+const MLKEM768_SS_LEN = 32
+const MLKEM768_SK_LEN = 2400
 
 export const pqcKem: IKem = {
-  PUBKEY_LEN: XWING_PUBKEY_LEN,
-  CT_LEN: XWING_CT_LEN,
-  SS_LEN: XWING_SS_LEN,
-  SK_LEN: XWING_SK_LEN,
+  PUBKEY_LEN: MLKEM768_PUBKEY_LEN,
+  CT_LEN: MLKEM768_CT_LEN,
+  SS_LEN: MLKEM768_SS_LEN,
+  SK_LEN: MLKEM768_SK_LEN,
 
   generateKemKeyPair (): KemKeyPair {
-    return XWing.keygen()
+    return ml_kem768.keygen()
   },
 
   encapsulate (remotePublicKey: Uint8Array): KemEncapsulateResult {
-    return XWing.encapsulate(remotePublicKey)
+    return ml_kem768.encapsulate(remotePublicKey)
   },
 
   decapsulate (cipherText: Uint8Array, secretKey: Uint8Array): Uint8Array {
-    return XWing.decapsulate(cipherText, secretKey)
+    return ml_kem768.decapsulate(cipherText, secretKey)
   }
 }
 
-/**
- * Combined PQC crypto backend: all classical ICryptoInterface operations (from
- * pureJsCrypto) plus X-Wing KEM operations (IKem).
- *
- * - Browser-compatible: no Node.js native bindings required
- * - Inherits X25519, ChaCha20-Poly1305, SHA-256, HKDF from pureJsCrypto
- * - Adds generateKemKeyPair / encapsulate / decapsulate for XXhfs
- *
- * Usage with NoiseHFS:
- *   const node = await createLibp2p({
- *     connectionEncrypters: [noiseHFS({ crypto: pqcCrypto })]
- *   })
- */
 export const pqcCrypto: ICryptoInterface & IKem = {
   ...pureJsCrypto,
   ...pqcKem

@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /**
- * Deterministic test vector generator for Noise_XXhfs_25519+XWing_ChaChaPoly_SHA256.
+ * Deterministic test vector generator for Noise_XXhfs_25519+ML-KEM-768_ChaChaPoly_SHA256.
  *
  * Generates NUM_VECTORS test vectors using seeded key generation so vectors
  * are reproducible across runs. Writes to test/fixtures/pqc-test-vectors.json.
@@ -21,7 +21,7 @@
 import { writeFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
-import { XWing } from '@noble/post-quantum/hybrid.js'
+import { ml_kem768 } from '@noble/post-quantum/ml-kem.js'
 import { pureJsCrypto } from '../dist/src/crypto/js.js'
 import { wrapCrypto } from '../dist/src/crypto.js'
 import { XXhfsHandshakeState, NOISE_HFS_PROTOCOL_NAME } from '../dist/src/protocol-pqc.js'
@@ -62,16 +62,17 @@ function makeSeededCrypto (ephemeralKeypair) {
 
 /**
  * Build a seeded IKem that uses fixed KEM keypair + fixed encapsulate seed.
+ * ML-KEM-768 encapsulate() accepts a 32-byte random seed.
  */
-function makeSeededKem (kemKeypair, encapSeed64) {
+function makeSeededKem (kemKeypair, encapSeed32) {
   return {
-    PUBKEY_LEN: 1216,
-    CT_LEN: 1120,
+    PUBKEY_LEN: 1184,
+    CT_LEN: 1088,
     SS_LEN: 32,
-    SK_LEN: 32,
+    SK_LEN: 2400,
     generateKemKeyPair: () => kemKeypair,
-    encapsulate: (pubkey) => XWing.encapsulate(pubkey, encapSeed64),
-    decapsulate: (ct, sk) => XWing.decapsulate(ct, sk)
+    encapsulate: (pubkey) => ml_kem768.encapsulate(pubkey, encapSeed32),
+    decapsulate: (ct, sk) => ml_kem768.decapsulate(ct, sk)
   }
 }
 
@@ -90,11 +91,11 @@ function generateVector (idx) {
   const eInit = pureJsCrypto.generateX25519KeyPairFromSeed(fill32(0x03 + base))
   const eResp = pureJsCrypto.generateX25519KeyPairFromSeed(fill32(0x04 + base))
 
-  // KEM ephemeral keypair for initiator (seeded 32-byte XWing seed)
-  const kemKeypair = XWing.keygen(fill32(0x05 + base))
+  // KEM ephemeral keypair for initiator (seeded 64-byte ML-KEM-768 seed)
+  const kemKeypair = ml_kem768.keygen(fill64(0x05 + base))
 
-  // Encapsulation randomness (64-byte XWing seed, used by responder)
-  const encapSeed = fill64(0x06 + base)
+  // Encapsulation randomness (32-byte seed, used by responder)
+  const encapSeed = fill32(0x06 + base)
 
   // ── Initiator side ──────────────────────────────────────────────────────────
   const cryptoInit = makeSeededCrypto(eInit)
@@ -186,9 +187,9 @@ for (let i = 1; i <= NUM_VECTORS; i++) {
 
 const output = {
   protocol: NOISE_HFS_PROTOCOL_NAME,
-  description: 'Deterministic test vectors for Noise_XXhfs_25519+XWing_ChaChaPoly_SHA256. All keypairs seeded for reproducibility. Do NOT use seeded keys in production.',
+  description: 'Deterministic test vectors for Noise_XXhfs_25519+ML-KEM-768_ChaChaPoly_SHA256. All keypairs seeded for reproducibility. Do NOT use seeded keys in production.',
   generated_by: '@chainsafe/libp2p-noise (js-libp2p-noise)',
-  kem: 'X-Wing (ML-KEM-768 + X25519) via @noble/post-quantum',
+  kem: 'ML-KEM-768 (FIPS 203) via @noble/post-quantum',
   prologue: 'empty (0 bytes)',
   payload: 'empty (ZEROLEN) — no libp2p handshake payload',
   vectors

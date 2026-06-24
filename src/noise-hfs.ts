@@ -2,14 +2,14 @@
  * NoiseHFS — Post-Quantum Noise connection encrypter.
  *
  * Implements the ConnectionEncrypter interface using the XXhfs Noise pattern:
- *   Noise_XXhfs_25519+XWing_ChaChaPoly_SHA256
+ *   Noise_XXhfs_25519+ML-KEM-768_ChaChaPoly_SHA256
  *
- * Libp2p protocol ID: /noise-pq/1.0.0
+ * Libp2p protocol ID: /noise-mlkem768-hfs/0.1.0
  *
  * This is a drop-in replacement for the classical `noise()` factory. Swap
  * `noise()` for `noiseHFS()` in your libp2p config to get quantum-safe forward
- * secrecy via the X-Wing KEM (ML-KEM-768 + X25519) alongside the existing
- * identity/authentication layer (Ed25519 signatures, unchanged).
+ * secrecy via ML-KEM-768 alongside the existing identity/authentication layer
+ * (Ed25519 signatures, unchanged).
  *
  * Both endpoints MUST use noiseHFS — it is not backward-compatible with the
  * classical /noise protocol because the handshake message layout differs.
@@ -66,8 +66,8 @@ export interface NoiseHFSInit {
    */
   staticNoiseKey?: Uint8Array
   /**
-   * KEM backend. Defaults to pqcKem (X-Wing = ML-KEM-768 + X25519).
-   * Override for testing or to swap in a different hybrid KEM.
+   * KEM backend. Defaults to pqcKem (ML-KEM-768 via @noble/post-quantum).
+   * Override for testing or to swap in a different KEM.
    */
   kemBackend?: IKem
   extensions?: Partial<NoiseExtensions>
@@ -76,7 +76,7 @@ export interface NoiseHFSInit {
 }
 
 export class NoiseHFS implements INoiseConnection {
-  public protocol = '/noise-pq/1.0.0'
+  public protocol = '/noise-mlkem768-hfs/0.1.0'
   public crypto: ICrypto
 
   private readonly prologue: Uint8Array

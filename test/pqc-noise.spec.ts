@@ -3,14 +3,14 @@
  *
  * These tests exercise the full libp2p connection stack: two in-memory
  * endpoints exchange real encrypted data through the XXhfs handshake,
- * using X-Wing (ML-KEM-768 + X25519) for hybrid forward secrecy.
+ * using ML-KEM-768 for quantum-safe forward secrecy.
  *
  * Test coverage:
  *   - Basic encrypted communication (outbound ↔ inbound)
  *   - Bidirectional data exchange after handshake
  *   - Peer ID verification from handshake payload
  *   - Large payloads (verify AEAD integrity over chunked data)
- *   - Protocol ID is /noise-pq/1.0.0
+ *   - Protocol ID is /noise-mlkem768-hfs/0.1.0
  *   - Custom KEM backend injection
  *   - Mismatched protocols: NoiseHFS ↔ classical Noise must fail
  */
@@ -63,28 +63,28 @@ describe('NoiseHFS (post-quantum ConnectionEncrypter)', () => {
   // ── Construction ────────────────────────────────────────────────────────────
 
   describe('construction', () => {
-    it('protocol ID is /noise-pq/1.0.0', () => {
+    it('protocol ID is /noise-mlkem768-hfs/0.1.0', () => {
       const n = new NoiseHFS(makeComponents(localPeer))
-      expect(n.protocol).to.equal('/noise-pq/1.0.0')
+      expect(n.protocol).to.equal('/noise-mlkem768-hfs/0.1.0')
     })
 
     it('noiseHFS factory returns a NoiseHFS instance', () => {
       const factory = noiseHFS()
       const instance = factory(makeComponents(localPeer))
       expect(instance).to.be.instanceOf(NoiseHFS)
-      expect(instance.protocol).to.equal('/noise-pq/1.0.0')
+      expect(instance.protocol).to.equal('/noise-mlkem768-hfs/0.1.0')
     })
 
     it('accepts a custom KEM backend', () => {
       // pqcKem is the default; passing it explicitly must not throw
       const n = new NoiseHFS(makeComponents(localPeer), { kemBackend: pqcKem })
-      expect(n.protocol).to.equal('/noise-pq/1.0.0')
+      expect(n.protocol).to.equal('/noise-mlkem768-hfs/0.1.0')
     })
 
     it('accepts a custom static noise key', () => {
       const staticKey = pureJsCrypto.generateX25519KeyPair().privateKey
       const n = new NoiseHFS(makeComponents(localPeer), { staticNoiseKey: staticKey })
-      expect(n.protocol).to.equal('/noise-pq/1.0.0')
+      expect(n.protocol).to.equal('/noise-mlkem768-hfs/0.1.0')
     })
   })
 
@@ -218,11 +218,11 @@ describe('NoiseHFS (post-quantum ConnectionEncrypter)', () => {
   // ── Protocol isolation ────────────────────────────────────────────────────────
 
   describe('protocol isolation', () => {
-    it('two NoiseHFS connections have protocol /noise-pq/1.0.0, not /noise', () => {
+    it('two NoiseHFS connections have protocol /noise-mlkem768-hfs/0.1.0, not /noise', () => {
       const init = new NoiseHFS(makeComponents(localPeer))
       const resp = new NoiseHFS(makeComponents(remotePeer))
-      expect(init.protocol).to.equal('/noise-pq/1.0.0')
-      expect(resp.protocol).to.equal('/noise-pq/1.0.0')
+      expect(init.protocol).to.equal('/noise-mlkem768-hfs/0.1.0')
+      expect(resp.protocol).to.equal('/noise-mlkem768-hfs/0.1.0')
       expect(init.protocol).to.not.equal('/noise')
     })
 
@@ -232,7 +232,7 @@ describe('NoiseHFS (post-quantum ConnectionEncrypter)', () => {
       const classicalNoise = new Noise(makeComponents(localPeer))
       const pqNoise = new NoiseHFS(makeComponents(localPeer))
       expect(classicalNoise.protocol).to.equal('/noise')
-      expect(pqNoise.protocol).to.equal('/noise-pq/1.0.0')
+      expect(pqNoise.protocol).to.equal('/noise-mlkem768-hfs/0.1.0')
       expect(classicalNoise.protocol).to.not.equal(pqNoise.protocol)
     })
   })

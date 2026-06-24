@@ -6,9 +6,9 @@
  *   <- e, ee, ekem1, s, es      (Message B: DH eph, DH(ee), KEM encap, static, DH(es))
  *   -> s, se                    (Message C: static, DH(se) — unchanged from XX)
  *
- * Protocol name: Noise_XXhfs_25519+XWing_ChaChaPoly_SHA256
+ * Protocol name: Noise_XXhfs_25519+ML-KEM-768_ChaChaPoly_SHA256
  *
- * Security: handshake is secure if EITHER X25519 OR X-Wing (ML-KEM-768) is unbroken.
+ * Security: handshake is secure if EITHER X25519 OR ML-KEM-768 is unbroken.
  * The classical DH operations (ee, es, se) provide current security; the KEM (ekem1)
  * provides quantum-safe forward secrecy against Store-Now-Decrypt-Later attacks.
  *
@@ -19,7 +19,7 @@
  * References:
  *   - Noise HFS spec: https://github.com/noiseprotocol/noise_hfs_spec
  *   - PQNoise paper: ePrint 2022/539
- *   - X-Wing KEM: draft-connolly-cfrg-xwing-kem
+ *   - ML-KEM-768: FIPS 203 (August 2024)
  */
 
 import { Uint8ArrayList } from 'uint8arraylist'
@@ -28,7 +28,7 @@ import { AbstractHandshakeState } from './protocol.js'
 import type { HandshakeStateInit } from './protocol.js'
 import type { IKem, KemKeyPair } from './kem.js'
 
-export const NOISE_HFS_PROTOCOL_NAME = 'Noise_XXhfs_25519+XWing_ChaChaPoly_SHA256'
+export const NOISE_HFS_PROTOCOL_NAME = 'Noise_XXhfs_25519+ML-KEM-768_ChaChaPoly_SHA256'
 
 export interface HfsHandshakeStateInit extends HandshakeStateInit {
   /** KEM backend — provides generateKemKeyPair, encapsulate, decapsulate */
@@ -64,7 +64,7 @@ export class XXhfsHandshakeState extends AbstractHandshakeState {
    *
    * Called by initiator in Message A. At this point there is no cipher key,
    * so encryptAndHash falls through to a plain mixHash — the pubkey is sent
-   * unencrypted (1216 bytes on the wire, no AEAD tag).
+   * unencrypted (1184 bytes on the wire, no AEAD tag).
    */
   protected writeE1 (): Uint8Array | Uint8ArrayList {
     if (this.e1 != null) {
@@ -145,20 +145,20 @@ export class XXhfsHandshakeState extends AbstractHandshakeState {
   /**
    * Write Message A (initiator → responder):
    *   [32 bytes]   e.publicKey     (DH ephemeral, plaintext)
-   *   [1216 bytes] e1.publicKey    (KEM ephemeral, plaintext — no cipher key yet)
+   *   [1184 bytes] e1.publicKey    (KEM ephemeral, plaintext — no cipher key yet)
    *   [payload]    encryptAndHash(payload)  (empty in standard handshake)
    *
-   * Total (empty payload): 1248 bytes
+   * Total (empty payload): 1216 bytes
    */
   writeMessageA (payload: Uint8Array | Uint8ArrayList): Uint8Array | Uint8ArrayList {
     const e = this.writeE()    // 32 bytes
-    const e1 = this.writeE1() // 1216 bytes (plaintext — no AEAD tag)
+    const e1 = this.writeE1() // 1184 bytes (plaintext — no AEAD tag)
     return new Uint8ArrayList(e, e1, this.ss.encryptAndHash(payload))
   }
 
   /**
    * Read Message A (responder side):
-   *   Parses e (32 bytes) and e1 (1216 bytes), then decrypts payload.
+   *   Parses e (32 bytes) and e1 (1184 bytes), then decrypts payload.
    */
   readMessageA (message: Uint8ArrayList): Uint8Array | Uint8ArrayList {
     try {
@@ -176,18 +176,18 @@ export class XXhfsHandshakeState extends AbstractHandshakeState {
    * Write Message B (responder → initiator):
    *   [32 bytes]   e.publicKey          (DH ephemeral, plaintext)
    *   ee → MixKey(DH(e_R, e_I))        (classical forward secrecy)
-   *   [1136 bytes] encryptAndHash(ct)   (KEM ciphertext + 16-byte AEAD tag)
+   *   [1104 bytes] encryptAndHash(ct)   (KEM ciphertext + 16-byte AEAD tag)
    *   → MixKey(kem_output)             (quantum-safe forward secrecy)
    *   [48 bytes]   encryptAndHash(s)    (encrypted static pubkey + AEAD tag)
    *   es → MixKey(DH(e_I, s_R))        (classical authentication)
    *   [payload+16] encryptAndHash(payload)
    *
-   * Total (empty payload): 32 + 1136 + 48 + 16 = 1232 bytes overhead
+   * Total (empty payload): 32 + 1104 + 48 + 16 = 1200 bytes overhead
    */
   writeMessageB (payload: Uint8Array | Uint8ArrayList): Uint8Array | Uint8ArrayList {
     const e = this.writeE()           // 32 bytes
     this.writeEE()                    // MixKey(DH(ee)) — no bytes
-    const ekem1 = this.writeEkem1()   // 1136 bytes (1120 ct + 16 AEAD)
+    const ekem1 = this.writeEkem1()   // 1104 bytes (1088 ct + 16 AEAD)
     const encS = this.writeS()        // 48 bytes (32 static + 16 AEAD)
     this.writeES()                    // MixKey(DH(es)) — no bytes
     return new Uint8ArrayList(e, ekem1, encS, this.ss.encryptAndHash(payload))

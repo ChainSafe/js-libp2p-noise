@@ -1,5 +1,5 @@
 /**
- * Test vector verification for Noise_XXhfs_25519+XWing_ChaChaPoly_SHA256.
+ * Test vector verification for Noise_XXhfs_25519+ML-KEM-768_ChaChaPoly_SHA256.
  *
  * Loads committed vectors from test/fixtures/pqc-test-vectors.json and
  * re-runs the handshake with the same seeded keys, asserting exact equality
@@ -11,7 +11,7 @@
  * If any assertion fails after a code change, either:
  *   (a) a bug was introduced — fix the code, or
  *   (b) the protocol changed intentionally — regenerate vectors with
- *       `node test/vectors/generate-pqc-vectors.js` and commit the new file.
+ *       `node scripts/generate-pqc-vectors.js` and commit the new file.
  *
  * Note on interoperability:
  *   These vectors can be used to verify a second implementation in any
@@ -23,7 +23,7 @@
 import { readFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
-import { XWing } from '@noble/post-quantum/hybrid.js'
+import { ml_kem768 } from '@noble/post-quantum/ml-kem.js'
 import { assert, expect } from 'aegir/chai'
 import { Uint8ArrayList } from 'uint8arraylist'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
@@ -94,13 +94,13 @@ function makeSeededCrypto (ephemeral: KeyPair): ReturnType<typeof wrapCrypto> {
 /** Build an IKem with fixed KEM keypair and fixed encapsulation seed. */
 function makeSeededKem (kemKp: KemKeyPair, encapSeed: Uint8Array): IKem {
   return {
-    PUBKEY_LEN: 1216,
-    CT_LEN: 1120,
+    PUBKEY_LEN: 1184,
+    CT_LEN: 1088,
     SS_LEN: 32,
-    SK_LEN: 32,
+    SK_LEN: 2400,
     generateKemKeyPair: () => kemKp,
-    encapsulate: (pubkey) => XWing.encapsulate(pubkey, encapSeed),
-    decapsulate: (ct, sk) => XWing.decapsulate(ct, sk)
+    encapsulate: (pubkey) => ml_kem768.encapsulate(pubkey, encapSeed),
+    decapsulate: (ct, sk) => ml_kem768.decapsulate(ct, sk)
   }
 }
 

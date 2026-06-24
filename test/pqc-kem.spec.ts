@@ -3,32 +3,32 @@ import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { pqcKem, pqcCrypto } from '../src/crypto/pqc.js'
 
 /**
- * Unit tests for the IKem interface and pqcKem (X-Wing) implementation.
+ * Unit tests for the IKem interface and pqcKem (ML-KEM-768) implementation.
  *
- * X-Wing = ML-KEM-768 + X25519, IETF draft-connolly-cfrg-xwing-kem
- * Key sizes: publicKey=1216B, secretKey=32B (seed), cipherText=1120B, sharedSecret=32B
+ * ML-KEM-768 is FIPS 203 (August 2024), a pure lattice-based KEM.
+ * Key sizes: publicKey=1184B, secretKey=2400B, cipherText=1088B, sharedSecret=32B
  *
  * Note on decapsulation failure (ML-KEM implicit rejection, FIPS 203 §6.4):
  *   ML-KEM decapsulate() never throws on wrong input — it returns a pseudorandom
  *   value. Tests that check wrong-key behavior rely on statistical divergence,
  *   not an exception.
  */
-describe('IKem / pqcKem (X-Wing)', () => {
+describe('IKem / pqcKem (ML-KEM-768)', () => {
   describe('constants', () => {
-    it('PUBKEY_LEN is 1216 bytes (ML-KEM-768 pubkey + X25519 pubkey)', () => {
-      expect(pqcKem.PUBKEY_LEN).to.equal(1216)
+    it('PUBKEY_LEN is 1184 bytes (ML-KEM-768 encapsulation key)', () => {
+      expect(pqcKem.PUBKEY_LEN).to.equal(1184)
     })
 
-    it('CT_LEN is 1120 bytes (ML-KEM-768 ciphertext + X25519 ephemeral)', () => {
-      expect(pqcKem.CT_LEN).to.equal(1120)
+    it('CT_LEN is 1088 bytes (ML-KEM-768 ciphertext)', () => {
+      expect(pqcKem.CT_LEN).to.equal(1088)
     })
 
-    it('SS_LEN is 32 bytes (SHA3-256 output of XWing combiner)', () => {
+    it('SS_LEN is 32 bytes (ML-KEM-768 shared secret)', () => {
       expect(pqcKem.SS_LEN).to.equal(32)
     })
 
-    it('SK_LEN is 32 bytes (seed-based secret key storage)', () => {
-      expect(pqcKem.SK_LEN).to.equal(32)
+    it('SK_LEN is 2400 bytes (ML-KEM-768 decapsulation key)', () => {
+      expect(pqcKem.SK_LEN).to.equal(2400)
     })
   })
 
@@ -109,8 +109,8 @@ describe('IKem / pqcKem (X-Wing)', () => {
   describe('pqcCrypto composite backend', () => {
     it('KEM operations work identically to pqcKem', () => {
       const kp = pqcCrypto.generateKemKeyPair()
-      expect(kp.publicKey.byteLength).to.equal(1216)
-      expect(kp.secretKey.byteLength).to.equal(32)
+      expect(kp.publicKey.byteLength).to.equal(1184)
+      expect(kp.secretKey.byteLength).to.equal(2400)
       const { cipherText, sharedSecret: ss1 } = pqcCrypto.encapsulate(kp.publicKey)
       const ss2 = pqcCrypto.decapsulate(cipherText, kp.secretKey)
       expect(uint8ArrayEquals(ss1, ss2)).to.be.true
