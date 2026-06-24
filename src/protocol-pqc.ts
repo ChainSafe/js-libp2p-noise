@@ -200,7 +200,7 @@ export class XXhfsHandshakeState extends AbstractHandshakeState {
     try {
       this.readE(message, 0)                                    // 32 bytes
       this.readEE()                                             // DH(ee)
-      const ekem1Consumed = this.readEkem1(message, 32)         // 1136 bytes
+      const ekem1Consumed = this.readEkem1(message, 32)         // 1104 bytes
       const sConsumed = this.readS(message, 32 + ekem1Consumed) // 48 bytes
       this.readES()
       return this.ss.decryptAndHash(message.sublist(32 + ekem1Consumed + sConsumed))
