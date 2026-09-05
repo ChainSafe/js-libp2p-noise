@@ -10,8 +10,9 @@
  *   cd js-libp2p-noise
  *   node scripts/node-listener.mjs
  *
- * Then in another terminal:
- *   cd py-libp2p && python scripts/interop_dial.py
+ * Then in another terminal, dial it from any implementation, e.g.:
+ *   cd py-libp2p  && python scripts/interop_dial.py
+ *   cd nim-libp2p && ./interop/noise-pq/interop_dial 8000 --chat
  */
 
 import net from 'net'
@@ -128,7 +129,9 @@ async function main () {
         const replyStr = new TextDecoder().decode(chunk instanceof Uint8Array ? chunk : chunk.slice())
         console.log(`Received: "${replyStr.trim()}"`)
 
-        if (replyStr.trim() === 'hello from Python') {
+        // Any peer implementation may dial this listener, so accept the
+        // generic "hello from <impl>" greeting rather than one language's.
+        if (/^hello from \S+/.test(replyStr.trim())) {
           console.log('\n✅ INTEROP SUCCESS: Both sides exchanged messages through NoiseHFS!')
         } else {
           console.log('\n⚠️  Unexpected reply:', JSON.stringify(replyStr))
@@ -145,7 +148,7 @@ async function main () {
 
   server.listen(PORT, '127.0.0.1', () => {
     console.log(`\nListening on tcp://127.0.0.1:${PORT}`)
-    console.log('Waiting for Python dialer...\n')
+    console.log('Waiting for a dialer...\n')
   })
 
   server.on('error', err => {
