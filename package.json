@@ -163,6 +163,7 @@
     "test:interop": "aegir test -t node -f dist/test/interop.js",
     "docs": "aegir docs",
     "proto:gen": "protons ./src/proto/payload.proto",
+    "prepare": "aegir build",
     "prepublish": "pnpm build",
     "release": "aegir release"
   },
@@ -176,6 +177,7 @@
     "@noble/ciphers": "^2.0.1",
     "@noble/curves": "^2.0.1",
     "@noble/hashes": "^2.0.1",
+    "@noble/post-quantum": "^0.6.0",
     "protons-runtime": "^5.6.0",
     "uint8arraylist": "^2.4.8",
     "uint8arrays": "^5.1.0",
