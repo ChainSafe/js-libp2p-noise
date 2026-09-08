@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /**
- * PQC Benchmark — Classical XX vs. XXhfs (X-Wing) Noise handshakes
+ * PQC Benchmark — Classical XX vs. XXhfs (raw ML-KEM-768) Noise handshakes
  *
  * Measures:
  *   1. KEM micro-benchmarks: generateKemKeyPair, encapsulate, decapsulate
@@ -24,6 +24,20 @@ import { stubInterface } from 'sinon-ts'
 import { noise } from '../dist/src/index.js'
 import { noiseHFS } from '../dist/src/noise-hfs.js'
 import { pqcKem } from '../dist/src/crypto/pqc.js'
+import { KemKeypairPool } from '../dist/src/crypto/pool.js'
+
+// Optional WASM backend — only available after `pnpm build:wasm`
+let pqcKemWasm = null
+let pqcCryptoWasm = null
+let initWasmKem = null
+try {
+  const wasmMod = await import('../dist/src/crypto/pqc.wasm.js')
+  pqcKemWasm = wasmMod.pqcKemWasm
+  pqcCryptoWasm = wasmMod.pqcCryptoWasm
+  initWasmKem = wasmMod.initWasmKem
+} catch {
+  // WASM not built yet — run `pnpm build:wasm` to enable
+}
 
 // ─── Fixture peers (same keys as benchmarks/benchmark.js) ────────────────────
 
@@ -74,7 +88,7 @@ function printRow (label, opsPerSec, avgMs) {
 
 async function runKemBenchmarks () {
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-  console.log(' KEM micro-benchmarks (X-Wing = ML-KEM-768 + X25519)')
+  console.log(' KEM micro-benchmarks (raw ML-KEM-768, FIPS 203)')
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
   console.log(`  ${'Operation'.padEnd(40)} ${'ops/s'.padStart(10)}   ${'ms/op'.padStart(8)}`)
   console.log(`  ${'-'.repeat(62)}`)
@@ -107,7 +121,50 @@ async function runKemBenchmarks () {
       const { cipherText } = pqcKem.encapsulate(kp.publicKey)
       pqcKem.decapsulate(cipherText, kp.secretKey)
     }, { iterations: 100, warmup: 10 })
-    printRow('full KEM round-trip (keygen+enc+dec)', r.opsPerSec, r.avgMs)
+    printRow('full KEM round-trip [noble, pure-JS]', r.opsPerSec, r.avgMs)
+  }
+
+  // Pool: keygen off critical path
+  {
+    const pool = new KemKeypairPool(pqcKem, { minSize: 4 })
+    const kp0 = pool.acquire() // warm up pool (re-fills via microtask)
+    await Promise.resolve()    // flush microtask queue so pool is full
+    const r = await timedLoop(() => {
+      const kp = pool.acquire()                     // keygen already done
+      const { cipherText } = pqcKem.encapsulate(kp.publicKey)
+      pqcKem.decapsulate(cipherText, kp0.secretKey) // use kp0 sk to avoid regen
+    }, { iterations: 100, warmup: 10 })
+    printRow('full KEM round-trip [pool, no keygen]', r.opsPerSec, r.avgMs)
+  }
+
+  // WASM backend (only if built)
+  if (pqcKemWasm !== null) {
+    await initWasmKem()
+    {
+      const r = await timedLoop(() => pqcKemWasm.generateKemKeyPair(), { iterations: 100, warmup: 10 })
+      printRow('generateKemKeyPair [WASM]', r.opsPerSec, r.avgMs)
+    }
+    {
+      const { publicKey } = pqcKemWasm.generateKemKeyPair()
+      const r = await timedLoop(() => pqcKemWasm.encapsulate(publicKey), { iterations: 100, warmup: 10 })
+      printRow('encapsulate [WASM]', r.opsPerSec, r.avgMs)
+    }
+    {
+      const kp = pqcKemWasm.generateKemKeyPair()
+      const { cipherText } = pqcKemWasm.encapsulate(kp.publicKey)
+      const r = await timedLoop(() => pqcKemWasm.decapsulate(cipherText, kp.secretKey), { iterations: 100, warmup: 10 })
+      printRow('decapsulate [WASM]', r.opsPerSec, r.avgMs)
+    }
+    {
+      const r = await timedLoop(() => {
+        const kp = pqcKemWasm.generateKemKeyPair()
+        const { cipherText } = pqcKemWasm.encapsulate(kp.publicKey)
+        pqcKemWasm.decapsulate(cipherText, kp.secretKey)
+      }, { iterations: 100, warmup: 10 })
+      printRow('full KEM round-trip [WASM]', r.opsPerSec, r.avgMs)
+    }
+  } else {
+    console.log('  (WASM backend not built — run `pnpm build:wasm` to enable)')
   }
 }
 
@@ -136,7 +193,7 @@ async function runHandshakeBenchmarks () {
     printRow('Noise_XX (classical)', r.opsPerSec, r.avgMs)
   }
 
-  // Noise_XXhfs (X-Wing PQC hybrid)
+  // Noise_XXhfs (raw ML-KEM-768 PQC hybrid)
   {
     const hfsInit = noiseHFS()(makeComponents(initiatorPrivKey, initiatorPeerId))
     const hfsResp = noiseHFS()(makeComponents(responderPrivKey, responderPeerId))
@@ -149,7 +206,23 @@ async function runHandshakeBenchmarks () {
       ])
     }, { iterations: 30, warmup: 5 })
 
-    printRow('Noise_XXhfs (X-Wing hybrid)', r.opsPerSec, r.avgMs)
+    printRow('Noise_XXhfs (ML-KEM-768 hybrid)', r.opsPerSec, r.avgMs)
+  }
+
+  // Noise_XXhfs with WASM backend
+  if (pqcCryptoWasm !== null) {
+    const hfsWasmInit = noiseHFS({ crypto: pqcCryptoWasm })(makeComponents(initiatorPrivKey, initiatorPeerId))
+    const hfsWasmResp = noiseHFS({ crypto: pqcCryptoWasm })(makeComponents(responderPrivKey, responderPeerId))
+
+    const r = await timedLoop(async () => {
+      const [inConn, outConn] = multiaddrConnectionPair()
+      await Promise.all([
+        hfsWasmInit.secureOutbound(outConn, { remotePeer: responderPeerId }),
+        hfsWasmResp.secureInbound(inConn, { remotePeer: initiatorPeerId })
+      ])
+    }, { iterations: 30, warmup: 5 })
+
+    printRow('Noise_XXhfs (WASM KEM)', r.opsPerSec, r.avgMs)
   }
 }
 
@@ -220,8 +293,8 @@ async function runWireSizeReport () {
 
   // XXhfs — known sizes from Phase 2 tests
   const hfs = {
-    msgA: 32 + 1216 + 0,                        // e + e1 (no AEAD yet)
-    msgB: 32 + 1136 + 48 + 16,                  // e + ekem1(1120+16) + encS(32+16) + encPayload(tag)
+    msgA: 32 + 1184 + 0,                        // e + e1 (ML-KEM-768 encap key, no AEAD yet)
+    msgB: 32 + 1104 + 48 + 16,                  // e + ekem1(1088+16) + encS(32+16) + encPayload(tag)
     msgC: 48 + 16                               // encS(32+16) + encPayload(tag) [same as XX]
   }
   const hfsTotal = hfs.msgA + hfs.msgB + hfs.msgC
@@ -244,8 +317,8 @@ async function runWireSizeReport () {
   console.log('    NoiseHandshakePayload (identity key + signature, ~100-140 bytes).')
   console.log('  - The KEM cost (+2,336 B) is amortised once per connection;')
   console.log('    it is invisible after the handshake completes.')
-  console.log('  - KEM public key: 1,216 B (ML-KEM-768 1184 + X25519 32)')
-  console.log('  - KEM ciphertext: 1,120 B (ML-KEM-768 1088 + X25519 ephemeral 32)')
+  console.log('  - KEM encapsulation key: 1,184 B (raw ML-KEM-768)')
+  console.log('  - KEM ciphertext: 1,088 B (raw ML-KEM-768), 1,104 B once AEAD-wrapped')
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -254,7 +327,7 @@ async function main () {
   const nodeVersion = process.version
   const platform = `${process.platform} ${process.arch}`
   console.log('\n╔══════════════════════════════════════════════════════════╗')
-  console.log('║   PQC Benchmark: Classical XX vs. Noise_XXhfs (X-Wing)   ║')
+  console.log('║  PQC Benchmark: Classical XX vs. Noise_XXhfs (ML-KEM)   ║')
   console.log('╚══════════════════════════════════════════════════════════╝')
   console.log(`  Node.js: ${nodeVersion}   Platform: ${platform}`)
   console.log(`  Timestamp: ${new Date().toISOString()}`)
